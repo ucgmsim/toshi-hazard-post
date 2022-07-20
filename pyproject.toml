@@ -23,7 +23,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
-toshi-hazard-store = {path = "../toshi-hazard-store"}
+toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev="2ab50eeec32bb7fe439ef8026e2935727191cb7a"}
 nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "5aeef6a7deb41b3c8e915f9f8e1e4ba42fea3b7e"}
 
 
