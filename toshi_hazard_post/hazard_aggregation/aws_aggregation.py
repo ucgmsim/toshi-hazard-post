@@ -5,11 +5,12 @@ from pathlib import Path
 
 from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
-from toshi_hazard_store.aggregate_rlzs import get_imts, get_levels, process_location_list
+from toshi_hazard_store.aggregate_rlzs import get_imts, get_levels
 from toshi_hazard_store.aggregate_rlzs_mp import build_source_branches
 from toshi_hazard_store.branch_combinator.branch_combinator import merge_ltbs_fromLT
 
-from toshi_hazard_post.local_config import WORK_PATH
+from toshi_hazard_post.local_config import SNS_AGG_TASK_TOPIC, WORK_PATH
+from toshi_hazard_post.util.sns import publish_message
 
 from .aggregation_config import AggregationConfig
 from .toshi_api_support import process_one_file
@@ -28,12 +29,13 @@ def process_aws(
     for coded_loc in coded_locations:
         log.info(f'coded_loc.code {coded_loc.downsample(0.001).code}')
         for vs30 in config.vs30s:
-            result = process_location_list(
-                [coded_loc.downsample(0.001).code], toshi_ids, source_branches, config.aggs, config.imts, levels, vs30
-            )
-            print(result)
-            log.info('done one loc one vs30')
-            return
+            # Send message to initiate the process remotely
+            publish_message({'hello': 'world'}, SNS_AGG_TASK_TOPIC)
+
+
+def push_test_message():
+    """For local SNS testing only."""
+    publish_message({'hello': 'world'}, SNS_AGG_TASK_TOPIC)
 
 
 def distribute_aggregation(config: AggregationConfig):

@@ -5,7 +5,12 @@ import os
 
 import click
 
-from toshi_hazard_post.hazard_aggregation import AggregationConfig, distribute_aggregation, process_aggregation
+from toshi_hazard_post.hazard_aggregation import (
+    AggregationConfig,
+    distribute_aggregation,
+    process_aggregation,
+    push_test_message,
+)
 
 log = logging.getLogger()
 
@@ -28,8 +33,9 @@ logging.getLogger('toshi_hazard_store').setLevel(logging.INFO)
     default=lambda: os.environ.get("NZSHM22_THP_MODE", 'LOCAL'),
     type=click.Choice(['AWS', 'LOCAL'], case_sensitive=True),
 )
+@click.option('--push-test', '-pt', is_flag=True)
 @click.argument('config', type=click.Path(exists=True))  # help="path to a valid THP configuration file."
-def main(config, mode):
+def main(config, push_test, mode):
     """Main entrypoint."""
     click.echo("Hazard post-processing pipeline as serverless AWS infrastructure.")
     click.echo(f"mode: {mode}")
@@ -37,6 +43,10 @@ def main(config, mode):
     agconf = AggregationConfig(config)
     # click.echo(agconf)
     log.info("Doit")
+
+    if push_test:
+        push_test_message()
+        return
 
     if mode == 'LOCAL':
         process_aggregation(agconf, 'prefix')

@@ -1203,6 +1203,14 @@ tqdm = ">=4.14"
 urllib3 = ">=1.26.0"
 
 [[package]]
+name = "types-pyyaml"
+version = "6.0.10"
+description = "Typing stubs for PyYAML"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "types-toml"
 version = "0.10.8"
 description = "Typing stubs for toml"
@@ -1300,7 +1308,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "afa1ad71069817ee9f078f3f10555387cc0b4bf0aeac88bbad3b5ba36d9a1fb0"
+content-hash = "cea670070715145bc6d3b2b99f167ab58d3f18244abae2a23b391340774b0e94"
 
 [metadata.files]
 aiohttp = [
@@ -1919,6 +1927,7 @@ twine = [
     {file = "twine-3.8.0-py3-none-any.whl", hash = "sha256:d0550fca9dc19f3d5e8eadfce0c227294df0a2a951251a4385797c8a6198b7c8"},
     {file = "twine-3.8.0.tar.gz", hash = "sha256:8efa52658e0ae770686a13b675569328f1fba9837e5de1867bfe5f46a9aefe19"},
 ]
+types-pyyaml = []
 types-toml = []
 typing-extensions = []
 urllib3 = []
