@@ -15,8 +15,10 @@ if os.path.exists(LOGGING_CFG):
     with open(LOGGING_CFG, 'rt') as f:
         config = yaml.safe_load(f.read())
     logging.config.dictConfig(config)
+    print(f'logging config from: {LOGGING_CFG}')
 else:
     logging.basicConfig(level=logging.DEBUG)
+    print(f'logging config not found: {LOGGING_CFG}')
 
 
 def process_event(evt):

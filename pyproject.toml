@@ -32,6 +32,7 @@ nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev 
 toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "fdfb46b07829145479fb25d54f3781edd20e82a1"}
 boto3 = "^1.24.34"
 nshm-toshi-client = "^1.0.0"
+PyYAML = "^6.0"
 
 
 [tool.poetry.dev-dependencies]

@@ -987,7 +987,7 @@ python-versions = "*"
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -1214,7 +1214,7 @@ python-versions = "*"
 name = "types-toml"
 version = "0.10.8"
 description = "Typing stubs for toml"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -1308,7 +1308,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "cea670070715145bc6d3b2b99f167ab58d3f18244abae2a23b391340774b0e94"
+content-hash = "e23257aeaf01a2539362c6793841f7dc4486bd2880333bc76d44c3a3943324e3"
 
 [metadata.files]
 aiohttp = [

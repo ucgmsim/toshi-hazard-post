@@ -119,5 +119,5 @@ functions:
       # NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
       # SLS_OFFLINE: ${env:SLS_OFFLINE}
       DEPLOYMENT_STAGE: ${self:custom.stage}
-      SNS_AGG_TASK_TOPIC: ${self:custom.is_topic_name}
+      NZSHM22_SNS_AGG_TASK_TOPIC: ${self:custom.aggregation_task_topic_name}
       NZSHM22_HAZARD_STORE_STAGE: ${self:custom.stage}

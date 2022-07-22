@@ -32,7 +32,7 @@ IS_OFFLINE = boolean_env('SLS_OFFLINE')  # set by serverless-wsgi plugin
 DEPLOYMENT_STAGE = os.getenv('DEPLOYMENT_STAGE', 'LOCAL').upper()
 LOGGING_CFG = os.getenv('LOGGING_CFG', 'toshi_hazard_post/logging.yaml')
 CLOUDWATCH_APP_NAME = os.getenv('CLOUDWATCH_APP_NAME', 'CLOUDWATCH_APP_NAME_unconfigured')
-SNS_AGG_TASK_TOPIC = os.getenv('SNS_AGG_TASK_TOPIC', 'undefined_topic')
+SNS_AGG_TASK_TOPIC = os.getenv('NZSHM22_SNS_AGG_TASK_TOPIC', 'undefined_topic')
 
 
 REGION = os.getenv('REGION', 'ap-southeast-2')  # SYDNEY
