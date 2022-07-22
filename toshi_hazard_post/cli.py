@@ -5,7 +5,7 @@ import os
 
 import click
 
-from toshi_hazard_post.hazard_aggregation import AggregationConfig, process_aggregation
+from toshi_hazard_post.hazard_aggregation import AggregationConfig, distribute_aggregation, process_aggregation
 
 log = logging.getLogger()
 
@@ -18,7 +18,7 @@ logging.getLogger('botocore').setLevel(logging.INFO)
 logging.getLogger('pynamodb').setLevel(logging.INFO)
 
 
-logging.getLogger('toshi_hazard_store').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_store').setLevel(logging.INFO)
 
 
 @click.command()
@@ -38,7 +38,12 @@ def main(config, mode):
     # click.echo(agconf)
     log.info("Doit")
 
-    process_aggregation(agconf, 'prefix')
+    if mode == 'LOCAL':
+        process_aggregation(agconf, 'prefix')
+        return
+    if mode == 'AWS':
+        distribute_aggregation(agconf)
+        return
 
 
 if __name__ == "__main__":

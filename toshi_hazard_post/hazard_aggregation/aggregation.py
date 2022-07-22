@@ -6,7 +6,7 @@ from typing import List
 
 from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
-from toshi_hazard_store.aggregate_rlzs import concat_df_files, get_imts, get_levels, process_location_list
+from toshi_hazard_store.aggregate_rlzs import concat_df_files, get_imts, get_levels
 from toshi_hazard_store.aggregate_rlzs_mp import AggHardWorker, AggTaskArgs, build_source_branches
 from toshi_hazard_store.branch_combinator.branch_combinator import merge_ltbs_fromLT
 
@@ -15,11 +15,6 @@ from .aggregation_config import AggregationConfig
 log = logging.getLogger(__name__)
 
 
-###########
-#
-# MULTIPROC
-#
-###########
 def process_local(toshi_ids, source_branches, coded_locations, levels, config, output_prefix):
     """Run task locally using Multiprocessing."""
     num_workers = 1
@@ -77,23 +72,6 @@ def process_local(toshi_ids, source_branches, coded_locations, levels, config, o
     return hazard_curves, source_branches
 
 
-def process_aws(
-    toshi_ids,
-    source_branches,
-    coded_locations,
-    levels,
-    config,
-):
-    """AWS lambda function handler function."""
-    for coded_loc in coded_locations:
-        log.info(f'coded_loc.code {coded_loc.downsample(0.001).code}')
-        for vs30 in config.vs30s:
-            result = process_location_list(
-                [coded_loc.downsample(0.001).code], toshi_ids, source_branches, config.aggs, config.imts, levels, vs30
-            )
-            print(result)
-
-
 def process_aggregation(config: AggregationConfig, output_prefix=''):
     """Configure the tasks."""
     omit: List[str] = []
@@ -118,5 +96,4 @@ def process_aggregation(config: AggregationConfig, output_prefix=''):
     for imt in config.imts:
         assert imt in avail_imts
 
-    # process_local(toshi_ids, source_branches, coded_locations, levels, config, output_prefix)
-    process_aws(toshi_ids, source_branches, coded_locations, levels, config)
+    process_local(toshi_ids, source_branches, coded_locations, levels, config, output_prefix)
