@@ -26,6 +26,12 @@ logging.getLogger('pynamodb').setLevel(logging.INFO)
 logging.getLogger('toshi_hazard_store').setLevel(logging.INFO)
 
 
+#  _ __ ___   __ _(_)_ __
+# | '_ ` _ \ / _` | | '_ \
+# | | | | | | (_| | | | | |
+# |_| |_| |_|\__,_|_|_| |_|
+
+
 @click.command()
 @click.option(
     '--mode',
