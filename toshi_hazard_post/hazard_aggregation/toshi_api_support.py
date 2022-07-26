@@ -20,7 +20,7 @@ def create_archive(filename: str, working_path: Union[str, PurePath]) -> str:
     raise Exception("file does not exist.")
 
 
-def process_one_file(filepath: str, tag: str = None) -> str:
+def save_sources_to_toshi(filepath: str, tag: str = None) -> str:
     """Archive and upload one file."""
     log.info(f"Processing */{Path(filepath).name} :: {tag}")
 
@@ -35,7 +35,7 @@ def process_one_file(filepath: str, tag: str = None) -> str:
     if tag:
         meta['tag'] = str(tag)
 
-    archive_file_id, post_url = toshi_api.create_file(archive_path, meta=meta)
+    archive_file_id, post_url = toshi_api.create_file(Path(archive_path), meta=meta)
     toshi_api.upload_content(post_url, archive_path)
     log.info(f"pushed {archive_path} to ToshiAPI {API_URL} with id {archive_file_id}")
     return archive_file_id

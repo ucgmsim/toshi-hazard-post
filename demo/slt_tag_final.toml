@@ -1,5 +1,6 @@
 [aggregation]
-description = "Source Logic Tree TAG_FINAL"
+hazard_model_id = "HAZARD_MODEL_TEST_1"
+# description = "Source Logic Tree TAG_FINAL"
 stage = "PROD"
 vs30s = [ 400 ]
 imts = ["PGA", "SA(0.1)", "SA(0.2)", "SA(0.3)", "SA(0.4)", "SA(0.5)", "SA(0.7)", "SA(1.0)", "SA(1.5)", "SA(2.0)", "SA(3.0)", "SA(4.0)", "SA(5.0)"]
@@ -8,4 +9,5 @@ locations = "NZ_0_2_NB_1_1"
 logic_tree_file = "SLT_TAG_FINAL.json"
 
 [debug]
-location_limit = 30
+location_limit = 1
+source_branches_truncate = 1

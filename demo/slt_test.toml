@@ -1,5 +1,6 @@
 [aggregation]
-description = "Source Logic Tree 37_GRANULAR_RELEASE_1"
+hazard_model_id = "HAZARD_MODEL_TEST_1"
+#description = "Source Logic Tree 37_GRANULAR_RELEASE_1"
 stage = "TEST"
 vs30s = [ 400 ]
 imts = ["PGA", "SA(0.1)", "SA(0.2)", "SA(0.3)", "SA(0.4)", "SA(0.5)", "SA(0.7)", "SA(1.0)", "SA(1.5)", "SA(2.0)", "SA(3.0)", "SA(4.0)", "SA(5.0)"]

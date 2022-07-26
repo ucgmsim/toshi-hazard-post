@@ -36,3 +36,4 @@ repos:
           - types-click
           - types-toml
           - types-PyYAML
+          - types-requests

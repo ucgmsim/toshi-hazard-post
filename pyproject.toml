@@ -32,7 +32,7 @@ nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev 
 boto3 = "^1.24.34"
 nshm-toshi-client = "^1.0.0"
 PyYAML = "^6.0"
-toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "7ba65337ec946c8240266a067dfc1ed0b8d70c6a"}
+toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "8ebd3257deca1a79af5865796e7aee37cb4913ee"}
 
 
 [tool.poetry.dev-dependencies]
@@ -67,7 +67,7 @@ bump2version = {version = "^1.0.1"}
 jinja2 = {version = "3.0.3"}
 types-PyYAML = "^6.0.10"
 types-toml = "^0.10.8"
-
+types-requests = "^2.28.5"
 
 [tool.poetry.extras]
 test = [
