@@ -41,7 +41,7 @@ log.addHandler(screen_handler)
     '--mode',
     '-m',
     default=lambda: os.environ.get("NZSHM22_THP_MODE", 'LOCAL'),
-    type=click.Choice(['AWS', 'LOCAL'], case_sensitive=True),
+    type=click.Choice(['AWS', 'AWS_BATCH', 'LOCAL'], case_sensitive=True),
 )
 @click.option('--push-sns-test', '-pt', is_flag=True)
 @click.option('--migrate-tables', '-M', is_flag=True)
@@ -66,7 +66,7 @@ def main(config, mode, push_sns_test, migrate_tables):
         if migrate_tables:
             click.echo("Ensuring that dynamodb tables are available in target region & stage.")
             migrate()
-        distribute_aggregation(agconf)
+        distribute_aggregation(agconf, mode)
         return
 
 

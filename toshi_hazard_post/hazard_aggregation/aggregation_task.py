@@ -250,3 +250,7 @@ def handler(event, context):
     for evt in event.get('Records', []):
         process_event(evt)
     return True
+
+
+if __name__ == '__main_':
+    pass  # noqa
