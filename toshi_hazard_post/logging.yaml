@@ -14,7 +14,7 @@ handlers:
 loggers:
 
   toshi_hazard_post.hazard_aggregation:
-    level: INFO
+    level: DEBUG
     handlers: [console]
     propagate: no
 

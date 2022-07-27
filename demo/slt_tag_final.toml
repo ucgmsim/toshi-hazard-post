@@ -10,4 +10,6 @@ logic_tree_file = "SLT_TAG_FINAL.json"
 
 [debug]
 location_limit = 1
-source_branches_truncate = 1
+# source_branches_truncate = 1
+# reuse_source_branches_id = "RmlsZToxMTc3NDU=" # can I comment inline ??
+reuse_source_branches_id = "RmlsZToxMTc3NDc=" # FULL source_branches.json from

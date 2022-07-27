@@ -2,6 +2,7 @@
 
 import logging
 import os
+import sys
 
 import click
 from toshi_hazard_store.model import migrate_v3 as migrate
@@ -19,8 +20,14 @@ logging.getLogger('nshm_toshi_client.toshi_client_base').setLevel(logging.INFO)
 logging.getLogger('urllib3').setLevel(logging.INFO)
 logging.getLogger('botocore').setLevel(logging.INFO)
 logging.getLogger('pynamodb').setLevel(logging.INFO)
+logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)
 logging.getLogger('toshi_hazard_store').setLevel(logging.INFO)
-logging.getLogger('toshi_hazard_store').setLevel(logging.DEBUG)
+logging.getLogger('gql.transport.requests').setLevel(logging.WARN)
+
+formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+screen_handler = logging.StreamHandler(stream=sys.stdout)
+screen_handler.setFormatter(formatter)
+log.addHandler(screen_handler)
 
 
 #  _ __ ___   __ _(_)_ __

@@ -48,6 +48,11 @@ provider:
          - "SNS:ListTopics"
          - "SNS:CreateTopic"
          - "cloudwatch:PutMetricData"
+         - "secretsmanager:ListSecrets"
+         - "secretsmanager:GetResourcePolicy"
+         - "secretsmanager:GetSecretValue"
+         - "secretsmanager:DescribeSecret"
+         - "secretsmanager:ListSecretVersionIds"
        Resource: "*"
 
 
@@ -115,9 +120,10 @@ functions:
           topicName: ${self:custom.aggregation_task_topic_name}
     environment:
       NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
-      NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
+      # NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       # NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
       # SLS_OFFLINE: ${env:SLS_OFFLINE}
       DEPLOYMENT_STAGE: ${self:custom.stage}
       NZSHM22_SNS_AGG_TASK_TOPIC: ${self:custom.aggregation_task_topic_name}
       NZSHM22_HAZARD_STORE_STAGE: ${self:custom.stage}
+      NZSHM22_HAZARD_STORE_REGION: ${self:custom.region}

@@ -28,10 +28,14 @@ class AggregationConfig:
         self.locations = self.config['aggregation']['locations']
         self._load_ltf()
 
+        # debug/test option defaults
         self.location_limit = 0
+        self.source_branches_truncate = 0
+        self.reuse_source_branches_id = None
         if self.config.get('debug'):
             self.location_limit = self.config.get('debug').get('location_limit', 0)
             self.source_branches_truncate = self.config.get('debug').get('source_branches_truncate', 0)
+            self.reuse_source_branches_id = self.config.get('debug').get('reuse_source_branches_id')
 
     def _load_ltf(self):
         ltf = Path(Path(self._config_file).parent, self.config['aggregation']['logic_tree_file'])

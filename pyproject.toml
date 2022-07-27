@@ -33,6 +33,10 @@ boto3 = "^1.24.34"
 nshm-toshi-client = "^1.0.0"
 PyYAML = "^6.0"
 toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "8ebd3257deca1a79af5865796e7aee37cb4913ee"}
+requests = "^2.28.1"
+pandas = "^1.4.3"
+requests-toolbelt = "^0.9.1"
+toml = "^0.10.2"
 
 
 [tool.poetry.dev-dependencies]
