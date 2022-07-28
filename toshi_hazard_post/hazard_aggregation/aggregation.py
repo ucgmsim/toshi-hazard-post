@@ -4,9 +4,8 @@ import multiprocessing
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Iterator, List
+from typing import List
 
-import pandas as pd
 from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
@@ -47,30 +46,6 @@ class DistributedAggregationTaskArguments:
     vs30s: List[int]
 
 
-def models_from_dataframe(
-    location: CodedLocation, data: pd.DataFrame, args: AggTaskArgs
-) -> Iterator[model.HazardAggregation]:
-    """Generate for HazardAggregation models from dataframe."""
-    for agg in args.aggs:
-        values = []
-        df_agg = data[data['agg'] == agg]
-        for imt, val in enumerate(args.imts):
-            values.append(
-                model.IMTValuesAttribute(
-                    imt=val,
-                    lvls=df_agg.level.tolist(),
-                    vals=df_agg.hazard.tolist(),
-                )
-            )
-        # print(values[0])
-        yield model.HazardAggregation(
-            values=values,
-            vs30=args.vs30,
-            agg=agg,
-            hazard_model_id=args.hazard_model_id,
-        ).set_location(location)
-
-
 def build_source_branches(logic_tree_permutations, gtdata, vs30, omit, truncate=None):
     """ported from THS. aggregate_rlzs_mp"""
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit))
@@ -98,7 +73,7 @@ def process_location_list(task_args):
     levels = task_args.levels
     vs30 = task_args.vs30
 
-    print(locs)
+    # print(locs)
     log.info('get values for %s locations and %s hazard_solutions' % (len(locs), len(toshi_ids)))
     log.debug('aggs: %s' % (aggs))
     log.debug('imts: %s' % (imts))
@@ -113,82 +88,48 @@ def process_location_list(task_args):
         log.info('missing values: %s' % (values))
         return
 
-    columns = ['lat', 'lon', 'imt', 'agg', 'level', 'hazard']
-    index = range(len(locs) * len(imts) * len(aggs) * len(levels))
-    binned_hazard_curves = pd.DataFrame(columns=columns, index=index)
-
-    nlocs = len(locs)
-    naggs = len(aggs)
-    nlevels = len(levels)
-
-    cnt = 0
-    start_imt = 0
     for imt in imts:
-
         log.info('process_location_list() working on imt: %s' % imt)
-        tic_imt = time.perf_counter()
-        start_loc = start_imt
-        stop_imt = start_imt + nlocs * naggs * nlevels
-        binned_hazard_curves.loc[start_imt:stop_imt, 'imt'] = imt
-        start_imt = stop_imt
 
+        tic_imt = time.perf_counter()
         for loc in locs:
             lat, lon = loc.split('~')
-            start_agg = start_loc
-            stop_loc = start_loc + naggs * nlevels
-            binned_hazard_curves.loc[start_loc:stop_loc, 'lat'] = lat
-            binned_hazard_curves.loc[start_loc:stop_loc, 'lon'] = lon
-            start_loc = stop_loc
-
+            location = CodedLocation(float(lat), float(lon))
             log.debug('build_branches imt: %s, loc: %s, vs30: %s' % (imt, loc, vs30))
 
             # tic1 = time.perf_counter()
-
             # TODO: make these two functions more readable
             weights, branch_probs = build_branches(source_branches, values, imt, loc, vs30)
             hazard = calculate_aggs(branch_probs, aggs, weights)
             # toc1 = time.perf_counter()
             # print(f'time to calculate_aggs {toc1-tic1} seconds')
 
-            for aggind, agg in enumerate(aggs):
-                stop_agg = start_agg + nlevels
-                binned_hazard_curves.loc[start_agg:stop_agg, 'agg'] = str(agg)
-                start_agg = stop_agg
+            with model.HazardAggregation.batch_write() as batch:
+                for aggind, agg in enumerate(aggs):
+                    hazard_vals = []
+                    for j, level in enumerate(levels):
+                        hazard_vals.append((level, hazard[j, aggind]))  # tuple lvl, val
 
-                for j, level in enumerate(levels):
-                    binned_hazard_curves.loc[cnt, 'level':'hazard'] = pd.Series(
-                        {'level': level, 'hazard': hazard[j, aggind]}
-                    )
-                    cnt += 1
+                    if not hazard_vals:
+                        log.debug('no hazard_vals for agg %s imt %s' % (agg, imt))
+                        continue
+                    else:
+                        log.debug('hazard_vals :%s' % hazard_vals)
+
+                    hag = model.HazardAggregation(
+                        values=[model.LevelValuePairAttribute(lvl=lvl, val=val) for lvl, val in hazard_vals],
+                        vs30=vs30,
+                        imt=imt,
+                        agg=agg,
+                        hazard_model_id=task_args.hazard_model_id,
+                    ).set_location(location)
+                    batch.save(hag)
 
         toc_imt = time.perf_counter()
         log.info('imt: %s took %.3f secs' % (imt, (toc_imt - tic_imt)))
 
-    # TODO maybe this filtering isn't needed if we always have just one location, but do we? ....
-    tic_db = time.perf_counter()
-    for loc in locs:
-        lat, lon = loc.split('~')
-        log.debug(binned_hazard_curves)
-        df_bhc = binned_hazard_curves
-        loc_df = df_bhc[(df_bhc['lat'] == lat) & (df_bhc['lon'] == lon)]
-        log.debug(loc_df)
-
-        coded_loc = CodedLocation(float(lat), float(lon))
-        log.debug(coded_loc)
-        save_location_results(coded_loc, loc_df, task_args)
-
-    toc_db = time.perf_counter()
-    log.info('process_location_list save to db took %.3f secs' % (toc_db - tic_db))
     toc_fn = time.perf_counter()
     log.info('process_location_list took %.3f secs' % (toc_fn - tic_fn))
-    return binned_hazard_curves
-
-
-def save_location_results(coded_loc, binned_hazard_df, task_args):
-    """Save the results."""
-    with model.HazardAggregation.batch_write() as batch:
-        for hag in models_from_dataframe(coded_loc, binned_hazard_df, task_args):
-            batch.save(hag)
 
 
 class AggregationWorkerMP(multiprocessing.Process):

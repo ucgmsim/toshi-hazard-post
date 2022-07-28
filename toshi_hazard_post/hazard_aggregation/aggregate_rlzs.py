@@ -1,23 +1,22 @@
 import ast
-import csv
 import itertools
 import logging
 import math
 import time
 from functools import reduce
 from operator import mul
-from typing import List
 
 import numpy as np
 import pandas as pd
-from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
-from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
 
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_DATA import data as gtdata
-from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
+# from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
 from toshi_hazard_store.data_functions import weighted_quantile
-from toshi_hazard_store.locations import locations_nzpt2_and_nz34_binned, locations_nzpt2_and_nz34_chunked
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
+
+# from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
+# from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
+
 
 inv_time = 1.0
 VERBOSE = True
@@ -191,33 +190,6 @@ def build_source_branch(values, rlz_combs, imt, loc):
     return prob_table
 
 
-# def build_source_branch_ws(values, rlz_combs, weights):
-#     '''DEPRECIATED'''
-
-#     branch_weights = []
-#     for i, rlz_comb in enumerate(rlz_combs):
-#         branch_weight = 1
-#         rate = np.zeros(next(iter(values.values())).shape)
-#         for rlz in rlz_comb:
-#             print(rlz)
-#             rate += prob_to_rate(values[rlz]) * weights[rlz]
-#             branch_weight *= weights[rlz]
-
-#         prob = rate_to_prob(rate)
-#         print(rate)
-#         print('-' * 50)
-#         print(prob)
-#         print('=' * 50)
-
-#         if i == 0:
-#             prob_table = np.array(prob)
-#         else:
-#             prob_table = np.vstack((prob_table, np.array(prob)))
-#         branch_weights.append(branch_weight)
-
-#     return prob_table, branch_weights
-
-
 def calculate_aggs(branch_probs, aggs, weight_combs):
 
     tic = time.perf_counter()
@@ -261,23 +233,6 @@ def build_branches(source_branches, values, imt, loc, vs30):
     return weights, branch_probs
 
 
-def read_locs():
-    '''DEPRECATED'''
-
-    csv_file_path = '/home/chrisdc/NSHM/DEV/toshi-hazard-store/data/hazard_curve-mean-PGA_35.csv'
-    with open(csv_file_path) as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        _ = next(reader)
-        _ = next(reader)
-        location_codes = []
-        for row in reader:
-            lon = float(row[1])
-            lat = float(row[2])
-            location_codes.append(f'{lat:0.3f}~{lon:0.3f}')
-
-    return location_codes
-
-
 def load_source_branches():
 
     source_branches = [
@@ -299,7 +254,8 @@ def get_levels(source_branches, locs, vs30):
     return hazard.values[0].lvls
 
 
-# TODO: this is migrated. to THP now."""
+"""
+# TODO: this is migrated. to THP now.
 def process_location_list(locs, toshi_ids, source_branches, aggs, imts, levels, vs30):
     log.info('get values for %s locations and %s hazard_solutions' % (len(locs), len(toshi_ids)))
     log.debug('aggs: %s' % (aggs))
@@ -375,6 +331,7 @@ def process_location_list(locs, toshi_ids, source_branches, aggs, imts, levels, 
     toc_fn = time.perf_counter()
     log.info('process_location_list took %.3f secs' % (toc_fn - tic_fn))
     return binned_hazard_curves
+"""
 
 
 def concat_df_files(df_file_names):
@@ -488,7 +445,8 @@ def get_source_and_gsim(rlz, vs30):
 
 
 if __name__ == "__main__":
-
+    pass
+    """
     tic_total = time.perf_counter()
 
     # TODO: I'm making assumptions that the levels array is the same for every realization, imt, run, etc.
@@ -542,3 +500,4 @@ if __name__ == "__main__":
     print(f'total time: {toc-tic_total:.1f} seconds')
 
     print(hazard_curves)
+    """
