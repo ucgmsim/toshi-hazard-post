@@ -36,3 +36,4 @@ SNS_AGG_TASK_TOPIC = os.getenv('NZSHM22_SNS_AGG_TASK_TOPIC', 'undefined_topic')
 
 REGION = os.getenv('REGION', 'ap-southeast-2')  # SYDNEY
 NZSHM22_HAZARD_STORE_STAGE = os.getenv('NZSHM22_HAZARD_STORE_STAGE', 'LOCAL').upper()
+NUM_WORKERS = int(os.getenv('NZSHM22_HAZARD_POST_WORKERS', 1))

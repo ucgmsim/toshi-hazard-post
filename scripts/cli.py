@@ -7,12 +7,8 @@ import sys
 import click
 from toshi_hazard_store.model import migrate_v3 as migrate
 
-from toshi_hazard_post.hazard_aggregation import (
-    AggregationConfig,
-    distribute_aggregation,
-    process_aggregation,
-    push_test_message,
-)
+from toshi_hazard_post.hazard_aggregation import AggregationConfig, process_aggregation
+from toshi_hazard_post.hazard_aggregation.aws_aggregation import distribute_aggregation, push_test_message
 
 log = logging.getLogger()
 logging.basicConfig(level=logging.DEBUG)
@@ -62,7 +58,7 @@ def main(config, mode, push_sns_test, migrate_tables):
     if mode == 'LOCAL':
         process_aggregation(agconf, 'prefix')
         return
-    if mode == 'AWS':
+    if 'AWS' in mode:
         if migrate_tables:
             click.echo("Ensuring that dynamodb tables are available in target region & stage.")
             migrate()

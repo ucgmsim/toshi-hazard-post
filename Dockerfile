@@ -49,7 +49,9 @@ ADD README.md ./
 RUN poetry install --no-interaction --no-dev
 
 # Clean up project files. You can add them with a Docker mount later.
-RUN rm pyproject.toml poetry.lock
+# RUN rm pyproject.toml poetry.lock
+
+ADD scripts scripts
 
 # Hide virtual env prompt
 # ENV VIRTUAL_ENV_DISABLE_PROMPT 1

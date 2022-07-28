@@ -4,7 +4,7 @@
 import pytest
 from click.testing import CliRunner
 
-from toshi_hazard_post import cli
+from scripts import cli
 
 
 @pytest.fixture

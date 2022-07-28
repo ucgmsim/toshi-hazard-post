@@ -118,14 +118,14 @@ dev = ["build (==0.8.0)", "flake8 (==4.0.1)", "hashin (==0.17.0)", "pip-tools (=
 
 [[package]]
 name = "boto3"
-version = "1.24.38"
+version = "1.24.39"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 
 [package.dependencies]
-botocore = ">=1.27.38,<1.28.0"
+botocore = ">=1.27.39,<1.28.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -134,7 +134,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.27.38"
+version = "1.27.39"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -187,7 +187,7 @@ unicode_backport = ["unicodedata2"]
 name = "click"
 version = "8.1.3"
 description = "Composable command line interface toolkit"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -198,7 +198,7 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 name = "colorama"
 version = "0.4.5"
 description = "Cross-platform colored terminal text."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -1110,8 +1110,8 @@ doc = []
 [package.source]
 type = "git"
 url = "https://github.com/GNS-Science/toshi-hazard-store.git"
-reference = "8ebd3257deca1a79af5865796e7aee37cb4913ee"
-resolved_reference = "8ebd3257deca1a79af5865796e7aee37cb4913ee"
+reference = "756987cb1a9b91d8ed2598d4bc3b9071a49fffd3"
+resolved_reference = "756987cb1a9b91d8ed2598d4bc3b9071a49fffd3"
 
 [[package]]
 name = "tox"
@@ -1230,7 +1230,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "virtualenv"
-version = "20.16.0"
+version = "20.16.1"
 description = "Virtual Python Environment builder"
 category = "dev"
 optional = false
@@ -1296,7 +1296,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "61e1aaba8a624af87abf4d183babf69b6491193ab3088fde3b93da70095aeba5"
+content-hash = "f173ff76b4ec76e53be4d1e5656e47f06b408f9f156d8f8dd03b345cea4b56a8"
 
 [metadata.files]
 aiohttp = [
@@ -1426,12 +1426,12 @@ bleach = [
     {file = "bleach-5.0.1.tar.gz", hash = "sha256:0d03255c47eb9bd2f26aa9bb7f2107732e7e8fe195ca2f64709fcf3b0a4a085c"},
 ]
 boto3 = [
-    {file = "boto3-1.24.38-py3-none-any.whl", hash = "sha256:bcf97fd7c494f4e2bbbe2511625500654179c0a6b3bea977d46f97af764e85a4"},
-    {file = "boto3-1.24.38.tar.gz", hash = "sha256:f4c6b025f392c934338c7f01badfddbd0d3cf2397ff5df35c31409798dce33f5"},
+    {file = "boto3-1.24.39-py3-none-any.whl", hash = "sha256:057b4132e81f5ba63dc7d9d989023f3e81216999d76edabffade5bad5ae9bd3e"},
+    {file = "boto3-1.24.39.tar.gz", hash = "sha256:c303fa76dde0422476ed2413fde8e34f539fede087910ad1f911fee6546a4be3"},
 ]
 botocore = [
-    {file = "botocore-1.27.38-py3-none-any.whl", hash = "sha256:46a0264ff3335496bd9cb404f83ec0d8eb7bfdef8f74a830c13e6a6b9612adea"},
-    {file = "botocore-1.27.38.tar.gz", hash = "sha256:56a7682564ea57ceecfef5648f77b77e0543b9c904212fc9ef4416517d24fa45"},
+    {file = "botocore-1.27.39-py3-none-any.whl", hash = "sha256:b5eb8731542e7e987465be80ce206d72de6774e16d4e808e636d92c467779d7e"},
+    {file = "botocore-1.27.39.tar.gz", hash = "sha256:12d9f5866da51738201d00f6df76571e2f46233d8effb5cdcfe871616bff6197"},
 ]
 bump2version = [
     {file = "bump2version-1.0.1-py2.py3-none-any.whl", hash = "sha256:37f927ea17cde7ae2d7baf832f8e80ce3777624554a653006c9144f8017fe410"},
@@ -2094,8 +2094,8 @@ urllib3 = [
     {file = "urllib3-1.26.11.tar.gz", hash = "sha256:ea6e8fb210b19d950fab93b60c9009226c63a28808bc8386e05301e25883ac0a"},
 ]
 virtualenv = [
-    {file = "virtualenv-20.16.0-py2.py3-none-any.whl", hash = "sha256:2202dbc33c4f9aaa13289d244d64f2ade8b0169e88d0213b505099b384c5ae04"},
-    {file = "virtualenv-20.16.0.tar.gz", hash = "sha256:6cfedd21e7584124a1d1e8f3b6e74c0bf8aeea44d9884b6d2d7241de5361a73c"},
+    {file = "virtualenv-20.16.1-py2.py3-none-any.whl", hash = "sha256:bde925b831f36053a0fa7a468ca337dee26851c9f0bfc3d72a79d534703102d2"},
+    {file = "virtualenv-20.16.1.tar.gz", hash = "sha256:6cc42cad4d1a15c7ea5ed68e602eb49cc243b52d2eead36e577555cb56bf8705"},
 ]
 watchdog = [
     {file = "watchdog-2.1.9-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:a735a990a1095f75ca4f36ea2ef2752c99e6ee997c46b0de507ba40a09bf7330"},

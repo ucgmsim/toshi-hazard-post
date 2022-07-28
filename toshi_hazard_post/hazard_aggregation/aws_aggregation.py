@@ -8,25 +8,29 @@ from typing import Dict
 import boto3
 from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
-from toshi_hazard_store.aggregate_rlzs import get_imts, get_levels
-from toshi_hazard_store.aggregate_rlzs_mp import build_source_branches
+
+# from toshi_hazard_store.aggregate_rlzs_mp import build_source_branches
 from toshi_hazard_store.branch_combinator.branch_combinator import merge_ltbs_fromLT
+from toshi_hazard_store.locations import locations_by_chunk
 
 import toshi_hazard_post.hazard_aggregation.aggregation_task
 from toshi_hazard_post.local_config import API_URL, S3_URL, SNS_AGG_TASK_TOPIC, WORK_PATH
 from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 from toshi_hazard_post.util.sns import publish_message
 
+from .aggregate_rlzs import get_imts, get_levels
+from .aggregation import DistributedAggregationTaskArguments, build_source_branches
+
 # from toshi_hazard_post.util.util import compress_config
 from .aggregation_config import AggregationConfig
-from .aggregation_task import DistributedAggregationTaskArguments, fetch_source_branches
+from .aggregation_task import fetch_source_branches
 from .toshi_api_support import save_sources_to_toshi
 
 log = logging.getLogger(__name__)
 
 
 def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
-    """Create an AWS BAtch job configuration."""
+    """Create an AWS Batch job configuration."""
     job_name = f"ToshiHazardPost-HazardAggregation-{task_id}"
     config_data = dict(task_arguments=task_arguments, job_arguments=job_arguments)
     extra_env = [
@@ -35,19 +39,6 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
         # BatchEnvironmentSetting(name="NZSHM22_HAZARD_STORE_NUM_WORKERS", value="1"),
         # DEPLOYMENT_STAGE: ${self:custom.stage}
     ]
-
-    # job_name,
-    # config,
-    # toshi_api_url,
-    # toshi_s3_url,
-    # task_module,
-    # time_minutes,
-    # memory,
-    # vcpu,
-    # job_definition="Fargate-runzi-opensha-JD",
-    # job_queue="BasicFargate_Q",
-    # extra_env: List[BatchEnvironmentSetting] = None,
-    # use_compression=False,
     return get_ecs_job_config(
         job_name,
         config_data,
@@ -112,40 +103,57 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
         if not config.location_limit
         else load_grid(config.locations)[: config.location_limit]
     )
-    coded_locations = [CodedLocation(*loc) for loc in locations]
 
-    example_loc_code = coded_locations[0].downsample(0.001).code
-    levels = get_levels(source_branches, [example_loc_code], config.vs30s[0])  # TODO: get seperate levels for every IMT
+    example_loc_code = CodedLocation(*locations[0]).downsample(0.001).code
+
+    log.debug('example_loc_code %s' % example_loc_code)
+
+    levels = get_levels(
+        source_branches, [example_loc_code], config.vs30s[0]
+    )  # TODO: get separate levels for every IMT ?
     avail_imts = get_imts(source_branches, config.vs30s[0])
     for imt in config.imts:
         assert imt in avail_imts
 
-    task_count = 0
-    batch_client = boto3.client(
-        service_name='batch', region_name='us-east-1', endpoint_url='https://batch.us-east-1.amazonaws.com'
-    )
+    if process_mode == 'AWS_BATCH':
 
-    for coded_loc in coded_locations:
-        log.info(f'coded_loc.code {coded_loc.downsample(0.001).code}')
-        for vs30 in config.vs30s:
-
-            data = DistributedAggregationTaskArguments(
-                config.hazard_model_id, source_branches_id, toshi_ids, coded_loc, config.aggs, config.imts, levels, vs30
-            )
-            if process_mode == 'AWS_BATCH':
-                task_count += 1
-                job_config = batch_job_config(
-                    task_arguments=asdict(data), job_arguments=dict(task_id=task_count), task_id=task_count
-                )
-                print('AWS_CONFIG: ', job_config)
-                assert 0
-                res = batch_client.submit_job(**job_config)
-                print(res)
-            else:
-                # for agg in config.aggs:
-                # Send message to initiate the process remotely
-                publish_message({'aggregation_task_arguments': asdict(data)}, SNS_AGG_TASK_TOPIC)
-
-            print(data)
-            log.info('task done')
+        batch_client = boto3.client(
+            service_name='batch', region_name='us-east-1', endpoint_url='https://batch.us-east-1.amazonaws.com'
+        )
+        for job_config in batch_job_configs(config, locations, toshi_ids, source_branches_id, levels, config.vs30s):
+            print('AWS_CONFIG: ', job_config)
             assert 0
+            res = batch_client.submit_job(**job_config)
+            print(res)
+
+    if process_mode == 'AWS_LAMBDA':
+        """Not really tested recently, lambda too puny for this work. TODO: deprecate."""
+        pass
+        """
+        coded_locations = [CodedLocation(*loc) for loc in locations]
+        for data in lambda_job_configs(config, coded_locations, toshi_ids, source_branches, levels, vs30):
+            print('lamba_CONFIG: ', data)
+            # Send message to initiate the process remotely
+            publish_message({'aggregation_task_arguments': asdict(data)}, SNS_AGG_TASK_TOPIC)
+        """
+
+
+def batch_job_configs(config, locations, toshi_ids, source_branches_id, levels, vs30s):
+    task_count = 0
+    log.debug('len locations %s' % len(locations))
+    for key, coded_locs in locations_by_chunk(locations, point_res=0.001, chunk_size=16).items():
+        # for key, coded_locs in locations_by_degree(locations, grid_res=1.0, point_res=0.001).items():
+        log.info('key: %s coded_locs[:3]: %s len(coded_locs): %s' % (key, coded_locs[:3], len(coded_locs)))
+        coded_locs_as_dicts = [asdict(loc) for loc in coded_locs]
+        data = DistributedAggregationTaskArguments(
+            config.hazard_model_id,
+            source_branches_id,
+            toshi_ids,
+            coded_locs_as_dicts,
+            config.aggs,
+            config.imts,
+            levels,
+            vs30s,
+        )
+        task_count += 1
+        yield batch_job_config(task_arguments=asdict(data), job_arguments=dict(task_id=task_count), task_id=task_count)

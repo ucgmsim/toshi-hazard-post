@@ -3,27 +3,37 @@
 
 [![pypi](https://img.shields.io/pypi/v/toshi-hazard-post.svg)](https://pypi.org/project/toshi-hazard-post/)
 [![python](https://img.shields.io/pypi/pyversions/toshi-hazard-post.svg)](https://pypi.org/project/toshi-hazard-post/)
-[![Build Status](https://github.com/chrisbc/toshi-hazard-post/actions/workflows/dev.yml/badge.svg)](https://github.com/chrisbc/toshi-hazard-post/actions/workflows/dev.yml)
-[![codecov](https://codecov.io/gh/chrisbc/toshi-hazard-post/branch/main/graphs/badge.svg)](https://codecov.io/github/chrisbc/toshi-hazard-post)
+[![Build Status](https://github.com/gns-science/toshi-hazard-post/actions/workflows/dev.yml/badge.svg)](https://github.com/gns-science/toshi-hazard-post/actions/workflows/dev.yml)
+[![codecov](https://codecov.io/gh/gns-science/toshi-hazard-post/branch/main/graphs/badge.svg)](https://codecov.io/github/gns-science/toshi-hazard-post)
 
 
 
 Hazard post-processing pipeline as serverless AWS infrastructure.
 
 
-* Documentation: <https://chrisbc.github.io/toshi-hazard-post>
-* GitHub: <https://github.com/chrisbc/toshi-hazard-post>
+* Documentation: <https://gns-science.github.io/toshi-hazard-post>
+* GitHub: <https://github.com/gns-science/toshi-hazard-post>
 * PyPI: <https://pypi.org/project/toshi-hazard-post/>
-* Free software: MIT
+* Free software: AGPL
 
 
 ## Features
 
-* TODO
+* Run hazard aggregation task LOCAL or DOCKER or LAMBDA `python3 -m toshi_hazard_post.cli`
 
 ## Usage
 
-### Deployment
+### BATCH Deployment (for BATCH)
+
+```
+docker build . -t toshi-hazard-post
+docker run --rm -it toshi-hazard-post -s bash
+/app$> python toshi_hazard_post.cli --help
+
+```
+ TODO -> DOCKER_BUILD.md
+
+### Serverless Deployment (for Lambda now, BATCH later)
 
 In order to deploy the example, you need to run the following command:
 
