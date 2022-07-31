@@ -14,7 +14,7 @@ from toshi_hazard_store.branch_combinator.branch_combinator import merge_ltbs_fr
 from toshi_hazard_store.locations import locations_by_chunk
 
 import toshi_hazard_post.hazard_aggregation.aggregation_task
-from toshi_hazard_post.local_config import API_URL, S3_URL, SNS_AGG_TASK_TOPIC, WORK_PATH
+from toshi_hazard_post.local_config import API_URL, NUM_WORKERS, S3_URL, SNS_AGG_TASK_TOPIC, WORK_PATH
 from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 from toshi_hazard_post.util.sns import publish_message
 
@@ -28,6 +28,10 @@ from .toshi_api_support import save_sources_to_toshi
 
 log = logging.getLogger(__name__)
 
+TEST_SIZE = 16  # HOW many locations to run MAX (also see TOML limit)
+MEMORY = 15360  # 7168 #8192 #30720 #15360 # 10240
+# NUM_WORKERS = 4
+
 
 def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
     """Create an AWS Batch job configuration."""
@@ -36,7 +40,7 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
     extra_env = [
         BatchEnvironmentSetting(name="NZSHM22_HAZARD_STORE_STAGE", value="PROD"),
         BatchEnvironmentSetting(name="NZSHM22_HAZARD_STORE_REGION", value="ap-southeast-2"),
-        # BatchEnvironmentSetting(name="NZSHM22_HAZARD_STORE_NUM_WORKERS", value="1"),
+        BatchEnvironmentSetting(name="NZSHM22_HAZARD_POST_WORKERS", value=str(NUM_WORKERS)),
         # DEPLOYMENT_STAGE: ${self:custom.stage}
     ]
     return get_ecs_job_config(
@@ -46,9 +50,10 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
         toshi_s3_url=S3_URL,
         task_module=toshi_hazard_post.hazard_aggregation.aggregation_task.__name__,
         time_minutes=120,
-        memory=30720,
-        vcpu=4,
-        job_definition="Fargate-runzi-openquake-JD",
+        memory=MEMORY,
+        vcpu=NUM_WORKERS,
+        job_definition="BigLeverOnDemandEC2-THP-HazardAggregation",
+        job_queue="BigLeverOnDemandEC2-job-queue",  # "BigLever_32GB_8VCPU_v2_JQ", #
         extra_env=extra_env,
         use_compression=True,
     )
@@ -122,9 +127,10 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
         )
         for job_config in batch_job_configs(config, locations, toshi_ids, source_branches_id, levels, config.vs30s):
             print('AWS_CONFIG: ', job_config)
-            assert 0
+            print()
             res = batch_client.submit_job(**job_config)
             print(res)
+            print()
 
     if process_mode == 'AWS_LAMBDA':
         """Not really tested recently, lambda too puny for this work. TODO: deprecate."""
@@ -141,7 +147,8 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
 def batch_job_configs(config, locations, toshi_ids, source_branches_id, levels, vs30s):
     task_count = 0
     log.debug('len locations %s' % len(locations))
-    for key, coded_locs in locations_by_chunk(locations, point_res=0.001, chunk_size=16).items():
+    locs_processed = 0
+    for key, coded_locs in locations_by_chunk(locations, point_res=0.001, chunk_size=NUM_WORKERS).items():
         # for key, coded_locs in locations_by_degree(locations, grid_res=1.0, point_res=0.001).items():
         log.info('key: %s coded_locs[:3]: %s len(coded_locs): %s' % (key, coded_locs[:3], len(coded_locs)))
         coded_locs_as_dicts = [asdict(loc) for loc in coded_locs]
@@ -155,5 +162,8 @@ def batch_job_configs(config, locations, toshi_ids, source_branches_id, levels, 
             levels,
             vs30s,
         )
+        locs_processed += NUM_WORKERS
         task_count += 1
         yield batch_job_config(task_arguments=asdict(data), job_arguments=dict(task_id=task_count), task_id=task_count)
+        if locs_processed >= TEST_SIZE:
+            break

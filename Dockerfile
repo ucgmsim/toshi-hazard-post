@@ -52,6 +52,7 @@ RUN poetry install --no-interaction --no-dev
 # RUN rm pyproject.toml poetry.lock
 
 ADD scripts scripts
+RUN chmod +x /app/scripts/container_task.sh
 
 # Hide virtual env prompt
 # ENV VIRTUAL_ENV_DISABLE_PROMPT 1

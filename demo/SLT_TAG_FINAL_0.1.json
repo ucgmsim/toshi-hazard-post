@@ -1,0 +1,3586 @@
+{
+  "logic_tree_permutations": [
+    [
+      {
+        "tag": "Final SLT for TAG Workshop",
+        "weight": 1.0,
+        "permute": [
+          {
+            "group": "Hik",
+            "members": [
+              {
+                "tag": "Hik TL, N16.5, b0.95, C4, s0.42",
+                "weight": 0.0772921584034276,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQyOA==",
+                "bg_id": "RmlsZToxMTQ2NDg="
+              },
+              {
+                "tag": "Hik TL, N16.5, b0.95, C4, s1",
+                "weight": 0.231876475210283,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQxNw==",
+                "bg_id": "RmlsZToxMTQ2NTA="
+              },
+              {
+                "tag": "Hik TL, N16.5, b0.95, C4, s1.58",
+                "weight": 0.0772921584034276,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQyOQ==",
+                "bg_id": "RmlsZToxMTQ2NTI="
+              },
+              {
+                "tag": "Hik TL, N21.5, b1.097, C4, s0.42",
+                "weight": 0.105831151547705,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQyNA==",
+                "bg_id": "RmlsZToxMTQ2NTQ="
+              },
+              {
+                "tag": "Hik TL, N21.5, b1.097, C4, s1",
+                "weight": 0.317493454643116,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQxMw==",
+                "bg_id": "RmlsZToxMTQ2NTY="
+              },
+              {
+                "tag": "Hik TL, N21.5, b1.097, C4, s1.58",
+                "weight": 0.105831151547705,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQxNg==",
+                "bg_id": "RmlsZToxMTQ2NTg="
+              },
+              {
+                "tag": "Hik TL, N27.9, b1.241, C4, s0.42",
+                "weight": 0.016876690048867,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQxNA==",
+                "bg_id": "RmlsZToxMTQ2NjA="
+              },
+              {
+                "tag": "Hik TL, N27.9, b1.241, C4, s1",
+                "weight": 0.0506300701466009,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQwNg==",
+                "bg_id": "RmlsZToxMTQ2NjI="
+              },
+              {
+                "tag": "Hik TL, N27.9, b1.241, C4, s1.58",
+                "weight": 0.016876690048867,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQwOQ==",
+                "bg_id": "RmlsZToxMTQ2NjQ="
+              }
+            ]
+          },
+          {
+            "group": "PUY",
+            "members": [
+              {
+                "tag": "Puy 0.7, N4.6, b0.902, C4, s0.57",
+                "weight": 0.2,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQ0NQ==",
+                "bg_id": "RmlsZToxMTQ2MTk="
+              },
+              {
+                "tag": "Puy 0.7, N4.6, b0.902, C4, s1",
+                "weight": 0.6,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQ1MQ==",
+                "bg_id": "RmlsZToxMTQ2Mjc="
+              },
+              {
+                "tag": "Puy 0.7, N4.6, b0.902, C4, s1.43",
+                "weight": 0.2,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQ0MQ==",
+                "bg_id": "RmlsZToxMTQ2MzE="
+              }
+            ]
+          },
+          {
+            "group": "CRU",
+            "members": [
+              {
+                "tag": "geodeticTI, N2.7, b0.823 C4.2 s0.59",
+                "weight": 0.00667677657363615,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU1Mg==",
+                "bg_id": "RmlsZToxMTQ2MDE="
+              },
+              {
+                "tag": "geodeticTI, N2.7, b0.823 C4.2 s0.74",
+                "weight": 0.00667677657363615,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU1MQ==",
+                "bg_id": "RmlsZToxMTQ2MDY="
+              },
+              {
+                "tag": "geodeticTI, N2.7, b0.823 C4.2 s1",
+                "weight": 0.0400606594418169,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU4NQ==",
+                "bg_id": "RmlsZToxMTQ2MTA="
+              },
+              {
+                "tag": "geodeticTI, N2.7, b0.823 C4.2 s1.41",
+                "weight": 0.0133535531472723,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU1Mw==",
+                "bg_id": "RmlsZToxMTQ2MTQ="
+              },
+              {
+                "tag": "geodeticTI, N3.4, b0.959 C4.2 s0.59",
+                "weight": 0.0149848351395458,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY2OQ==",
+                "bg_id": "RmlsZToxMTQ2MTg="
+              },
+              {
+                "tag": "geodeticTI, N3.4, b0.959 C4.2 s0.74",
+                "weight": 0.0149848351395458,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY3MA==",
+                "bg_id": "RmlsZToxMTQ2MjI="
+              },
+              {
+                "tag": "geodeticTI, N3.4, b0.959 C4.2 s1",
+                "weight": 0.0899090108372747,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY3Mw==",
+                "bg_id": "RmlsZToxMTQ2MjY="
+              },
+              {
+                "tag": "geodeticTI, N3.4, b0.959 C4.2 s1.41",
+                "weight": 0.0299696702790916,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY3NA==",
+                "bg_id": "RmlsZToxMTQ2MzA="
+              },
+              {
+                "tag": "geodeticTI, N4.6, b1.089 C4.2 s0.59",
+                "weight": 0.00333838828681808,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU1NQ==",
+                "bg_id": "RmlsZToxMTQ2MzQ="
+              },
+              {
+                "tag": "geodeticTI, N4.6, b1.089 C4.2 s0.74",
+                "weight": 0.00333838828681808,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU5OA==",
+                "bg_id": "RmlsZToxMTQ2Mzg="
+              },
+              {
+                "tag": "geodeticTI, N4.6, b1.089 C4.2 s1",
+                "weight": 0.0200303297209084,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU4NA==",
+                "bg_id": "RmlsZToxMTQ2NDI="
+              },
+              {
+                "tag": "geodeticTI, N4.6, b1.089 C4.2 s1.41",
+                "weight": 0.00667677657363615,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU2NA==",
+                "bg_id": "RmlsZToxMTQ2NDY="
+              },
+              {
+                "tag": "geologicTI, N2.7, b0.823 C4.2 s0.59",
+                "weight": 0.00949345302316731,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0Ng==",
+                "bg_id": "RmlsZToxMTQ2MDE="
+              },
+              {
+                "tag": "geologicTI, N2.7, b0.823 C4.2 s0.74",
+                "weight": 0.00949345302316731,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0OA==",
+                "bg_id": "RmlsZToxMTQ2MDY="
+              },
+              {
+                "tag": "geologicTI, N2.7, b0.823 C4.2 s1",
+                "weight": 0.0569607181390039,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0NQ==",
+                "bg_id": "RmlsZToxMTQ2MTA="
+              },
+              {
+                "tag": "geologicTI, N2.7, b0.823 C4.2 s1.41",
+                "weight": 0.0189869060463346,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0OQ==",
+                "bg_id": "RmlsZToxMTQ2MTQ="
+              },
+              {
+                "tag": "geologicTI, N3.4, b0.959 C4.2 s0.59",
+                "weight": 0.014557201674516,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0MQ==",
+                "bg_id": "RmlsZToxMTQ2MTg="
+              },
+              {
+                "tag": "geologicTI, N3.4, b0.959 C4.2 s0.74",
+                "weight": 0.014557201674516,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0NA==",
+                "bg_id": "RmlsZToxMTQ2MjI="
+              },
+              {
+                "tag": "geologicTI, N3.4, b0.959 C4.2 s1",
+                "weight": 0.0873432100470957,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0Nw==",
+                "bg_id": "RmlsZToxMTQ2MjY="
+              },
+              {
+                "tag": "geologicTI, N3.4, b0.959 C4.2 s1.41",
+                "weight": 0.0291144033490319,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0Mw==",
+                "bg_id": "RmlsZToxMTQ2MzA="
+              },
+              {
+                "tag": "geologic, TI, N4.6, b1.089 C4.2 s0.59",
+                "weight": 0.000949345302316731,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDUxNQ==",
+                "bg_id": "RmlsZToxMTQ2MzQ="
+              },
+              {
+                "tag": "geologic, TI, N4.6, b1.089 C4.2 s0.74",
+                "weight": 0.000949345302316731,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDUyNg==",
+                "bg_id": "RmlsZToxMTQ2Mzg="
+              },
+              {
+                "tag": "geologic, TI, N4.6, b1.089 C4.2 s1",
+                "weight": 0.00569607181390039,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDUyNQ==",
+                "bg_id": "RmlsZToxMTQ2NDI="
+              },
+              {
+                "tag": "geologic, TI, N4.6, b1.089 C4.2 s1.41",
+                "weight": 0.00189869060463346,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDUzNQ==",
+                "bg_id": "RmlsZToxMTQ2NDY="
+              },
+              {
+                "tag": "geodetic, TD, N2.7, b0.823 C4.2 s0.59",
+                "weight": 0.00667677657363615,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcyNw==",
+                "bg_id": "RmlsZToxMTQ2MDE="
+              },
+              {
+                "tag": "geodetic, TD, N2.7, b0.823 C4.2 s0.74",
+                "weight": 0.00667677657363615,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwOA==",
+                "bg_id": "RmlsZToxMTQ2MDY="
+              },
+              {
+                "tag": "geodetic, TD, N2.7, b0.823 C4.2 s1",
+                "weight": 0.0400606594418169,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcxMw==",
+                "bg_id": "RmlsZToxMTQ2MTA="
+              },
+              {
+                "tag": "geodetic, TD, N2.7, b0.823 C4.2 s1.41",
+                "weight": 0.0133535531472723,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcyMA==",
+                "bg_id": "RmlsZToxMTQ2MTQ="
+              },
+              {
+                "tag": "geodetic, TD, N3.4, b0.959 C4.2 s0.59",
+                "weight": 0.0149848351395458,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDczOQ==",
+                "bg_id": "RmlsZToxMTQ2MTg="
+              },
+              {
+                "tag": "geodetic, TD, N3.4, b0.959 C4.2 s0.74",
+                "weight": 0.0149848351395458,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDc0MA==",
+                "bg_id": "RmlsZToxMTQ2MjI="
+              },
+              {
+                "tag": "geodetic, TD, N3.4, b0.959 C4.2 s1",
+                "weight": 0.0899090108372747,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDc0Mg==",
+                "bg_id": "RmlsZToxMTQ2MjY="
+              },
+              {
+                "tag": "geodetic, TD, N3.4, b0.959 C4.2 s1.41",
+                "weight": 0.0299696702790916,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDc0MQ==",
+                "bg_id": "RmlsZToxMTQ2MzA="
+              },
+              {
+                "tag": "geodetic, TD, N4.6, b1.089 C4.2 s0.59",
+                "weight": 0.00333838828681808,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcxOQ==",
+                "bg_id": "RmlsZToxMTQ2MzQ="
+              },
+              {
+                "tag": "geodetic, TD, N4.6, b1.089 C4.2 s0.74",
+                "weight": 0.00333838828681808,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwOQ==",
+                "bg_id": "RmlsZToxMTQ2Mzg="
+              },
+              {
+                "tag": "geodetic, TD, N4.6, b1.089 C4.2 s1",
+                "weight": 0.0200303297209084,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcyOQ==",
+                "bg_id": "RmlsZToxMTQ2NDI="
+              },
+              {
+                "tag": "geodetic, TD, N4.6, b1.089 C4.2 s1.41",
+                "weight": 0.00667677657363615,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcxNA==",
+                "bg_id": "RmlsZToxMTQ2NDY="
+              },
+              {
+                "tag": "geologic, TD, N2.7, b0.823 C4.2 s0.59",
+                "weight": 0.00949345302316731,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwNg==",
+                "bg_id": "RmlsZToxMTQ2MDE="
+              },
+              {
+                "tag": "geologic, TD, N2.7, b0.823 C4.2 s0.74",
+                "weight": 0.00949345302316731,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwMg==",
+                "bg_id": "RmlsZToxMTQ2MDY="
+              },
+              {
+                "tag": "geologic, TD, N2.7, b0.823 C4.2 s1",
+                "weight": 0.0569607181390039,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwNA==",
+                "bg_id": "RmlsZToxMTQ2MTA="
+              },
+              {
+                "tag": "geologic, TD, N2.7, b0.823 C4.2 s1.41",
+                "weight": 0.0189869060463346,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwNQ==",
+                "bg_id": "RmlsZToxMTQ2MTQ="
+              },
+              {
+                "tag": "geologic, TD, N3.4, b0.959 C4.2 s0.59",
+                "weight": 0.014557201674516,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY4MA==",
+                "bg_id": "RmlsZToxMTQ2MTg="
+              },
+              {
+                "tag": "geologic, TD, N3.4, b0.959 C4.2 s0.74",
+                "weight": 0.014557201674516,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwMQ==",
+                "bg_id": "RmlsZToxMTQ2MjI="
+              },
+              {
+                "tag": "geologic, TD, N3.4, b0.959 C4.2 s1",
+                "weight": 0.0873432100470957,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY4Mg==",
+                "bg_id": "RmlsZToxMTQ2MjY="
+              },
+              {
+                "tag": "geologic, TD, N3.4, b0.959 C4.2 s1.41",
+                "weight": 0.0291144033490319,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwMw==",
+                "bg_id": "RmlsZToxMTQ2MzA="
+              },
+              {
+                "tag": "geologic, TD, N4.6, b1.089 C4.2 s0.59",
+                "weight": 0.000949345302316731,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY5Mg==",
+                "bg_id": "RmlsZToxMTQ2MzQ="
+              },
+              {
+                "tag": "geologic, TD, N4.6, b1.089 C4.2 s0.74",
+                "weight": 0.000949345302316731,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwMA==",
+                "bg_id": "RmlsZToxMTQ2Mzg="
+              },
+              {
+                "tag": "geologic, TD, N4.6, b1.089 C4.2 s1",
+                "weight": 0.00569607181390039,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY3OQ==",
+                "bg_id": "RmlsZToxMTQ2NDI="
+              },
+              {
+                "tag": "geologic, TD, N4.6, b1.089 C4.2 s1.41",
+                "weight": 0.00189869060463346,
+                "inv_id": "SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY5MA==",
+                "bg_id": "RmlsZToxMTQ2NDY="
+              }
+            ]
+          },
+          {
+            "group": "SLAB",
+            "members": [
+              {
+                "tag": "slab-uniform-1depth-rates",
+                "weight": 1.0,
+                "inv_id": "",
+                "bg_id": "RmlsZToxMTEyMzk="
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  ],
+  "hazard_solutions": {
+
+
+{
+  "data": {
+    "node1": {
+      "id": "R2VuZXJhbFRhc2s6MTA4NTU5",
+      "children": {
+        "total_count": 91,
+        "edges": [
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Hik TL, N16.5, b0.95, C4, s1.58', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQyOQ==', 'bg_id': 'RmlsZToxMTQ2NTI=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjMx"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Hik TL, N16.5, b0.95, C4, s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQxNw==', 'bg_id': 'RmlsZToxMTQ2NTA=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjMw"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Hik TL, N27.9, b1.241, C4, s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQwNg==', 'bg_id': 'RmlsZToxMTQ2NjI=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjI0"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Hik TL, N21.5, b1.097, C4, s0.42', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQyNA==', 'bg_id': 'RmlsZToxMTQ2NTQ=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjI3"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Hik TL, N21.5, b1.097, C4, s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQxMw==', 'bg_id': 'RmlsZToxMTQ2NTY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjI4"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Puy 0.7, N4.6, b0.902, C4, s0.57', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQ0NQ==', 'bg_id': 'RmlsZToxMTQ2MTk=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjI5"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Puy 0.7, N4.6, b0.902, C4, s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQ1MQ==', 'bg_id': 'RmlsZToxMTQ2Mjc=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjI2"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Hik TL, N27.9, b1.241, C4, s1.58', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQwOQ==', 'bg_id': 'RmlsZToxMTQ2NjQ=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjI1"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Hik TL, N16.5, b0.95, C4, s0.42', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQyOA==', 'bg_id': 'RmlsZToxMTQ2NDg=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjMz"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Hik TL, N27.9, b1.241, C4, s0.42', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQxNA==', 'bg_id': 'RmlsZToxMTQ2NjA=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjMy"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Hik TL, N21.5, b1.097, C4, s1.58', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQxNg==', 'bg_id': 'RmlsZToxMTQ2NTg=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjM0"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'Puy 0.7, N4.6, b0.902, C4, s1.43', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDQ0MQ==', 'bg_id': 'RmlsZToxMTQ2MzE=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjM1"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologicTI, N2.7, b0.823 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0OA==', 'bg_id': 'RmlsZToxMTQ2MDY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjYy"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TI, N4.6, b1.089 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDUyNg==', 'bg_id': 'RmlsZToxMTQ2Mzg=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjYx"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologicTI, N2.7, b0.823 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0NQ==', 'bg_id': 'RmlsZToxMTQ2MTA=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjY4"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TI, N4.6, b1.089 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDUzNQ==', 'bg_id': 'RmlsZToxMTQ2NDY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjY3"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N2.7, b0.823 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcyNw==', 'bg_id': 'RmlsZToxMTQ2MDE=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjYw"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N2.7, b0.823 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwOA==', 'bg_id': 'RmlsZToxMTQ2MDY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjY1"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N2.7, b0.823 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcxMw==', 'bg_id': 'RmlsZToxMTQ2MTA=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjYz"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N2.7, b0.823 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcyMA==', 'bg_id': 'RmlsZToxMTQ2MTQ=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjY0"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N3.4, b0.959 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDczOQ==', 'bg_id': 'RmlsZToxMTQ2MTg=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NjY2"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N4.6, b1.089 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcxOQ==', 'bg_id': 'RmlsZToxMTQ2MzQ=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NzA0"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N4.6, b1.089 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwOQ==', 'bg_id': 'RmlsZToxMTQ2Mzg=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NzA1"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N4.6, b1.089 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcyOQ==', 'bg_id': 'RmlsZToxMTQ2NDI=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NzA2"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N4.6, b1.089 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcxNA==', 'bg_id': 'RmlsZToxMTQ2NDY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NzA3"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N2.7, b0.823 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwNg==', 'bg_id': 'RmlsZToxMTQ2MDE=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NzEw"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N2.7, b0.823 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwMg==', 'bg_id': 'RmlsZToxMTQ2MDY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NzA5"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N2.7, b0.823 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwNA==', 'bg_id': 'RmlsZToxMTQ2MTA=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NzEx"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N3.4, b0.959 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwMQ==', 'bg_id': 'RmlsZToxMTQ2MjI=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NzA4"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N2.7, b0.823 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwNQ==', 'bg_id': 'RmlsZToxMTQ2MTQ=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NzEy"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'slab-uniform-1depth-rates', 'inv_id': '', 'bg_id': 'RmlsZToxMTEyMzk=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA4NzAz"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N2.7, b0.823 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU1Mg==', 'bg_id': 'RmlsZToxMTQ2MDE=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NDk4"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N2.7, b0.823 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU4NQ==', 'bg_id': 'RmlsZToxMTQ2MTA=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTEx"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N2.7, b0.823 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU1MQ==', 'bg_id': 'RmlsZToxMTQ2MDY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NDk5"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N2.7, b0.823 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU1Mw==', 'bg_id': 'RmlsZToxMTQ2MTQ=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTAy"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N3.4, b0.959 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY2OQ==', 'bg_id': 'RmlsZToxMTQ2MTg=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTA1"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N3.4, b0.959 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY3NA==', 'bg_id': 'RmlsZToxMTQ2MzA=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTA2"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N3.4, b0.959 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY3MA==', 'bg_id': 'RmlsZToxMTQ2MjI=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTAw"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N3.4, b0.959 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY3Mw==', 'bg_id': 'RmlsZToxMTQ2MjY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTA5"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N4.6, b1.089 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU5OA==', 'bg_id': 'RmlsZToxMTQ2Mzg=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTAz"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N4.6, b1.089 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU4NA==', 'bg_id': 'RmlsZToxMTQ2NDI=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTA3"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N4.6, b1.089 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU1NQ==', 'bg_id': 'RmlsZToxMTQ2MzQ=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTAx"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodeticTI, N4.6, b1.089 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU2NA==', 'bg_id': 'RmlsZToxMTQ2NDY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTEw"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologicTI, N2.7, b0.823 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0Ng==', 'bg_id': 'RmlsZToxMTQ2MDE=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTI0"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologicTI, N3.4, b0.959 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0Nw==', 'bg_id': 'RmlsZToxMTQ2MjY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTEz"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologicTI, N3.4, b0.959 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0MQ==', 'bg_id': 'RmlsZToxMTQ2MTg=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTEy"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologicTI, N2.7, b0.823 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0OQ==', 'bg_id': 'RmlsZToxMTQ2MTQ=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTI1"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologicTI, N3.4, b0.959 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0NA==', 'bg_id': 'RmlsZToxMTQ2MjI=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTE4"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologicTI, N3.4, b0.959 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDU0Mw==', 'bg_id': 'RmlsZToxMTQ2MzA=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTIy"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TI, N4.6, b1.089 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDUyNQ==', 'bg_id': 'RmlsZToxMTQ2NDI=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTE0"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N3.4, b0.959 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDc0Mg==', 'bg_id': 'RmlsZToxMTQ2MjY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTA4"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TI, N4.6, b1.089 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDUxNQ==', 'bg_id': 'RmlsZToxMTQ2MzQ=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTIx"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N3.4, b0.959 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY4MA==', 'bg_id': 'RmlsZToxMTQ2MTg=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTE3"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N3.4, b0.959 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDc0MQ==', 'bg_id': 'RmlsZToxMTQ2MzA=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTA0"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geodetic, TD, N3.4, b0.959 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDc0MA==', 'bg_id': 'RmlsZToxMTQ2MjI=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTE1"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N3.4, b0.959 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwMw==', 'bg_id': 'RmlsZToxMTQ2MzA=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTIw"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N4.6, b1.089 C4.2 s0.74', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDcwMA==', 'bg_id': 'RmlsZToxMTQ2Mzg=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTIz"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N3.4, b0.959 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY4Mg==', 'bg_id': 'RmlsZToxMTQ2MjY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTE2"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N4.6, b1.089 C4.2 s1', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY3OQ==', 'bg_id': 'RmlsZToxMTQ2NDI=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTE5"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N4.6, b1.089 C4.2 s1.41', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY5MA==', 'bg_id': 'RmlsZToxMTQ2NDY=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTI3"
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "child": {
+                "result": "SUCCESS",
+                "arguments": [
+                  {
+                    "k": "config_archive_id",
+                    "v": "RmlsZToxMTE2NjI="
+                  },
+                  {
+                    "k": "model_type",
+                    "v": "COMPOSITE"
+                  },
+                  {
+                    "k": "logic_tree_permutations",
+                    "v": "[{'tag': 'GRANULAR', 'weight': 1.0, 'permute': [{'group': 'ALL', 'members': [{'tag': 'geologic, TD, N4.6, b1.089 C4.2 s0.59', 'inv_id': 'SW52ZXJzaW9uU29sdXRpb25Ocm1sOjExNDY5Mg==', 'bg_id': 'RmlsZToxMTQ2MzQ=', 'weight': 1.0}]}]}]"
+                  },
+                  {
+                    "k": "intensity_spec",
+                    "v": "{'tag': 'fixed', 'measures': ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)', 'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)'], 'levels': [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4, 4.5, 5.0]}"
+                  },
+                  {
+                    "k": "vs30",
+                    "v": "400"
+                  },
+                  {
+                    "k": "location_code",
+                    "v": "GRD_NZ_0_1"
+                  },
+                  {
+                    "k": "disagg_conf",
+                    "v": "{'enabled': False, 'config': {}}"
+                  },
+                  {
+                    "k": "rupture_mesh_spacing",
+                    "v": "5"
+                  },
+                  {
+                    "k": "ps_grid_spacing",
+                    "v": "30"
+                  },
+                  {
+                    "k": "split_source_branches",
+                    "v": "False"
+                  }
+                ],
+                "hazard_solution": {
+                  "id": "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTA5NTI2"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+  }
+}

@@ -17,11 +17,13 @@ API_URL = os.getenv('NZSHM22_TOSHI_API_URL', "http://127.0.0.1:5000/graphql")
 S3_URL = os.getenv('NZSHM22_TOSHI_S3_URL', "http://localhost:4569")
 
 # Get API key from AWS secrets manager
-if 'TEST' in API_URL.upper():
-    API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_TEST", "us-east-1").get("NZSHM22_TOSHI_API_KEY_TEST")
-elif 'PROD' in API_URL.upper():
-    API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_PROD", "us-east-1").get("NZSHM22_TOSHI_API_KEY_PROD")
-else:
+try:
+    if 'TEST' in API_URL.upper():
+        API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_TEST", "us-east-1").get("NZSHM22_TOSHI_API_KEY_TEST")
+    elif 'PROD' in API_URL.upper():
+        API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_PROD", "us-east-1").get("NZSHM22_TOSHI_API_KEY_PROD")
+except AttributeError as err:
+    print(f"unable to get secret from secretmanager: {err}")
     API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY', "")
 
 IS_OFFLINE = boolean_env('SLS_OFFLINE')  # set by serverless-wsgi plugin

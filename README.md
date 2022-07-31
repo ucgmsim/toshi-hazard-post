@@ -33,6 +33,22 @@ docker run --rm -it toshi-hazard-post -s bash
 ```
  TODO -> DOCKER_BUILD.md
 
+### TESTING local
+```
+docker run -it --rm \
+--memory=30g --memory-swap=30g \
+--env-file docker_environ \
+-v $HOME/.aws/credentials:/root/.aws/credentials:ro \
+toshi-hazard-post:latest \
+-s bash
+```
+
+then ...
+
+```
+thp --help
+```
+
 ### Serverless Deployment (for Lambda now, BATCH later)
 
 In order to deploy the example, you need to run the following command:
