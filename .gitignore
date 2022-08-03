@@ -1,3 +1,8 @@
+#project
+SCRATCH/
+node_modules/
+.serverless/
+
 # macOS
 .DS_Store
 .AppleDouble

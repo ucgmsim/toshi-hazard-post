@@ -1,7 +1,7 @@
 site_name: toshi-hazard-post
-site_url: https://chrisbc.github.io/toshi-hazard-post
-repo_url: https://github.com/chrisbc/toshi-hazard-post
-repo_name: chrisbc/toshi-hazard-post
+site_url: https://gns-science.github.io/toshi-hazard-post
+repo_url: https://github.com/gns-science/toshi-hazard-post
+repo_name: gns-science/toshi-hazard-post
 #strict: true
 nav:
   - Home: index.md
@@ -51,20 +51,20 @@ plugins:
       lang: en
   - mkdocstrings:
       watch:
-        - toshi-hazard-post
+        - toshi_hazard_post
 extra:
   social:
-    - icon: fontawesome/brands/twitter
-      # replace with your own tweet link below
-      link: https://github.com/waynerv/cookiecutter-pypackage
-      name: Tweet
-    - icon: fontawesome/brands/facebook
-      # replace with your own facebook link below
-      link: https://github.com/waynerv/cookiecutter-pypackage
-      name: Facebook
-    - icon: fontawesome/brands/github
-      link: https://github.com/chrisbc/toshi-hazard-post
-      name: Github
+    # - icon: fontawesome/brands/twitter
+    #   # replace with your own tweet link below
+    #   link: https://github.com/waynerv/cookiecutter-pypackage
+    #   name: Tweet
+    # - icon: fontawesome/brands/facebook
+    #   # replace with your own facebook link below
+    #   link: https://github.com/waynerv/cookiecutter-pypackage
+    #   name: Facebook
+    # - icon: fontawesome/brands/github
+    #   link: https://github.com/gns-science/toshi-hazard-post
+    #   name: Github
     - icon: material/email
       link: "mailto:chrisbc@artisan.co.nz"
   # to enable disqus, uncomment the following and put your disqus id below

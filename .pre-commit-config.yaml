@@ -34,3 +34,6 @@ repos:
         exclude: tests/
         additional_dependencies:
           - types-click
+          - types-toml
+          - types-PyYAML
+          - types-requests
