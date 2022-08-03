@@ -22,6 +22,8 @@ try:
         API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_TEST", "us-east-1").get("NZSHM22_TOSHI_API_KEY_TEST")
     elif 'PROD' in API_URL.upper():
         API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_PROD", "us-east-1").get("NZSHM22_TOSHI_API_KEY_PROD")
+    else:
+        API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY', "")
 except AttributeError as err:
     print(f"unable to get secret from secretmanager: {err}")
     API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY', "")
