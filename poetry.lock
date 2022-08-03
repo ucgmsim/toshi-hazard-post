@@ -678,7 +678,7 @@ python-versions = ">=3.8"
 
 [[package]]
 name = "nzshm-common"
-version = "1.0.2"
+version = "0.1.1"
 description = "A small pure python library for shared NZ NSHM data like locations."
 category = "main"
 optional = false
@@ -688,8 +688,8 @@ develop = false
 [package.source]
 type = "git"
 url = "https://github.com/GNS-Science/nzshm-common-py.git"
-reference = "5aeef6a7deb41b3c8e915f9f8e1e4ba42fea3b7e"
-resolved_reference = "5aeef6a7deb41b3c8e915f9f8e1e4ba42fea3b7e"
+reference = "main"
+resolved_reference = "437bf7a72cda70680d15c439ef0ec83e449d9375"
 
 [[package]]
 name = "packaging"
@@ -1097,7 +1097,7 @@ develop = false
 
 [package.dependencies]
 numpy = "^1.23.1"
-nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "5aeef6a7deb41b3c8e915f9f8e1e4ba42fea3b7e"}
+nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "main"}
 pandas = "^1.4.3"
 pynamodb = "^5.2.1"
 pynamodb-attributes = "^0.3.2"
@@ -1110,8 +1110,8 @@ doc = []
 [package.source]
 type = "git"
 url = "https://github.com/GNS-Science/toshi-hazard-store.git"
-reference = "fc4bdc55b8377064e9c2237dff437d0c9dff1c0c"
-resolved_reference = "fc4bdc55b8377064e9c2237dff437d0c9dff1c0c"
+reference = "main"
+resolved_reference = "6e7cfc78098acd018d37d14469c73df7ddfdc9b8"
 
 [[package]]
 name = "tox"
@@ -1296,7 +1296,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "a9b7379205ff129b76584cbb2f1323d1bc3c6a4e77e2ffc5a5eecb32a4baa9d8"
+content-hash = "79f2b3279adb9fad701e22f275ed9d594ff9ff61a54effdfb026708d0d744bf1"
 
 [metadata.files]
 aiohttp = [

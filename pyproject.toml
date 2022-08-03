@@ -28,7 +28,6 @@ thp = 'scripts.cli:main'
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
-nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "5aeef6a7deb41b3c8e915f9f8e1e4ba42fea3b7e"}
 boto3 = "^1.24.34"
 nshm-toshi-client = "^1.0.0"
 PyYAML = "^6.0"
@@ -37,7 +36,7 @@ pandas = "^1.4.3"
 requests-toolbelt = "^0.9.1"
 toml = "^0.10.2"
 click = "^8.1.3"
-toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "fc4bdc55b8377064e9c2237dff437d0c9dff1c0c"}
+toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "main"}
 
 
 [tool.poetry.dev-dependencies]

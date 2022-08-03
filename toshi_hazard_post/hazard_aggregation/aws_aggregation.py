@@ -28,9 +28,9 @@ from .toshi_api_support import save_sources_to_toshi
 
 log = logging.getLogger(__name__)
 
-TEST_SIZE = 16  # HOW many locations to run MAX (also see TOML limit)
+TEST_SIZE = None  # 16  # HOW many locations to run MAX (also see TOML limit)
 MEMORY = 15360  # 7168 #8192 #30720 #15360 # 10240
-# NUM_WORKERS = 4
+NUM_WORKERS = 4  # noqa
 
 
 def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
@@ -53,7 +53,7 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
         memory=MEMORY,
         vcpu=NUM_WORKERS,
         job_definition="BigLeverOnDemandEC2-THP-HazardAggregation",
-        job_queue="BigLeverOnDemandEC2-job-queue",  # "BigLever_32GB_8VCPU_v2_JQ", #
+        job_queue="ToshiHazardPost_HazAgg_JQ",  # "BigLever_32GB_8VCPU_v2_JQ", #"BigLeverOnDemandEC2-job-queue"
         extra_env=extra_env,
         use_compression=True,
     )
@@ -70,9 +70,6 @@ def save_source_branches(source_branches):
     with open(filepath, 'w') as sbf:
         sbf.write(json.dumps(source_branches, indent=2))
 
-    # print(f'lzha size: {len(compress_config(json.dumps(source_branches, indent=2)))}')
-
-    assert 0
     source_branches_id = save_sources_to_toshi(filepath, tag=None)
     log.debug("Produced source_branches id : %s from file %s" % (source_branches_id, filepath))
     return source_branches_id
@@ -109,12 +106,12 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
         else load_grid(config.locations)[: config.location_limit]
     )
 
-    example_loc_code = CodedLocation(*locations[0]).downsample(0.001).code
+    example_loc_code = CodedLocation(*locations[0]).downsample(0.001)
 
-    log.debug('example_loc_code %s' % example_loc_code)
+    log.debug('example_loc_code code: %s obj: %s' % (example_loc_code, example_loc_code))
 
     levels = get_levels(
-        source_branches, [example_loc_code], config.vs30s[0]
+        source_branches, [example_loc_code.code], config.vs30s[0]
     )  # TODO: get separate levels for every IMT ?
     avail_imts = get_imts(source_branches, config.vs30s[0])
     for imt in config.imts:
@@ -165,5 +162,5 @@ def batch_job_configs(config, locations, toshi_ids, source_branches_id, levels, 
         locs_processed += NUM_WORKERS
         task_count += 1
         yield batch_job_config(task_arguments=asdict(data), job_arguments=dict(task_id=task_count), task_id=task_count)
-        if locs_processed >= TEST_SIZE:
+        if TEST_SIZE and locs_processed >= TEST_SIZE:
             break

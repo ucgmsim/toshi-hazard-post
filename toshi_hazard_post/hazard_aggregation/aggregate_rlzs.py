@@ -57,13 +57,14 @@ def load_realization_values(toshi_ids, locs, vs30s):
     for k1, v1 in values.items():
         nlocs_ret = len(v1.keys())
         if not nlocs_ret == len(locs):
-            print(f'!!!!!!!!! {k1} missing {len(locs) - nlocs_ret} locations')
+            log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
         ids_ret += [k1.split(':')[0]]
     ids_ret = set(ids_ret)
     if len(ids_ret) != len(toshi_ids):
-        print(f'!!!!!!!!! missing {len(toshi_ids)-len(ids_ret)} IDs')
+        log.warn('Missing %s toshi IDs' % (len(toshi_ids) - len(ids_ret)))
+        log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
         toshi_ids = set(toshi_ids)
-        print(f'!!!!!!!!! missing {toshi_ids - ids_ret}')
+        print('Missing ids: %s' % (toshi_ids - ids_ret))
 
     toc = time.perf_counter()
     print(f'time to load realizations: {toc-tic:.1f} seconds')
