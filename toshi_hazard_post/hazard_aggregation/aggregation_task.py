@@ -60,8 +60,11 @@ def process_args(args):
     log.info("args: %s" % args)
     log.debug("using API_KEY with len: %s" % len(API_KEY))
 
+    resolution = 0.001
     source_branches = fetch_source_branches(args.source_branches_id)
-    locations = [CodedLocation(**loc) for loc in args.locations]
+
+    print([loc for loc in args.locations])
+    locations = [CodedLocation(loc['lat'],loc['lon'],resolution) for loc in args.locations]
     results = process_local(
         args.hazard_model_id, args.toshi_ids, source_branches, locations, args.levels, args, num_workers=NUM_WORKERS
     )

@@ -16,7 +16,7 @@ loggers:
   toshi_hazard_post.hazard_aggregation:
     level: DEBUG
     handlers: [console]
-    propagate: no
+    propagate: no 
 
   toshi_hazard_post.hazard_aggregation.aggregate_rlzs:
     level: DEBUG
@@ -24,7 +24,7 @@ loggers:
     propagate: no
 
   pynamodb:
-    level: DEBUG
+    level: INFO
     handlers: [console]
     propagate: no
 

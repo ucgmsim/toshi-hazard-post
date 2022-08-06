@@ -56,9 +56,10 @@ def main(config, mode, push_sns_test, migrate_tables):
         return
 
     if mode == 'LOCAL':
-        process_aggregation(agconf, 'prefix')
+        # process_aggregation(agconf, 'prefix')
+        process_aggregation(agconf)
         return
-    if 'AWS' in mode:
+    if 'AWS_BATCH' in mode:
         if migrate_tables:
             click.echo("Ensuring that dynamodb tables are available in target region & stage.")
             migrate()

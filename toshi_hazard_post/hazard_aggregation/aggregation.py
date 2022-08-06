@@ -5,15 +5,23 @@ import time
 from collections import namedtuple
 from dataclasses import dataclass
 from typing import List
+from xmlrpc.server import resolve_dotted_attribute
 
-from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
-from toshi_hazard_store.branch_combinator.branch_combinator import (
+
+from toshi_hazard_post.hazard_aggregation.locations import get_locations
+# from toshi_hazard_store.branch_combinator.branch_combinator import (
+#     get_weighted_branches,
+#     grouped_ltbs,
+#     merge_ltbs_fromLT,
+# )
+from toshi_hazard_post.branch_combinator import (
     get_weighted_branches,
     grouped_ltbs,
     merge_ltbs_fromLT,
 )
+
 
 from toshi_hazard_post.local_config import NUM_WORKERS
 
@@ -50,7 +58,7 @@ def build_source_branches(logic_tree_permutations, gtdata, vs30, omit, truncate=
     """ported from THS. aggregate_rlzs_mp"""
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit))
     source_branches = get_weighted_branches(grouped)
-
+    
     if truncate:
         # for testing only
         source_branches = source_branches[:truncate]
@@ -94,7 +102,8 @@ def process_location_list(task_args):
         tic_imt = time.perf_counter()
         for loc in locs:
             lat, lon = loc.split('~')
-            location = CodedLocation(float(lat), float(lon))
+            resolution = 0.001
+            location = CodedLocation(float(lat), float(lon),resolution)
             log.debug('build_branches imt: %s, loc: %s, vs30: %s' % (imt, loc, vs30))
 
             # tic1 = time.perf_counter()
@@ -215,18 +224,18 @@ def process_aggregation(config: AggregationConfig):
         b.hazard_solution_id
         for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit)
     ]
+    
     source_branches = build_source_branches(
-        config.logic_tree_permutations, config.hazard_solutions, config.vs30s[0], omit, truncate=5
+        config.logic_tree_permutations, config.hazard_solutions, config.vs30s[0], omit, truncate=config.source_branches_truncate
     )
-
-    locations = (
-        load_grid(config.locations)
-        if not config.location_limit
-        else load_grid(config.locations)[: config.location_limit]
-    )
-    coded_locations = [CodedLocation(*loc) for loc in locations]
+    
+    locations = get_locations(config)
+    
+    resolution = 0.001
+    coded_locations = [CodedLocation(*loc, resolution) for loc in locations]
 
     example_loc_code = coded_locations[0].downsample(0.001).code
+
     levels = get_levels(source_branches, [example_loc_code], config.vs30s[0])  # TODO: get seperate levels for every IMT
     avail_imts = get_imts(source_branches, config.vs30s[0])
     for imt in config.imts:
