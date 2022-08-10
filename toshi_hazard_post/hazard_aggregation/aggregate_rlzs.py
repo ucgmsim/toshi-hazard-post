@@ -17,7 +17,7 @@ from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v
 # from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
 # from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
 
-
+DTOL = 1.0e-6
 inv_time = 1.0
 VERBOSE = True
 
@@ -44,13 +44,17 @@ def load_realization_values(toshi_ids, locs, vs30s):
     log.info('loading %s hazard IDs ... ' % len(toshi_ids))
 
     values = {}
-    for res in get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
-        key = ':'.join((res.hazard_solution_id, str(res.rlz)))
-        if key not in values:
-            values[key] = {}
-        values[key][res.nloc_001] = {}
-        for val in res.values:
-            values[key][res.nloc_001][val.imt] = np.array(val.vals)
+    try:
+        for res in get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
+            key = ':'.join((res.hazard_solution_id, str(res.rlz)))
+            if key not in values:
+                values[key] = {}
+            values[key][res.nloc_001] = {}
+            for val in res.values:
+                values[key][res.nloc_001][val.imt] = np.array(val.vals)
+    except Exception as err:
+        logging.warning('load_realization_values() got exception %s with toshi_ids: %s , locs: %s vs30s: %s' % (err, toshi_ids, locs, vs30s))
+        raise
 
     # check that the correct number of records came back
     ids_ret = []
@@ -89,9 +93,11 @@ def build_rlz_table(branch, vs30):
 
     for meta in get_hazard_metadata_v3(ids, [vs30]):
         rlz_lt = ast.literal_eval(meta.rlz_lt)
+        gsim_lt = ast.literal_eval(meta.gsim_lt)
         for trt in rlz_sets.keys():
             if trt in rlz_lt:
-                gsims = list(set(rlz_lt[trt].values()))
+                # gsims = list(set(rlz_lt[trt].values()))
+                gsims = list(set(gsim_lt['uncertainty'].values()))
                 gsims.sort()
                 for gsim in gsims:
                     rlz_sets[trt][gsim] = []
@@ -103,12 +109,11 @@ def build_rlz_table(branch, vs30):
         trts = list(set(gsim_lt['trt'].values()))
         trts.sort()
         for trt in trts:
-            for rlz, gsim in rlz_lt[trt].items():
+            # for rlz, gsim in rlz_lt[trt].items():
+            for rlz, gsim in gsim_lt['uncertainty'].items():
                 rlz_key = ':'.join((hazard_id, rlz))
                 rlz_sets[trt][gsim].append(rlz_key)
-                weight_sets[trt][gsim] = gsim_lt['weight'][
-                    rlz
-                ]  # this depends on only one source per run and the same gsim weights in every run
+                weight_sets[trt][gsim] = gsim_lt['weight'][rlz]  # this depends on only one source per run and the same gsim weights in every run
 
     rlz_sets_tmp = rlz_sets.copy()
     weight_sets_tmp = weight_sets.copy()
@@ -139,6 +144,11 @@ def build_rlz_table(branch, vs30):
     if VERBOSE:
         print(f'time to build realization table: {toc-tic:.1f} seconds')
 
+    sum_weight = sum(weight_combs)
+    if not ((sum_weight > 1.0 - DTOL) & (sum_weight < 1.0 + DTOL)):
+        print(sum_weight)
+        raise Exception('weights do not sum to 1')
+    
     return rlz_combs, weight_combs
 
 

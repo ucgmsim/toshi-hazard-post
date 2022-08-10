@@ -12,6 +12,7 @@ def get_branches():
 
 
 def get_weighted_branches(grouped_ltbs):
+    """ build source branches """
 
     # TODO: only handles one combined job and one permutation set
     permute = grouped_ltbs  # tree_permutations[0][0]['permute']
@@ -31,19 +32,20 @@ def get_weighted_branches(grouped_ltbs):
     for key, group in permute.items():
         id_group = []
         for member in group:
-            id_group.append({'id': member.hazard_solution_id, 'weight': member.weight})
+            id_group.append({'id': member.hazard_solution_id, 'weight': member.weight, 'tag':member.tag})
         id_groups.append(id_group)
 
     print(id_groups)
-
+    # breakpoint()
     branches = itertools.product(*id_groups)
     source_branches = []
     for i, branch in enumerate(branches):
         name = str(i)
         ids = [leaf['id'] for leaf in branch]
+        tags = [leaf['tag'] for leaf in branch]
         weights = [leaf['weight'] for leaf in branch]
         weight = math.prod(weights)
-        branch_dict = dict(name=name, ids=ids, weight=weight)
+        branch_dict = dict(name=name, ids=ids, weight=weight, tags=tags)
         source_branches.append(branch_dict)
 
     # double check that the weights are done correctly
@@ -104,6 +106,7 @@ def merge_ltbs(logic_tree_permutations, gtdata, omit):
 
 
 def merge_ltbs_fromLT(logic_tree_permutations, gtdata, omit):
+    """ map source IDs in LT definition to Hazard IDs from GT """
     members = all_members_dict(logic_tree_permutations)
     # weights are the actual Hazard weight @ 1.0
     for toshi_ltb in weight_and_ids(gtdata):
@@ -114,10 +117,12 @@ def merge_ltbs_fromLT(logic_tree_permutations, gtdata, omit):
             d = toshi_ltb._asdict()
             d['weight'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].weight
             d['group'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].group
+            d['tag'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].tag
             yield Member(**d)
 
 
 def grouped_ltbs(merged_ltbs):
+    """ groups by trt """
     grouped = {}
     for ltb in merged_ltbs:
         if ltb.group not in grouped:

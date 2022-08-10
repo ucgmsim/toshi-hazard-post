@@ -50,7 +50,7 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
         toshi_api_url=API_URL,
         toshi_s3_url=S3_URL,
         task_module=toshi_hazard_post.hazard_aggregation.aggregation_task.__name__,
-        time_minutes=120,
+        time_minutes=240,
         memory=MEMORY,
         vcpu=NUM_WORKERS,
         job_definition="BigLeverOnDemandEC2-THP-HazardAggregation",

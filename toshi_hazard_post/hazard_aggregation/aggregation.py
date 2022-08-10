@@ -57,14 +57,18 @@ class DistributedAggregationTaskArguments:
 def build_source_branches(logic_tree_permutations, gtdata, vs30, omit, truncate=None):
     """ported from THS. aggregate_rlzs_mp"""
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit))
-    source_branches = get_weighted_branches(grouped)
-    
+    source_branches = get_weighted_branches(grouped) #TODO: add correlations to source LT
+    import json
+    with open('source_branches.json','w') as jsonfile:
+        json.dump(source_branches,jsonfile,indent=2)
+    assert 0
+
     if truncate:
         # for testing only
         source_branches = source_branches[:truncate]
 
     for i in range(len(source_branches)):
-        rlz_combs, weight_combs = build_rlz_table(source_branches[i], vs30)
+        rlz_combs, weight_combs = build_rlz_table(source_branches[i], vs30) # TODO: add correlations to GMCM LT
         source_branches[i]['rlz_combs'] = rlz_combs
         source_branches[i]['weight_combs'] = weight_combs
 
