@@ -93,6 +93,7 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
         source_branches = build_source_branches(
             config.logic_tree_permutations,
             config.hazard_solutions,
+            config.correlations,
             config.vs30s[0],
             omit=[],
             truncate=config.source_branches_truncate,
