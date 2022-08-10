@@ -1,0 +1,71 @@
+[
+  
+  {
+    "name": "1",
+    "ids": [
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNTIx",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDQ4",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU2",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU5"
+    ],
+    "weight": 0.06999999999999999,
+    "tags": [
+      "geologic, TD, N4.6, b1.089 C4.2 s1.41",
+      "Puy 0.7, N4.6, b0.902, C4, s1.72",
+      "Hik TL, N21.5, b1.097, C4, s1.58",
+      "slab-uniform-1depth-rates"
+    ]
+  },
+
+  {
+    "name": "2",
+    "ids": [
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNTIx",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDQ3",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDUw",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU5"
+    ],
+    "weight": 0.315,
+    "tags": [
+      "geologic, TD, N4.6, b1.089 C4.2 s1.41",
+      "Puy 0.7, N4.6, b0.902, C4, s1",
+      "Hik TL, N21.5, b1.097, C4, s1",
+      "slab-uniform-1depth-rates"
+    ]
+  },
+ 
+  
+  {
+    "name": "5",
+    "ids": [
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNTgw",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDQ4",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU2",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU5"
+    ],
+    "weight": 0.03,
+    "tags": [
+      "geologic, TD, N4.6, b1.089 C4.2 s1",
+      "Puy 0.7, N4.6, b0.902, C4, s1.72",
+      "Hik TL, N21.5, b1.097, C4, s1.58",
+      "slab-uniform-1depth-rates"
+    ]
+  },
+  {
+    "name": "6",
+    "ids": [
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNTgw",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDQ3",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDUw",
+      "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU5"
+    ],
+    "weight": 0.135,
+    "tags": [
+      "geologic, TD, N4.6, b1.089 C4.2 s1",
+      "Puy 0.7, N4.6, b0.902, C4, s1",
+      "Hik TL, N21.5, b1.097, C4, s1",
+      "slab-uniform-1depth-rates"
+    ]
+  }
+  
+]
