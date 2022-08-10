@@ -53,7 +53,10 @@ def load_realization_values(toshi_ids, locs, vs30s):
             for val in res.values:
                 values[key][res.nloc_001][val.imt] = np.array(val.vals)
     except Exception as err:
-        logging.warning('load_realization_values() got exception %s with toshi_ids: %s , locs: %s vs30s: %s' % (err, toshi_ids, locs, vs30s))
+        logging.warning(
+            'load_realization_values() got exception %s with toshi_ids: %s , locs: %s vs30s: %s'
+            % (err, toshi_ids, locs, vs30s)
+        )
         raise
 
     # check that the correct number of records came back
@@ -113,7 +116,9 @@ def build_rlz_table(branch, vs30):
             for rlz, gsim in gsim_lt['uncertainty'].items():
                 rlz_key = ':'.join((hazard_id, rlz))
                 rlz_sets[trt][gsim].append(rlz_key)
-                weight_sets[trt][gsim] = gsim_lt['weight'][rlz]  # this depends on only one source per run and the same gsim weights in every run
+                weight_sets[trt][gsim] = gsim_lt['weight'][
+                    rlz
+                ]  # this depends on only one source per run and the same gsim weights in every run
 
     rlz_sets_tmp = rlz_sets.copy()
     weight_sets_tmp = weight_sets.copy()
@@ -148,7 +153,7 @@ def build_rlz_table(branch, vs30):
     if not ((sum_weight > 1.0 - DTOL) & (sum_weight < 1.0 + DTOL)):
         print(sum_weight)
         raise Exception('weights do not sum to 1')
-    
+
     return rlz_combs, weight_combs
 
 

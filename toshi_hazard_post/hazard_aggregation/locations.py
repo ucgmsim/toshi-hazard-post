@@ -4,6 +4,7 @@ from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
 from nzshm_common.location.location import LOCATIONS_BY_ID
 
+
 def get_locations(config):
 
     if config.locations == "NZ_34":
@@ -18,8 +19,6 @@ def get_locations(config):
     return locations
 
 
-
-
 def locations_by_degree(
     grid_points: List[Tuple[float, float]], grid_res: float, point_res: float
 ) -> Dict[str, List[CodedLocation]]:
@@ -27,10 +26,10 @@ def locations_by_degree(
 
     binned: Dict[str, CodedLocation] = dict()
     for pt in grid_points:
-        bc = CodedLocation(*pt,point_res).downsample(grid_res).code
+        bc = CodedLocation(*pt, point_res).downsample(grid_res).code
         if not binned.get(bc):
             binned[bc] = []
-        binned[bc].append(CodedLocation(*pt,point_res).downsample(point_res))
+        binned[bc].append(CodedLocation(*pt, point_res).downsample(point_res))
     return binned
 
 
@@ -49,7 +48,7 @@ def locations_by_chunk(
         coded_pts = []
         if pts:
             for pt in pts:
-                coded_pts.append(CodedLocation(*pt,point_res).downsample(point_res))
+                coded_pts.append(CodedLocation(*pt, point_res).downsample(point_res))
         chunked[ni] = coded_pts
     return chunked
 

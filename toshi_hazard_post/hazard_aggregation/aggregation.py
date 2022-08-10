@@ -5,24 +5,17 @@ import time
 from collections import namedtuple
 from dataclasses import dataclass
 from typing import List
-from xmlrpc.server import resolve_dotted_attribute
 
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
 
-from toshi_hazard_post.hazard_aggregation.locations import get_locations
 # from toshi_hazard_store.branch_combinator.branch_combinator import (
 #     get_weighted_branches,
 #     grouped_ltbs,
 #     merge_ltbs_fromLT,
 # )
-from toshi_hazard_post.branch_combinator import (
-    get_weighted_branches,
-    grouped_ltbs,
-    merge_ltbs_fromLT,
-)
-
-
+from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT
+from toshi_hazard_post.hazard_aggregation.locations import get_locations
 from toshi_hazard_post.local_config import NUM_WORKERS
 
 from .aggregate_rlzs import (
@@ -57,10 +50,11 @@ class DistributedAggregationTaskArguments:
 def build_source_branches(logic_tree_permutations, gtdata, vs30, omit, truncate=None):
     """ported from THS. aggregate_rlzs_mp"""
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit))
-    source_branches = get_weighted_branches(grouped) #TODO: add correlations to source LT
+    source_branches = get_weighted_branches(grouped)  # TODO: add correlations to source LT
     import json
-    with open('source_branches.json','w') as jsonfile:
-        json.dump(source_branches,jsonfile,indent=2)
+
+    with open('source_branches.json', 'w') as jsonfile:
+        json.dump(source_branches, jsonfile, indent=2)
     assert 0
 
     if truncate:
@@ -68,7 +62,7 @@ def build_source_branches(logic_tree_permutations, gtdata, vs30, omit, truncate=
         source_branches = source_branches[:truncate]
 
     for i in range(len(source_branches)):
-        rlz_combs, weight_combs = build_rlz_table(source_branches[i], vs30) # TODO: add correlations to GMCM LT
+        rlz_combs, weight_combs = build_rlz_table(source_branches[i], vs30)  # TODO: add correlations to GMCM LT
         source_branches[i]['rlz_combs'] = rlz_combs
         source_branches[i]['weight_combs'] = weight_combs
 
@@ -107,7 +101,7 @@ def process_location_list(task_args):
         for loc in locs:
             lat, lon = loc.split('~')
             resolution = 0.001
-            location = CodedLocation(float(lat), float(lon),resolution)
+            location = CodedLocation(float(lat), float(lon), resolution)
             log.debug('build_branches imt: %s, loc: %s, vs30: %s' % (imt, loc, vs30))
 
             # tic1 = time.perf_counter()
@@ -228,13 +222,17 @@ def process_aggregation(config: AggregationConfig):
         b.hazard_solution_id
         for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit)
     ]
-    
+
     source_branches = build_source_branches(
-        config.logic_tree_permutations, config.hazard_solutions, config.vs30s[0], omit, truncate=config.source_branches_truncate
+        config.logic_tree_permutations,
+        config.hazard_solutions,
+        config.vs30s[0],
+        omit,
+        truncate=config.source_branches_truncate,
     )
-    
+
     locations = get_locations(config)
-    
+
     resolution = 0.001
     coded_locations = [CodedLocation(*loc, resolution) for loc in locations]
 

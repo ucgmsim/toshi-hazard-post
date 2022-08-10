@@ -8,13 +8,12 @@ from typing import Dict
 import boto3
 from nzshm_common.location.code_location import CodedLocation
 
+import toshi_hazard_post.hazard_aggregation.aggregation_task
+
 # from toshi_hazard_store.aggregate_rlzs_mp import build_source_branches
 # from toshi_hazard_store.branch_combinator.branch_combinator import merge_ltbs_fromLT
 from toshi_hazard_post.branch_combinator import merge_ltbs_fromLT
-from toshi_hazard_post.hazard_aggregation.locations import locations_by_chunk
-from toshi_hazard_post.hazard_aggregation.locations import get_locations
-
-import toshi_hazard_post.hazard_aggregation.aggregation_task
+from toshi_hazard_post.hazard_aggregation.locations import get_locations, locations_by_chunk
 from toshi_hazard_post.local_config import API_URL, NUM_WORKERS, S3_URL, SNS_AGG_TASK_TOPIC, WORK_PATH
 from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 from toshi_hazard_post.util.sns import publish_message
@@ -104,7 +103,7 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
     locations = get_locations(config)
 
     resolution = 0.001
-    example_loc_code = CodedLocation(*locations[0],resolution).downsample(0.001)
+    example_loc_code = CodedLocation(*locations[0], resolution).downsample(0.001)
 
     log.debug('example_loc_code code: %s obj: %s' % (example_loc_code, example_loc_code))
 

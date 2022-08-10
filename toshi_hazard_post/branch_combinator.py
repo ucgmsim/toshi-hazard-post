@@ -1,10 +1,13 @@
 # rom toshi_hazard_store.branch_combinator.SLT_test1 import *
 import itertools
 import json
+import logging
 import math
 from collections import namedtuple
 
 DTOL = 1.0e-6
+
+log = logging.getLogger(__name__)
 
 
 def get_branches():
@@ -12,7 +15,7 @@ def get_branches():
 
 
 def get_weighted_branches(grouped_ltbs):
-    """ build source branches """
+    """build source branches"""
 
     # TODO: only handles one combined job and one permutation set
     permute = grouped_ltbs  # tree_permutations[0][0]['permute']
@@ -23,8 +26,8 @@ def get_weighted_branches(grouped_ltbs):
         for member in group:
             group_weight += member.weight
         if (group_weight < 1.0 - DTOL) | (group_weight > 1.0 + DTOL):
-            print(len(group), 'items', group_weight)
-            print(group)
+            log.error('Group: %s has items: %s and weight: %s' % (key, len(group), group_weight))
+            log.error('group: %s' % (group))
             raise Exception(f'group {key} weight does not sum to 1.0 ({group_weight}')
 
     # do the thing
@@ -32,11 +35,11 @@ def get_weighted_branches(grouped_ltbs):
     for key, group in permute.items():
         id_group = []
         for member in group:
-            id_group.append({'id': member.hazard_solution_id, 'weight': member.weight, 'tag':member.tag})
+            id_group.append({'id': member.hazard_solution_id, 'weight': member.weight, 'tag': member.tag})
         id_groups.append(id_group)
 
-    print(id_groups)
-    # breakpoint()
+    # print(id_groups)
+    # # breakpoint()
     branches = itertools.product(*id_groups)
     source_branches = []
     for i, branch in enumerate(branches):
@@ -54,7 +57,7 @@ def get_weighted_branches(grouped_ltbs):
     for branch in source_branches:
         weight += branch['weight']
     if not ((weight > 1.0 - DTOL) & (weight < 1.0 + DTOL)):
-        print(weight)
+        log.error('Total weight %s does not equal 1.0' % weight)
         raise Exception('weights do not sum to 1')
 
     return source_branches
@@ -97,7 +100,7 @@ def merge_ltbs(logic_tree_permutations, gtdata, omit):
     # weights are the actual Hazard weight @ 1.0
     for toshi_ltb in weight_and_ids(gtdata):
         if toshi_ltb.hazard_solution_id in omit:
-            print(f'skipping {toshi_ltb}')
+            log.debug(f'skipping {toshi_ltb}')
             continue
         d = toshi_ltb._asdict()
         d['weight'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].weight
@@ -106,12 +109,12 @@ def merge_ltbs(logic_tree_permutations, gtdata, omit):
 
 
 def merge_ltbs_fromLT(logic_tree_permutations, gtdata, omit):
-    """ map source IDs in LT definition to Hazard IDs from GT """
+    """map source IDs in LT definition to Hazard IDs from GT"""
     members = all_members_dict(logic_tree_permutations)
     # weights are the actual Hazard weight @ 1.0
     for toshi_ltb in weight_and_ids(gtdata):
         if toshi_ltb.hazard_solution_id in omit:
-            print(f'skipping {toshi_ltb}')
+            log.debug(f'skipping {toshi_ltb}')
             continue
         if members.get(f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'):
             d = toshi_ltb._asdict()
@@ -122,7 +125,7 @@ def merge_ltbs_fromLT(logic_tree_permutations, gtdata, omit):
 
 
 def grouped_ltbs(merged_ltbs):
-    """ groups by trt """
+    """groups by trt"""
     grouped = {}
     for ltb in merged_ltbs:
         if ltb.group not in grouped:
