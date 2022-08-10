@@ -70,13 +70,9 @@ class TestCorrelatedCombinator(unittest.TestCase):
         assert expected_ids == received_ids
 
         # test individual weights
-        for i,branch in enumerate(source_branches):
+        for i, branch in enumerate(source_branches):
             assert branch['weight'] == pytest.approx(expected[i]['weight'])
 
         # weights sum to 1
         total_weight = sum([branch['weight'] for branch in source_branches])
         assert total_weight == pytest.approx(1.0)
-
-        
-
-

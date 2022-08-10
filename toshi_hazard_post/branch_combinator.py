@@ -35,7 +35,9 @@ def get_weighted_branches(grouped_ltbs, correlations=None):
     for key, group in permute.items():
         id_group = []
         for member in group:
-            id_group.append({'id': member.hazard_solution_id, 'weight': member.weight, 'tag': member.tag, 'group': member.group})
+            id_group.append(
+                {'id': member.hazard_solution_id, 'weight': member.weight, 'tag': member.tag, 'group': member.group}
+            )
         id_groups.append(id_group)
 
     # breakpoint()
@@ -44,12 +46,12 @@ def get_weighted_branches(grouped_ltbs, correlations=None):
     for i, branch in enumerate(branches):
         name = str(i)
         ids = [leaf['id'] for leaf in branch]
-        group_and_tags = [{'group':leaf['group'], 'tag':leaf['tag']} for leaf in branch]
+        group_and_tags = [{'group': leaf['group'], 'tag': leaf['tag']} for leaf in branch]
         tags = [leaf['tag'] for leaf in branch]
         weights = [leaf['weight'] for leaf in branch]
         weight = math.prod(weights)
         branch_dict = dict(name=name, ids=ids, weight=weight, tags=tags)
-        
+
         if correlations:
             for correlation in correlations:
                 if all(cor in group_and_tags for cor in correlation):
@@ -57,7 +59,7 @@ def get_weighted_branches(grouped_ltbs, correlations=None):
                     break
         else:
             source_branches.append(branch_dict)
-        
+
     # adjust weight due to filtered branches by renormalizing
     if correlations:
         weight = sum([branch['weight'] for branch in source_branches])
