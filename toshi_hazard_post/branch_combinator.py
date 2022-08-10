@@ -48,16 +48,19 @@ def get_weighted_branches(grouped_ltbs, correlations=None):
         ids = [leaf['id'] for leaf in branch]
         group_and_tags = [{'group': leaf['group'], 'tag': leaf['tag']} for leaf in branch]
         tags = [leaf['tag'] for leaf in branch]
-        weights = [leaf['weight'] for leaf in branch]
-        weight = math.prod(weights)
-        branch_dict = dict(name=name, ids=ids, weight=weight, tags=tags)
 
         if correlations:
-            for correlation in correlations:
+            for correlation in correlations['correlations']:
                 if all(cor in group_and_tags for cor in correlation):
+                    weights = [leaf['weight'] for leaf in branch if leaf['group'] != correlations['dropped_group']]
+                    weight = math.prod(weights)
+                    branch_dict = dict(name=name, ids=ids, weight=weight, tags=tags)
                     source_branches.append(branch_dict)
                     break
         else:
+            weights = [leaf['weight'] for leaf in branch]
+            weight = math.prod(weights)
+            branch_dict = dict(name=name, ids=ids, weight=weight, tags=tags)
             source_branches.append(branch_dict)
 
     # adjust weight due to filtered branches by renormalizing

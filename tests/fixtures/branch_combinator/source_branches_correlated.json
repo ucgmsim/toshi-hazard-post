@@ -8,7 +8,7 @@
       "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU2",
       "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU5"
     ],
-    "weight": 0.1272727272727270000000,
+    "weight": 0.175,
     "tags": [
       "geologic, TD, N4.6, b1.089 C4.2 s1.41",
       "Puy 0.7, N4.6, b0.902, C4, s1.72",
@@ -25,7 +25,7 @@
       "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDUw",
       "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU5"
     ],
-    "weight": 0.5727272727272730000000,
+    "weight": 0.525,
     "tags": [
       "geologic, TD, N4.6, b1.089 C4.2 s1.41",
       "Puy 0.7, N4.6, b0.902, C4, s1",
@@ -43,7 +43,7 @@
       "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU2",
       "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU5"
     ],
-    "weight": 0.0545454545454546000000,
+    "weight": 0.075,
     "tags": [
       "geologic, TD, N4.6, b1.089 C4.2 s1",
       "Puy 0.7, N4.6, b0.902, C4, s1.72",
@@ -59,7 +59,7 @@
       "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDUw",
       "T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTExNDU5"
     ],
-    "weight": 0.2454545454545460000000,
+    "weight": 0.225,
     "tags": [
       "geologic, TD, N4.6, b1.089 C4.2 s1",
       "Puy 0.7, N4.6, b0.902, C4, s1",

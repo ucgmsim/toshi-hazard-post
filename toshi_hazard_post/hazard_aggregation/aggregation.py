@@ -50,7 +50,7 @@ class DistributedAggregationTaskArguments:
 def build_source_branches(logic_tree_permutations, gtdata, correlations, vs30, omit, truncate=None):
     """ported from THS. aggregate_rlzs_mp"""
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit))
-    source_branches = get_weighted_branches(grouped, correlations) 
+    source_branches = get_weighted_branches(grouped, correlations)
     import json
 
     if truncate:
@@ -182,7 +182,7 @@ def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, 
                 hazard_model_id,
                 coded_loc.downsample(0.1).code,
                 [coded_loc.downsample(0.001).code],
-                toshi_ids,
+                toshi_ids,  # TODO: this might be a dict with each key a vs30
                 source_branches,
                 config.aggs,
                 config.imts,
@@ -214,12 +214,14 @@ def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, 
 def process_aggregation(config: AggregationConfig):
     """Configure the tasks."""
     omit: List[str] = []
-    toshi_ids = [
+    toshi_ids = [  # TODO: OK to have all ids from all vs30s? or does this need to be a dict with a list for each?
         b.hazard_solution_id
-        for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit)
+        for b in merge_ltbs_fromLT(
+            config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit
+        )  # TODO: handle multiple source soln pairs due to multiple vs30s
     ]
 
-    source_branches = build_source_branches(
+    source_branches = build_source_branches(  # TODO make dict with multiple vs30s
         config.logic_tree_permutations,
         config.hazard_solutions,
         config.correlations,
