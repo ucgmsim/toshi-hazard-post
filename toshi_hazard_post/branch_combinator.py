@@ -14,7 +14,7 @@ def get_branches():
     assert 0
 
 
-def get_weighted_branches(grouped_ltbs):
+def get_weighted_branches(grouped_ltbs, correlations=None):
     """build source branches"""
 
     # TODO: only handles one combined job and one permutation set
@@ -35,30 +35,34 @@ def get_weighted_branches(grouped_ltbs):
     for key, group in permute.items():
         id_group = []
         for member in group:
-            id_group.append({'id': member.hazard_solution_id, 'weight': member.weight, 'tag': member.tag})
+            id_group.append({'id': member.hazard_solution_id, 'weight': member.weight, 'tag': member.tag, 'group': member.group})
         id_groups.append(id_group)
 
-    # print(id_groups)
-    # # breakpoint()
+    # breakpoint()
     branches = itertools.product(*id_groups)
     source_branches = []
     for i, branch in enumerate(branches):
         name = str(i)
         ids = [leaf['id'] for leaf in branch]
+        group_and_tags = [{'group':leaf['group'], 'tag':leaf['tag']} for leaf in branch]
         tags = [leaf['tag'] for leaf in branch]
         weights = [leaf['weight'] for leaf in branch]
         weight = math.prod(weights)
         branch_dict = dict(name=name, ids=ids, weight=weight, tags=tags)
-        source_branches.append(branch_dict)
-
-    # double check that the weights are done correctly
-
-    weight = 0
-    for branch in source_branches:
-        weight += branch['weight']
-    if not ((weight > 1.0 - DTOL) & (weight < 1.0 + DTOL)):
-        log.error('Total weight %s does not equal 1.0' % weight)
-        raise Exception('weights do not sum to 1')
+        
+        if correlations:
+            for correlation in correlations:
+                if all(cor in group_and_tags for cor in correlation):
+                    source_branches.append(branch_dict)
+                    break
+        else:
+            source_branches.append(branch_dict)
+        
+    # adjust weight due to filtered branches by renormalizing
+    if correlations:
+        weight = sum([branch['weight'] for branch in source_branches])
+        for branch in source_branches:
+            branch['weight'] /= weight
 
     return source_branches
 
