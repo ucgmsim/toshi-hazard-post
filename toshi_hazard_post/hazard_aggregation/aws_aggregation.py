@@ -77,10 +77,13 @@ def save_source_branches(source_branches):
 
 def distribute_aggregation(config: AggregationConfig, process_mode: str):
     """Configure the tasks using toshi to store the configuration."""
-    toshi_ids = [
-        branch.hazard_solution_id
-        for branch in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=[])
-    ]
+
+    toshi_ids = {}
+    for vs30 in config.vs30s:
+        toshi_ids[vs30] = [
+            branch.hazard_solution_id
+            for branch in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=[])
+        ]
     log.debug("toshi_ids: %s" % toshi_ids)
 
     # build source branches or reuse existing (for testin/debugging only)
@@ -90,14 +93,17 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
         source_branches = fetch_source_branches(source_branches_id)
     else:
         log.info("building the sources branches.")
-        source_branches = build_source_branches(
-            config.logic_tree_permutations,
-            config.hazard_solutions,
-            config.correlations,
-            config.vs30s[0],
-            omit=[],
-            truncate=config.source_branches_truncate,
-        )
+
+        source_branches = {}
+        for vs30 in config.vs30s:
+            source_branches[vs30] = build_source_branches(
+                config.logic_tree_permutations,
+                config.hazard_solutions,
+                config.correlations,
+                vs30,
+                omit=[],
+                truncate=config.source_branches_truncate,
+            )
         source_branches_id = save_source_branches(source_branches)
         log.info("saved source_branches to id : %s" % source_branches_id)
 

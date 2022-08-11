@@ -17,6 +17,8 @@ from toshi_hazard_store import model
 from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT
 from toshi_hazard_post.hazard_aggregation.locations import get_locations
 from toshi_hazard_post.local_config import NUM_WORKERS
+from toshi_hazard_post.hazard_aggregation.aws_aggregation import save_source_branches
+from toshi_hazard_post.hazard_aggregation.aggregation_task import fetch_source_branches
 
 from .aggregate_rlzs import (
     build_branches,
@@ -49,7 +51,8 @@ class DistributedAggregationTaskArguments:
 
 def build_source_branches(logic_tree_permutations, gtdata, correlations, vs30, omit, truncate=None):
     """ported from THS. aggregate_rlzs_mp"""
-    grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit))
+    grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
+    
     source_branches = get_weighted_branches(grouped, correlations)
     import json
 
@@ -182,8 +185,8 @@ def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, 
                 hazard_model_id,
                 coded_loc.downsample(0.1).code,
                 [coded_loc.downsample(0.001).code],
-                toshi_ids,  # TODO: this might be a dict with each key a vs30
-                source_branches,
+                toshi_ids[vs30], 
+                source_branches[vs30],
                 config.aggs,
                 config.imts,
                 levels,
@@ -214,21 +217,30 @@ def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, 
 def process_aggregation(config: AggregationConfig):
     """Configure the tasks."""
     omit: List[str] = []
-    toshi_ids = [  # TODO: OK to have all ids from all vs30s? or does this need to be a dict with a list for each?
-        b.hazard_solution_id
-        for b in merge_ltbs_fromLT(
-            config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit
-        )  # TODO: handle multiple source soln pairs due to multiple vs30s
-    ]
+    
+    toshi_ids = {}
+    for vs30 in config.vs30s:
+        toshi_ids[vs30] = [ b.hazard_solution_id for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit) if b.vs30==vs30]
+    
+    if config.reuse_source_branches_id:
+        log.info("reuse sources_branches_id: %s" % config.reuse_source_branches_id)
+        source_branches_id = config.reuse_source_branches_id
+        source_branches = fetch_source_branches(source_branches_id)
+    else:
+        log.info("building the sources branches.")
 
-    source_branches = build_source_branches(  # TODO make dict with multiple vs30s
-        config.logic_tree_permutations,
-        config.hazard_solutions,
-        config.correlations,
-        config.vs30s[0],
-        omit,
-        truncate=config.source_branches_truncate,
-    )
+        source_branches = {}
+        for vs30 in config.vs30s:
+            source_branches[vs30] = build_source_branches(  
+                                                            config.logic_tree_permutations,
+                                                            config.hazard_solutions,
+                                                            config.correlations,
+                                                            vs30,
+                                                            omit,
+                                                            truncate=config.source_branches_truncate,
+                                                            )
+        source_branches_id = save_source_branches(source_branches)
+        log.info("saved source_branches to id : %s" % source_branches_id)
 
     locations = get_locations(config)
 
@@ -237,9 +249,9 @@ def process_aggregation(config: AggregationConfig):
 
     example_loc_code = coded_locations[0].downsample(0.001).code
 
-    levels = get_levels(source_branches, [example_loc_code], config.vs30s[0])  # TODO: get seperate levels for every IMT
-    avail_imts = get_imts(source_branches, config.vs30s[0])
+    levels = get_levels(source_branches[config.vs30s[0]], [example_loc_code], config.vs30s[0])  # TODO: get seperate levels for every IMT
+    avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0])
     for imt in config.imts:
         assert imt in avail_imts
 
-    process_local(config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS)
+    process_local(config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS) #TODO: use source_branches dict

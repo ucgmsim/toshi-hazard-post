@@ -72,7 +72,7 @@ def get_weighted_branches(grouped_ltbs, correlations=None):
     return source_branches
 
 
-Member = namedtuple("Member", "group tag weight inv_id bg_id hazard_solution_id")
+Member = namedtuple("Member", "group tag weight inv_id bg_id hazard_solution_id vs30")
 
 
 def weight_and_ids(data):
@@ -82,11 +82,18 @@ def weight_and_ids(data):
                 return json.loads(arg['v'].replace("'", '"'))[0]['permute']  # ['members'][0]
         assert 0
 
+    def get_vs30(args):
+        for arg in args:
+            if arg['k'] == "vs30":
+                return int(arg['v'])
+        assert 0
+
     nodes = data['data']['node1']['children']['edges']
     for obj in nodes:
         tag = get_tag(obj['node']['child']['arguments'])
+        vs30 = get_vs30(obj['node']['child']['arguments'])
         hazard_solution_id = obj['node']['child']['hazard_solution']['id']
-        yield Member(**tag[0]['members'][0], group=None, hazard_solution_id=hazard_solution_id)
+        yield Member(**tag[0]['members'][0], group=None, hazard_solution_id=hazard_solution_id, vs30=vs30)
 
 
 def all_members_dict(ltbs):
@@ -97,7 +104,7 @@ def all_members_dict(ltbs):
         for grp in ltbs[0][0]['permute']:
             # print(grp['group'])
             for m in grp['members']:
-                yield Member(**m, group=grp['group'], hazard_solution_id=None)
+                yield Member(**m, group=grp['group'], hazard_solution_id=None, vs30=None)
 
     for m in members():
         res[f'{m.inv_id}{m.bg_id}'] = m
@@ -133,11 +140,12 @@ def merge_ltbs_fromLT(logic_tree_permutations, gtdata, omit):
             yield Member(**d)
 
 
-def grouped_ltbs(merged_ltbs):
+def grouped_ltbs(merged_ltbs, vs30):
     """groups by trt"""
     grouped = {}
     for ltb in merged_ltbs:
-        if ltb.group not in grouped:
-            grouped[ltb.group] = []
-        grouped[ltb.group].append(ltb)
+        if ltb.vs30 == vs30:
+            if ltb.group not in grouped:
+                grouped[ltb.group] = []
+            grouped[ltb.group].append(ltb)
     return grouped
