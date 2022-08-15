@@ -127,16 +127,15 @@ def build_rlz_table(branch, vs30, correlations=None):
             for rlz, gsim in gsim_lt['uncertainty'].items():
                 rlz_key = ':'.join((hazard_id, rlz))
                 rlz_sets[trt][gsim].append(rlz_key)
-                weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz] 
-                  
+                weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
 
     # find correlated gsims and mappings between gsim name and rlz_key
     if correlations:
-        all_rlz = [ (gsim,rlz) for rlz_set in rlz_sets.values() for gsim,rlz in rlz_set.items() ]
+        all_rlz = [(gsim, rlz) for rlz_set in rlz_sets.values() for gsim, rlz in rlz_set.items()]
         correlation_list = []
         all_rlz_copy = all_rlz.copy()
         for rlzm in all_rlz:
-            for i,cm in enumerate(correlation_master):
+            for i, cm in enumerate(correlation_master):
                 if cm == rlzm[0]:
                     correlation_list.append(rlzm[1].copy())
                     for rlzp in all_rlz_copy:
@@ -161,11 +160,11 @@ def build_rlz_table(branch, vs30, correlations=None):
     weight_iter = itertools.product(*weight_lists)
     rlz_combs = []
     weight_combs = []
-    
-    for src_group, weight_group in zip(rlz_iter,weight_iter): 
+
+    for src_group, weight_group in zip(rlz_iter, weight_iter):
         if correlations:
             foo = [s for src in src_group for s in src]
-            if any([ len(set(foo).intersection(set(cl))) == len(cl) for cl in correlation_list]):
+            if any([len(set(foo).intersection(set(cl))) == len(cl) for cl in correlation_list]):
                 rlz_combs.append(foo)
                 weight_combs.append(reduce(mul, weight_group, 1))
         else:

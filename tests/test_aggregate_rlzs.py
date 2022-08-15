@@ -82,10 +82,7 @@ class TestBuildAggregation(unittest.TestCase):
         assert 0
 
 
-
-
 class TestBuldRealizationTable(unittest.TestCase):
-
     def setUp(self):
         self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
         self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'rlz_combs.json')
@@ -93,46 +90,55 @@ class TestBuldRealizationTable(unittest.TestCase):
 
     def test_build_rlz_table(self):
 
-        source_branches = json.load(open(self._sb_file, 'r'))        
+        source_branches = json.load(open(self._sb_file, 'r'))
         rlz_combs, weight_combs = build_rlz_table(source_branches[0], 400)
 
-        rlz_combs_expected = json.load(open(self._rlz_combs_filepath,'r'))
-        weight_combs_expected = json.load(open(self._weight_combs_filepath,'r'))
+        rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
+        weight_combs_expected = json.load(open(self._weight_combs_filepath, 'r'))
 
         assert rlz_combs == rlz_combs_expected
         assert weight_combs == weight_combs_expected
 
         assert sum(weight_combs) == pytest.approx(1.0)
-        
+
 
 class TestCorrelatiedRealizationTable(unittest.TestCase):
-
     def setUp(self):
         self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
         self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'rlz_combs_corr.json')
-        
+
     def test_build_correlated_rlz_table(self):
 
         correlations = [
-                ('[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = -1.28155','[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = -1.28155'),
-                ('[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 0.0','[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 0.0'),
-                ('[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 1.28155','[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 1.28155'),
-                ('[Atkinson2022SInter]\nepistemic = "Central"','[Atkinson2022SSlab]\nepistemic = "Central"'),
-                ('[Atkinson2022SInter]\nepistemic = "Lower"','[Atkinson2022SSlab]\nepistemic = "Lower"'),
-                ('[Atkinson2022SInter]\nepistemic = "Upper"','[Atkinson2022SSlab]\nepistemic = "Upper"'),
-                ('[KuehnEtAl2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 0.0','[KuehnEtAl2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 0.0'),
-                ('[ParkerEtAl2020SInter]','[ParkerEtAl2020SSlab]')
-                    ]  
+            (
+                '[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = -1.28155',
+                '[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = -1.28155',
+            ),
+            (
+                '[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
+                '[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
+            ),
+            (
+                '[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 1.28155',
+                '[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 1.28155',
+            ),
+            ('[Atkinson2022SInter]\nepistemic = "Central"', '[Atkinson2022SSlab]\nepistemic = "Central"'),
+            ('[Atkinson2022SInter]\nepistemic = "Lower"', '[Atkinson2022SSlab]\nepistemic = "Lower"'),
+            ('[Atkinson2022SInter]\nepistemic = "Upper"', '[Atkinson2022SSlab]\nepistemic = "Upper"'),
+            (
+                '[KuehnEtAl2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
+                '[KuehnEtAl2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
+            ),
+            ('[ParkerEtAl2020SInter]', '[ParkerEtAl2020SSlab]'),
+        ]
 
-        source_branches = json.load(open(self._sb_file, 'r'))        
+        source_branches = json.load(open(self._sb_file, 'r'))
         rlz_combs, weight_combs = build_rlz_table(source_branches[0], 400, correlations)
 
-        rlz_combs_expected = json.load(open(self._rlz_combs_filepath,'r'))
+        rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
 
         assert rlz_combs == rlz_combs_expected
 
         assert sum(weight_combs) == pytest.approx(1.0)
 
         assert len(weight_combs) == len(rlz_combs)
-        
-        
