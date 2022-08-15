@@ -79,7 +79,18 @@ def load_realization_values(toshi_ids, locs, vs30s):
     return values
 
 
-def build_rlz_table(branch, vs30):
+def build_rlz_table(branch, vs30, correlations=None):
+    """
+    build the table of ground motion combinations and weights for a single source branch
+    assumes only one source per run and the same gsim weights in every run
+    """
+
+    if correlations:
+        correlation_master = [corr[0] for corr in correlations]
+        correlation_puppet = [corr[1] for corr in correlations]
+    else:
+        correlation_master = []
+        correlation_puppet = []
 
     tic = time.perf_counter()
 
@@ -116,9 +127,21 @@ def build_rlz_table(branch, vs30):
             for rlz, gsim in gsim_lt['uncertainty'].items():
                 rlz_key = ':'.join((hazard_id, rlz))
                 rlz_sets[trt][gsim].append(rlz_key)
-                weight_sets[trt][gsim] = gsim_lt['weight'][
-                    rlz
-                ]  # this depends on only one source per run and the same gsim weights in every run
+                weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz] 
+                  
+
+    # find correlated gsims and mappings between gsim name and rlz_key
+    if correlations:
+        all_rlz = [ (gsim,rlz) for rlz_set in rlz_sets.values() for gsim,rlz in rlz_set.items() ]
+        correlation_list = []
+        all_rlz_copy = all_rlz.copy()
+        for rlzm in all_rlz:
+            for i,cm in enumerate(correlation_master):
+                if cm == rlzm[0]:
+                    correlation_list.append(rlzm[1].copy())
+                    for rlzp in all_rlz_copy:
+                        if correlation_puppet[i] == rlzp[0]:
+                            correlation_list[-1] += rlzp[1]
 
     rlz_sets_tmp = rlz_sets.copy()
     weight_sets_tmp = weight_sets.copy()
@@ -133,17 +156,21 @@ def build_rlz_table(branch, vs30):
     weight_lists = list(weight_sets_tmp.values())
 
     # TODO: fix rlz from the same ID grouped together
-
-    rlz_iter = itertools.product(*rlz_lists)
-    rlz_combs = []
-    for src_group in rlz_iter:  # could be done with list comprehension, but I can't figure out the syntax?
-        rlz_combs.append([s for src in src_group for s in src])
-
     # TODO: I sure hope itertools.product produces the same order every time
+    rlz_iter = itertools.product(*rlz_lists)
     weight_iter = itertools.product(*weight_lists)
+    rlz_combs = []
     weight_combs = []
-    for src_group in weight_iter:  # could be done with list comprehension, but I can't figure out the syntax?
-        weight_combs.append(reduce(mul, src_group, 1))
+    
+    for src_group, weight_group in zip(rlz_iter,weight_iter): 
+        if correlations:
+            foo = [s for src in src_group for s in src]
+            if any([ len(set(foo).intersection(set(cl))) == len(cl) for cl in correlation_list]):
+                rlz_combs.append(foo)
+                weight_combs.append(reduce(mul, weight_group, 1))
+        else:
+            rlz_combs.append([s for src in src_group for s in src])
+            weight_combs.append(reduce(mul, weight_group, 1))
 
     toc = time.perf_counter()
     if VERBOSE:

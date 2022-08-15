@@ -63,12 +63,6 @@ def get_weighted_branches(grouped_ltbs, correlations=None):
             branch_dict = dict(name=name, ids=ids, weight=weight, tags=tags)
             source_branches.append(branch_dict)
 
-    # adjust weight due to filtered branches by renormalizing
-    if correlations:
-        weight = sum([branch['weight'] for branch in source_branches])
-        for branch in source_branches:
-            branch['weight'] /= weight
-
     return source_branches
 
 

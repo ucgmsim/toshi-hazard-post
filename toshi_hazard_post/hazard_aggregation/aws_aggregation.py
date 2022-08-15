@@ -99,7 +99,8 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
             source_branches[vs30] = build_source_branches(
                 config.logic_tree_permutations,
                 config.hazard_solutions,
-                config.correlations,
+                config.src_correlations,
+                config.gmm_correlations,
                 vs30,
                 omit=[],
                 truncate=config.source_branches_truncate,
@@ -115,9 +116,9 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
     log.debug('example_loc_code code: %s obj: %s' % (example_loc_code, example_loc_code))
 
     levels = get_levels(
-        source_branches, [example_loc_code.code], config.vs30s[0]
+        source_branches[config.vs30s[0]], [example_loc_code.code], config.vs30s[0]
     )  # TODO: get separate levels for every IMT ?
-    avail_imts = get_imts(source_branches, config.vs30s[0])
+    avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0])
     for imt in config.imts:
         assert imt in avail_imts
 

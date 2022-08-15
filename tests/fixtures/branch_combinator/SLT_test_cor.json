@@ -1,5 +1,5 @@
 {
-  "correlations": 
+  "src_correlations": 
     {
       "dropped_group": "PUY",
       "correlations": [[{"group": "Hik", "tag": "Hik TL, N21.5, b1.097, C4, s1"}, {"group": "PUY",  "tag": "Puy 0.7, N4.6, b0.902, C4, s1" }],

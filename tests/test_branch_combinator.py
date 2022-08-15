@@ -10,6 +10,7 @@ import pytest
 from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT
 
 
+
 class TestCombinator(unittest.TestCase):
     def setUp(self):
         self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches.json')
@@ -70,7 +71,7 @@ class TestCorrelatedCombinator(unittest.TestCase):
 
         ltb_data = json.load(open(self._ltb_file, 'r'))
 
-        correlations = ltb_data['correlations']
+        correlations = ltb_data['src_correlations']
         logic_tree_permutations = ltb_data['logic_tree_permutations']
         gtdata = ltb_data['hazard_solutions']
         omit = []
@@ -98,7 +99,7 @@ class TestGroupedLTBs(unittest.TestCase):
     def setUp(self):
         self._ltb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'SLT_test_vs30.json')
 
-    def test_build_correlated_source_branches(self):
+    def test_build_correlated_source_branches_vs30(self):
 
         ltb_data = json.load(open(self._ltb_file, 'r'))
         logic_tree_permutations = ltb_data['logic_tree_permutations']
@@ -112,5 +113,6 @@ class TestGroupedLTBs(unittest.TestCase):
         gltb_400 = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), 400)
         hazard_ids_400 = [ g.hazard_solution_id for group in gltb_400.values() for g in group]
         assert all(['400_' in id for id in hazard_ids_400])
+
 
 

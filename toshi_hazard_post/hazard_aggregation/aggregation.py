@@ -17,8 +17,6 @@ from toshi_hazard_store import model
 from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT
 from toshi_hazard_post.hazard_aggregation.locations import get_locations
 from toshi_hazard_post.local_config import NUM_WORKERS
-from toshi_hazard_post.hazard_aggregation.aws_aggregation import save_source_branches
-from toshi_hazard_post.hazard_aggregation.aggregation_task import fetch_source_branches
 
 from .aggregate_rlzs import (
     build_branches,
@@ -49,22 +47,21 @@ class DistributedAggregationTaskArguments:
     vs30s: List[int]
 
 
-def build_source_branches(logic_tree_permutations, gtdata, correlations, vs30, omit, truncate=None):
+def build_source_branches(logic_tree_permutations, gtdata, src_correlations, gmm_correlations, vs30, omit, truncate=None):
     """ported from THS. aggregate_rlzs_mp"""
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
     
-    source_branches = get_weighted_branches(grouped, correlations)
-    import json
+    source_branches = get_weighted_branches(grouped, src_correlations)
 
     if truncate:
         # for testing only
         source_branches = source_branches[:truncate]
 
     for i in range(len(source_branches)):
-        rlz_combs, weight_combs = build_rlz_table(source_branches[i], vs30)  # TODO: add correlations to GMCM LT
+        rlz_combs, weight_combs = build_rlz_table(source_branches[i], vs30, gmm_correlations)  # TODO: add correlations to GMCM LT
         source_branches[i]['rlz_combs'] = rlz_combs
         source_branches[i]['weight_combs'] = weight_combs
-
+    
     return source_branches
 
 
@@ -222,26 +219,18 @@ def process_aggregation(config: AggregationConfig):
     for vs30 in config.vs30s:
         toshi_ids[vs30] = [ b.hazard_solution_id for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit) if b.vs30==vs30]
     
-    if config.reuse_source_branches_id:
-        log.info("reuse sources_branches_id: %s" % config.reuse_source_branches_id)
-        source_branches_id = config.reuse_source_branches_id
-        source_branches = fetch_source_branches(source_branches_id)
-    else:
-        log.info("building the sources branches.")
-
-        source_branches = {}
-        for vs30 in config.vs30s:
-            source_branches[vs30] = build_source_branches(  
-                                                            config.logic_tree_permutations,
-                                                            config.hazard_solutions,
-                                                            config.correlations,
-                                                            vs30,
-                                                            omit,
-                                                            truncate=config.source_branches_truncate,
-                                                            )
-        source_branches_id = save_source_branches(source_branches)
-        log.info("saved source_branches to id : %s" % source_branches_id)
-
+    source_branches = {}
+    for vs30 in config.vs30s:
+        source_branches[vs30] = build_source_branches(  
+                                                        config.logic_tree_permutations,
+                                                        config.hazard_solutions,
+                                                        config.src_correlations,
+                                                        config.gmm_correlations,
+                                                        vs30,
+                                                        omit,
+                                                        truncate=config.source_branches_truncate,
+                                                        )
+   
     locations = get_locations(config)
 
     resolution = 0.001
