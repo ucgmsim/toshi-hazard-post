@@ -54,7 +54,7 @@ def build_source_branches(
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
 
     source_branches = get_weighted_branches(grouped, src_correlations)
-
+    
     if truncate:
         # for testing only
         source_branches = source_branches[:truncate]
@@ -179,6 +179,9 @@ def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, 
     tic = time.perf_counter()
     # Enqueue jobs
     num_jobs = 0
+
+    toshi_ids = {int(k):v for k,v in toshi_ids.items()}
+    source_branches = {int(k):v for k,v in source_branches.items()}
 
     for coded_loc in coded_locations:
         for vs30 in config.vs30s:

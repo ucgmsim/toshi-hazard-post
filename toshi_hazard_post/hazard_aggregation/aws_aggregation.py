@@ -83,6 +83,7 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
         toshi_ids[vs30] = [
             branch.hazard_solution_id
             for branch in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=[])
+            if branch.vs30 == vs30
         ]
     log.debug("toshi_ids: %s" % toshi_ids)
 
