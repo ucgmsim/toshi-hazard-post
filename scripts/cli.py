@@ -8,6 +8,7 @@ import click
 from toshi_hazard_store.model import migrate_v3 as migrate
 
 from toshi_hazard_post.hazard_aggregation import AggregationConfig, process_aggregation
+from toshi_hazard_post.hazard_aggregation import process_deaggregation
 from toshi_hazard_post.hazard_aggregation.aws_aggregation import distribute_aggregation, push_test_message
 
 log = logging.getLogger()
@@ -39,10 +40,11 @@ log.addHandler(screen_handler)
     default=lambda: os.environ.get("NZSHM22_THP_MODE", 'LOCAL'),
     type=click.Choice(['AWS', 'AWS_BATCH', 'LOCAL'], case_sensitive=True),
 )
+@click.option('--deagg','-d',is_flag=True)
 @click.option('--push-sns-test', '-pt', is_flag=True)
 @click.option('--migrate-tables', '-M', is_flag=True)
 @click.argument('config', type=click.Path(exists=True))  # help="path to a valid THP configuration file."
-def main(config, mode, push_sns_test, migrate_tables):
+def main(config, mode, deagg, push_sns_test, migrate_tables):
     """Main entrypoint."""
     click.echo("Hazard post-processing pipeline as serverless AWS infrastructure.")
     click.echo(f"mode: {mode}")
@@ -57,9 +59,14 @@ def main(config, mode, push_sns_test, migrate_tables):
 
     if mode == 'LOCAL':
         # process_aggregation(agconf, 'prefix')
-        process_aggregation(agconf)
+        if deagg:
+            process_deaggregation(agconf)
+        else:
+            process_aggregation(agconf)
         return
     if 'AWS_BATCH' in mode: #TODO: multiple vs30s
+        if deagg:
+            raise Exception(f'deaggregation not supported in {mode} mode')
         if migrate_tables:
             click.echo("Ensuring that dynamodb tables are available in target region & stage.")
             migrate()

@@ -290,7 +290,7 @@ def get_levels(source_branches, locs, vs30):
 
     id = source_branches[0]['ids'][0]
 
-    log.info(f"{locs[0]} {vs30}, {id}")
+    log.info(f"get_levels locs[0]: {locs[0]} vs30: {vs30}, id {id}")
     hazard = next(get_rlz_curves_v3([locs[0]], [vs30], None, [id], None))
 
     return hazard.values[0].lvls
@@ -317,72 +317,72 @@ def compute_hazard_at_poe(levels, values, poe, inv_time):
     return haz
 
 
-def process_disagg_location_list(hazard_curves, source_branches, toshi_ids, poes, inv_time, vs30, locs, aggs, imts):
+# def process_disagg_location_list(hazard_curves, source_branches, toshi_ids, poes, inv_time, vs30, locs, aggs, imts):
 
-    values = load_realization_values(toshi_ids, locs, [vs30])
-    k1 = next(iter(values.keys()))
-    k2 = next(iter(values[k1].keys()))
-    k3 = next(iter(values[k1][k2].keys()))
-    rate_shape = values[k1][k2][k3].shape
+#     values = load_realization_values(toshi_ids, locs, [vs30])
+#     k1 = next(iter(values.keys()))
+#     k2 = next(iter(values[k1].keys()))
+#     k3 = next(iter(values[k1][k2].keys()))
+#     rate_shape = values[k1][k2][k3].shape
 
-    disagg_rlzs = []
-    for loc in locs:
-        lat, lon = loc.split('~')
-        for poe in poes:
-            for agg in aggs:
-                for imt in imts:
-                    # disagg_key = ':'.join((loc, str(poe), str(agg), imt))
+#     disagg_rlzs = []
+#     for loc in locs:
+#         lat, lon = loc.split('~')
+#         for poe in poes:
+#             for agg in aggs:
+#                 for imt in imts:
+#                     # disagg_key = ':'.join((loc, str(poe), str(agg), imt))
 
-                    # get target level of shaking
-                    hc = hazard_curves.loc[
-                        (hazard_curves['agg'] == agg)
-                        & (hazard_curves['imt'] == imt)
-                        & (hazard_curves['lat'] == lat)
-                        & (hazard_curves['lon'] == lon)
-                    ]
-                    levels = hc['level'].to_numpy()
-                    hazard_vals = hc['hazard'].to_numpy()
-                    target_level = compute_hazard_at_poe(levels, hazard_vals, poe, inv_time)
-                    min_dist = math.inf
+#                     # get target level of shaking
+#                     hc = hazard_curves.loc[
+#                         (hazard_curves['agg'] == agg)
+#                         & (hazard_curves['imt'] == imt)
+#                         & (hazard_curves['lat'] == lat)
+#                         & (hazard_curves['lon'] == lon)
+#                     ]
+#                     levels = hc['level'].to_numpy()
+#                     hazard_vals = hc['hazard'].to_numpy()
+#                     target_level = compute_hazard_at_poe(levels, hazard_vals, poe, inv_time)
+#                     min_dist = math.inf
 
-                    # find realization with nearest level of shaking
-                    # TODO: repeating a lot of code here. Unify with agg processing code when done
-                    for i, branch in enumerate(source_branches):
-                        rlz_combs = branch['rlz_combs']
+#                     # find realization with nearest level of shaking
+#                     # TODO: repeating a lot of code here. Unify with agg processing code when done
+#                     for i, branch in enumerate(source_branches):
+#                         rlz_combs = branch['rlz_combs']
 
-                        for i, rlz_comb in enumerate(rlz_combs):
-                            rate = np.zeros(rate_shape)
-                            for rlz in rlz_comb:
-                                rate += prob_to_rate(values[rlz][loc][imt])
-                            prob = rate_to_prob(rate)
-                            rlz_level = compute_hazard_at_poe(levels, prob, poe, inv_time)
-                            dist = abs(rlz_level - target_level)
-                            if dist < min_dist:
-                                nearest_rlz = rlz_comb
-                                min_dist = dist
-                                nearest_level = rlz_level
+#                         for i, rlz_comb in enumerate(rlz_combs):
+#                             rate = np.zeros(rate_shape)
+#                             for rlz in rlz_comb:
+#                                 rate += prob_to_rate(values[rlz][loc][imt])
+#                             prob = rate_to_prob(rate)
+#                             rlz_level = compute_hazard_at_poe(levels, prob, poe, inv_time)
+#                             dist = abs(rlz_level - target_level)
+#                             if dist < min_dist:
+#                                 nearest_rlz = rlz_comb
+#                                 min_dist = dist
+#                                 nearest_level = rlz_level
 
-                    hazard_ids = [id.split(':')[0] for id in nearest_rlz]
-                    source_ids, gsims = get_source_and_gsim(nearest_rlz, vs30)
+#                     hazard_ids = [id.split(':')[0] for id in nearest_rlz]
+#                     source_ids, gsims = get_source_and_gsim(nearest_rlz, vs30)
 
-                    disagg_rlzs.append(
-                        dict(
-                            vs30=vs30,
-                            source_ids=source_ids,
-                            inv_time=inv_time,
-                            imt=imt,
-                            agg=agg,
-                            poe=poe,
-                            level=nearest_level,
-                            location=loc,
-                            gsims=gsims,
-                            dist=min_dist,
-                            nearest_rlz=nearest_rlz,
-                            target_level=target_level,
-                            hazard_ids=hazard_ids,
-                        )
-                    )
-    return disagg_rlzs
+#                     disagg_rlzs.append(
+#                         dict(
+#                             vs30=vs30,
+#                             source_ids=source_ids,
+#                             inv_time=inv_time,
+#                             imt=imt,
+#                             agg=agg,
+#                             poe=poe,
+#                             level=nearest_level,
+#                             location=loc,
+#                             gsims=gsims,
+#                             dist=min_dist,
+#                             nearest_rlz=nearest_rlz,
+#                             target_level=target_level,
+#                             hazard_ids=hazard_ids,
+#                         )
+#                     )
+#     return disagg_rlzs
 
 
 def get_source_and_gsim(rlz, vs30):
@@ -396,9 +396,11 @@ def get_source_and_gsim(rlz, vs30):
         rlz_lt = ast.literal_eval(meta.rlz_lt)
         trt = gsim_lt['trt']['0']
         if gsims.get(trt):
-            if not gsims[trt] == rlz_lt[trt][gsim_rlz]:
+            # if not gsims[trt] == rlz_lt[trt][gsim_rlz]:
+            if not gsims[trt] == gsim_lt['uncertainty'][gsim_rlz]:
                 raise Exception(f'single branch has more than one gsim for trt {trt}')
-        gsims[trt] = rlz_lt[trt][gsim_rlz]
+        # gsims[trt] = rlz_lt[trt][gsim_rlz]
+        gsims[trt] = gsim_lt['uncertainty'][gsim_rlz]
         source_ids += (rlz_lt['source combination'][gsim_rlz]).split('|')
 
     source_ids = [sid for sid in source_ids if sid]  # remove empty strings
