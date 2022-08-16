@@ -8,11 +8,11 @@ from operator import mul
 
 import numpy as np
 import pandas as pd
+from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
 
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_DATA import data as gtdata
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
 from toshi_hazard_post.data_functions import weighted_quantile
-from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
 
 # from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
 # from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
