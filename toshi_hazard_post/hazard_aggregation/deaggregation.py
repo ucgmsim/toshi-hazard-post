@@ -95,42 +95,68 @@ def process_location_list_deagg(task_args):
                     # TODO: repeating a lot of code here. Unify with agg processing?
                     nbranches = len(source_branches) * len(source_branches[0]['weight_combs'])
                     log.info(f'nbranches: {nbranches}')
-                    # dists = np.empty((nbranches,))
+                    dists = np.empty((nbranches,))
+                    
+                    
+                    i = 0
+                    tic = time.perf_counter()
+                    for branch in source_branches:
+                        rlz_combs = branch['rlz_combs']
+                        
+                        for rlz_comb in rlz_combs:
+                            rate = np.zeros(rate_shape)
+                            for rlz in rlz_comb:
+                                rate += prob_to_rate(values[rlz][loc][imt])
+                            prob = rate_to_prob(rate)
+                            rlz_level = compute_hazard_at_poe(levels, prob, poe, inv_time)
+                            dist = abs(rlz_level - target_level)
+                            dists[i] = dist
+                            log.debug(f'calculating realization i: {i}')
+                            i += 1
+
+                    # find nearest NUM_RLZ realizations to the target
+                    tic = time.perf_counter()
+                    sorter = np.argsort(dists)
+                    sorter = sorter[0:NUM_RLZ]
+                    dists = dists[sorter]
+                    i = 0
+                    j = 0
                     deagg_specs = []
+                    log.info(f'indicies of nearest branches {sorter}')
                     for branch in source_branches:
                         rlz_combs = branch['rlz_combs']
                         weight_combs = branch['weight_combs']
                         branch_weight = branch['weight']
 
                         for weight, rlz_comb in zip(weight_combs, rlz_combs):
-                            rate = np.zeros(rate_shape)
-                            for rlz in rlz_comb:
-                                rate += prob_to_rate(values[rlz][loc][imt])
-                            prob = rate_to_prob(rate)
-                            rlz_level = compute_hazard_at_poe(levels, prob, poe, inv_time)
-                            # dist = abs(rlz_level - target_level)
-                            if dist < min_dist:
-                                nearest_rlz = rlz_comb
-                                min_dist = dist
-                                nearest_level = rlz_level
-                                rlz_weight = branch_weight * weight
-                                rank = 0
+                            if i in sorter:
+                                rate = np.zeros(rate_shape)
+                                for rlz in rlz_comb:
+                                    rate += prob_to_rate(values[rlz][loc][imt])
+                                prob = rate_to_prob(rate)
+                                rlz_level = compute_hazard_at_poe(levels, prob, poe, inv_time)
+                                source_ids, gsims = get_source_and_gsim(rlz_comb, vs30)
+                                dist = abs(rlz_level - target_level)
 
-                    hazard_ids = [id.split(':')[0] for id in nearest_rlz]
-                    source_ids, gsims = get_source_and_gsim(nearest_rlz, vs30)
+                                log.info(f'regen branch {i} ({len(deagg_specs)} of {NUM_RLZ} for storage)')
 
-                    deagg_spec = dict(
-                        level=nearest_level,
-                        source_ids=source_ids,
-                        gsims=gsims,
-                        nearest_rlz=nearest_rlz,
-                        hazard_ids=hazard_ids,
-                        weight=rlz_weight,
-                        rank=rank,
-                        dist=min_dist,
-                    )
-                    deagg_specs.append(deagg_spec)
-                    log.info(f'deagg_spec: {deagg_spec}')
+                                rlz_weight = weight * branch_weight
+                                hazard_ids = [id.split(':')[0] for id in rlz_comb]
+
+                                deagg_spec = dict(
+                                    level=rlz_level,
+                                    source_ids=source_ids,
+                                    gsims=gsims,
+                                    rlz=rlz_comb,
+                                    hazard_ids=hazard_ids,
+                                    weight=rlz_weight,
+                                    dist=dist,
+                                    rank=int(np.where(sorter == i)[0]),
+                                )
+                                deagg_specs.append(deagg_spec)
+                                j += 1
+
+                            i += 1
 
                     deagg_rlzs.append(
                         dict(
