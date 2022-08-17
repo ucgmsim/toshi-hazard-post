@@ -6,14 +6,14 @@ from pathlib import Path
 from typing import Dict
 
 import boto3
-from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
 
-# from toshi_hazard_store.aggregate_rlzs_mp import build_source_branches
-from toshi_hazard_store.branch_combinator.branch_combinator import merge_ltbs_fromLT
-from toshi_hazard_store.locations import locations_by_chunk
-
 import toshi_hazard_post.hazard_aggregation.aggregation_task
+
+# from toshi_hazard_store.aggregate_rlzs_mp import build_source_branches
+# from toshi_hazard_store.branch_combinator.branch_combinator import merge_ltbs_fromLT
+from toshi_hazard_post.branch_combinator import merge_ltbs_fromLT
+from toshi_hazard_post.hazard_aggregation.locations import get_locations, locations_by_chunk
 from toshi_hazard_post.local_config import API_URL, NUM_WORKERS, S3_URL, SNS_AGG_TASK_TOPIC, WORK_PATH
 from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 from toshi_hazard_post.util.sns import publish_message
@@ -49,7 +49,7 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
         toshi_api_url=API_URL,
         toshi_s3_url=S3_URL,
         task_module=toshi_hazard_post.hazard_aggregation.aggregation_task.__name__,
-        time_minutes=120,
+        time_minutes=240,
         memory=MEMORY,
         vcpu=NUM_WORKERS,
         job_definition="BigLeverOnDemandEC2-THP-HazardAggregation",
@@ -77,10 +77,14 @@ def save_source_branches(source_branches):
 
 def distribute_aggregation(config: AggregationConfig, process_mode: str):
     """Configure the tasks using toshi to store the configuration."""
-    toshi_ids = [
-        branch.hazard_solution_id
-        for branch in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=[])
-    ]
+
+    toshi_ids = {}
+    for vs30 in config.vs30s:
+        toshi_ids[vs30] = [
+            branch.hazard_solution_id
+            for branch in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=[])
+            if branch.vs30 == vs30
+        ]
     log.debug("toshi_ids: %s" % toshi_ids)
 
     # build source branches or reuse existing (for testin/debugging only)
@@ -90,30 +94,32 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
         source_branches = fetch_source_branches(source_branches_id)
     else:
         log.info("building the sources branches.")
-        source_branches = build_source_branches(
-            config.logic_tree_permutations,
-            config.hazard_solutions,
-            config.vs30s[0],
-            omit=[],
-            truncate=config.source_branches_truncate,
-        )
+
+        source_branches = {}
+        for vs30 in config.vs30s:
+            source_branches[vs30] = build_source_branches(
+                config.logic_tree_permutations,
+                config.hazard_solutions,
+                config.src_correlations,
+                config.gmm_correlations,
+                vs30,
+                omit=[],
+                truncate=config.source_branches_truncate,
+            )
         source_branches_id = save_source_branches(source_branches)
         log.info("saved source_branches to id : %s" % source_branches_id)
 
-    locations = (
-        load_grid(config.locations)
-        if not config.location_limit
-        else load_grid(config.locations)[: config.location_limit]
-    )
+    locations = get_locations(config)
 
-    example_loc_code = CodedLocation(*locations[0]).downsample(0.001)
+    resolution = 0.001
+    example_loc_code = CodedLocation(*locations[0], resolution).downsample(0.001)
 
     log.debug('example_loc_code code: %s obj: %s' % (example_loc_code, example_loc_code))
 
     levels = get_levels(
-        source_branches, [example_loc_code.code], config.vs30s[0]
+        source_branches[config.vs30s[0]], [example_loc_code.code], config.vs30s[0]
     )  # TODO: get separate levels for every IMT ?
-    avail_imts = get_imts(source_branches, config.vs30s[0])
+    avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0])
     for imt in config.imts:
         assert imt in avail_imts
 

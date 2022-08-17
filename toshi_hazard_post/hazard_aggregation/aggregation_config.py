@@ -42,6 +42,8 @@ class AggregationConfig:
         assert ltf.exists()
         self.logic_tree_permutations = json.load(ltf.open('r'))['logic_tree_permutations']
         self.hazard_solutions = json.load(ltf.open('r'))['hazard_solutions']
+        self.src_correlations = json.load(ltf.open('r')).get('src_correlations')
+        self.gmm_correlations = json.load(ltf.open('r')).get('gmm_correlations')
 
     def validate(self):
         """Check the configuration is valid."""

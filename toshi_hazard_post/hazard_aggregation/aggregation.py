@@ -6,15 +6,16 @@ from collections import namedtuple
 from dataclasses import dataclass
 from typing import List
 
-from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
-from toshi_hazard_store.branch_combinator.branch_combinator import (
-    get_weighted_branches,
-    grouped_ltbs,
-    merge_ltbs_fromLT,
-)
 
+# from toshi_hazard_store.branch_combinator.branch_combinator import (
+#     get_weighted_branches,
+#     grouped_ltbs,
+#     merge_ltbs_fromLT,
+# )
+from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT
+from toshi_hazard_post.hazard_aggregation.locations import get_locations
 from toshi_hazard_post.local_config import NUM_WORKERS
 
 from .aggregate_rlzs import (
@@ -46,17 +47,22 @@ class DistributedAggregationTaskArguments:
     vs30s: List[int]
 
 
-def build_source_branches(logic_tree_permutations, gtdata, vs30, omit, truncate=None):
+def build_source_branches(
+    logic_tree_permutations, gtdata, src_correlations, gmm_correlations, vs30, omit, truncate=None
+):
     """ported from THS. aggregate_rlzs_mp"""
-    grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit))
-    source_branches = get_weighted_branches(grouped)
+    grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
+
+    source_branches = get_weighted_branches(grouped, src_correlations)
 
     if truncate:
         # for testing only
         source_branches = source_branches[:truncate]
 
     for i in range(len(source_branches)):
-        rlz_combs, weight_combs = build_rlz_table(source_branches[i], vs30)
+        rlz_combs, weight_combs = build_rlz_table(
+            source_branches[i], vs30, gmm_correlations
+        )  # TODO: add correlations to GMCM LT
         source_branches[i]['rlz_combs'] = rlz_combs
         source_branches[i]['weight_combs'] = weight_combs
 
@@ -94,7 +100,8 @@ def process_location_list(task_args):
         tic_imt = time.perf_counter()
         for loc in locs:
             lat, lon = loc.split('~')
-            location = CodedLocation(float(lat), float(lon))
+            resolution = 0.001
+            location = CodedLocation(float(lat), float(lon), resolution)
             log.debug('build_branches imt: %s, loc: %s, vs30: %s' % (imt, loc, vs30))
 
             # tic1 = time.perf_counter()
@@ -173,14 +180,17 @@ def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, 
     # Enqueue jobs
     num_jobs = 0
 
+    toshi_ids = {int(k): v for k, v in toshi_ids.items()}
+    source_branches = {int(k): v for k, v in source_branches.items()}
+
     for coded_loc in coded_locations:
         for vs30 in config.vs30s:
             t = AggTaskArgs(
                 hazard_model_id,
                 coded_loc.downsample(0.1).code,
                 [coded_loc.downsample(0.001).code],
-                toshi_ids,
-                source_branches,
+                toshi_ids[vs30],
+                source_branches[vs30],
                 config.aggs,
                 config.imts,
                 levels,
@@ -211,25 +221,41 @@ def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, 
 def process_aggregation(config: AggregationConfig):
     """Configure the tasks."""
     omit: List[str] = []
-    toshi_ids = [
-        b.hazard_solution_id
-        for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit)
-    ]
-    source_branches = build_source_branches(
-        config.logic_tree_permutations, config.hazard_solutions, config.vs30s[0], omit, truncate=5
-    )
 
-    locations = (
-        load_grid(config.locations)
-        if not config.location_limit
-        else load_grid(config.locations)[: config.location_limit]
-    )
-    coded_locations = [CodedLocation(*loc) for loc in locations]
+    toshi_ids = {}
+    for vs30 in config.vs30s:
+        toshi_ids[vs30] = [
+            b.hazard_solution_id
+            for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit)
+            if b.vs30 == vs30
+        ]
+
+    source_branches = {}
+    for vs30 in config.vs30s:
+        source_branches[vs30] = build_source_branches(
+            config.logic_tree_permutations,
+            config.hazard_solutions,
+            config.src_correlations,
+            config.gmm_correlations,
+            vs30,
+            omit,
+            truncate=config.source_branches_truncate,
+        )
+
+    locations = get_locations(config)
+
+    resolution = 0.001
+    coded_locations = [CodedLocation(*loc, resolution) for loc in locations]
 
     example_loc_code = coded_locations[0].downsample(0.001).code
-    levels = get_levels(source_branches, [example_loc_code], config.vs30s[0])  # TODO: get seperate levels for every IMT
-    avail_imts = get_imts(source_branches, config.vs30s[0])
+
+    levels = get_levels(
+        source_branches[config.vs30s[0]], [example_loc_code], config.vs30s[0]
+    )  # TODO: get seperate levels for every IMT
+    avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0])
     for imt in config.imts:
         assert imt in avail_imts
 
-    process_local(config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS)
+    process_local(
+        config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS
+    )  # TODO: use source_branches dict

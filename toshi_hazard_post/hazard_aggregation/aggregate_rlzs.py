@@ -8,16 +8,16 @@ from operator import mul
 
 import numpy as np
 import pandas as pd
+from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
 
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_DATA import data as gtdata
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
-from toshi_hazard_store.data_functions import weighted_quantile
-from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
+from toshi_hazard_post.data_functions import weighted_quantile
 
 # from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
 # from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
 
-
+DTOL = 1.0e-6
 inv_time = 1.0
 VERBOSE = True
 
@@ -44,13 +44,20 @@ def load_realization_values(toshi_ids, locs, vs30s):
     log.info('loading %s hazard IDs ... ' % len(toshi_ids))
 
     values = {}
-    for res in get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
-        key = ':'.join((res.hazard_solution_id, str(res.rlz)))
-        if key not in values:
-            values[key] = {}
-        values[key][res.nloc_001] = {}
-        for val in res.values:
-            values[key][res.nloc_001][val.imt] = np.array(val.vals)
+    try:
+        for res in get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
+            key = ':'.join((res.hazard_solution_id, str(res.rlz)))
+            if key not in values:
+                values[key] = {}
+            values[key][res.nloc_001] = {}
+            for val in res.values:
+                values[key][res.nloc_001][val.imt] = np.array(val.vals)
+    except Exception as err:
+        logging.warning(
+            'load_realization_values() got exception %s with toshi_ids: %s , locs: %s vs30s: %s'
+            % (err, toshi_ids, locs, vs30s)
+        )
+        raise
 
     # check that the correct number of records came back
     ids_ret = []
@@ -72,7 +79,18 @@ def load_realization_values(toshi_ids, locs, vs30s):
     return values
 
 
-def build_rlz_table(branch, vs30):
+def build_rlz_table(branch, vs30, correlations=None):
+    """
+    build the table of ground motion combinations and weights for a single source branch
+    assumes only one source per run and the same gsim weights in every run
+    """
+
+    if correlations:
+        correlation_master = [corr[0] for corr in correlations]
+        correlation_puppet = [corr[1] for corr in correlations]
+    else:
+        correlation_master = []
+        correlation_puppet = []
 
     tic = time.perf_counter()
 
@@ -89,9 +107,11 @@ def build_rlz_table(branch, vs30):
 
     for meta in get_hazard_metadata_v3(ids, [vs30]):
         rlz_lt = ast.literal_eval(meta.rlz_lt)
+        gsim_lt = ast.literal_eval(meta.gsim_lt)
         for trt in rlz_sets.keys():
             if trt in rlz_lt:
-                gsims = list(set(rlz_lt[trt].values()))
+                # gsims = list(set(rlz_lt[trt].values()))
+                gsims = list(set(gsim_lt['uncertainty'].values()))
                 gsims.sort()
                 for gsim in gsims:
                     rlz_sets[trt][gsim] = []
@@ -103,12 +123,24 @@ def build_rlz_table(branch, vs30):
         trts = list(set(gsim_lt['trt'].values()))
         trts.sort()
         for trt in trts:
-            for rlz, gsim in rlz_lt[trt].items():
+            # for rlz, gsim in rlz_lt[trt].items():
+            for rlz, gsim in gsim_lt['uncertainty'].items():
                 rlz_key = ':'.join((hazard_id, rlz))
                 rlz_sets[trt][gsim].append(rlz_key)
-                weight_sets[trt][gsim] = gsim_lt['weight'][
-                    rlz
-                ]  # this depends on only one source per run and the same gsim weights in every run
+                weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
+
+    # find correlated gsims and mappings between gsim name and rlz_key
+    if correlations:
+        all_rlz = [(gsim, rlz) for rlz_set in rlz_sets.values() for gsim, rlz in rlz_set.items()]
+        correlation_list = []
+        all_rlz_copy = all_rlz.copy()
+        for rlzm in all_rlz:
+            for i, cm in enumerate(correlation_master):
+                if cm == rlzm[0]:
+                    correlation_list.append(rlzm[1].copy())
+                    for rlzp in all_rlz_copy:
+                        if correlation_puppet[i] == rlzp[0]:
+                            correlation_list[-1] += rlzp[1]
 
     rlz_sets_tmp = rlz_sets.copy()
     weight_sets_tmp = weight_sets.copy()
@@ -123,21 +155,30 @@ def build_rlz_table(branch, vs30):
     weight_lists = list(weight_sets_tmp.values())
 
     # TODO: fix rlz from the same ID grouped together
-
-    rlz_iter = itertools.product(*rlz_lists)
-    rlz_combs = []
-    for src_group in rlz_iter:  # could be done with list comprehension, but I can't figure out the syntax?
-        rlz_combs.append([s for src in src_group for s in src])
-
     # TODO: I sure hope itertools.product produces the same order every time
+    rlz_iter = itertools.product(*rlz_lists)
     weight_iter = itertools.product(*weight_lists)
+    rlz_combs = []
     weight_combs = []
-    for src_group in weight_iter:  # could be done with list comprehension, but I can't figure out the syntax?
-        weight_combs.append(reduce(mul, src_group, 1))
+
+    for src_group, weight_group in zip(rlz_iter, weight_iter):
+        if correlations:
+            foo = [s for src in src_group for s in src]
+            if any([len(set(foo).intersection(set(cl))) == len(cl) for cl in correlation_list]):
+                rlz_combs.append(foo)
+                weight_combs.append(reduce(mul, weight_group, 1))
+        else:
+            rlz_combs.append([s for src in src_group for s in src])
+            weight_combs.append(reduce(mul, weight_group, 1))
 
     toc = time.perf_counter()
     if VERBOSE:
         print(f'time to build realization table: {toc-tic:.1f} seconds')
+
+    sum_weight = sum(weight_combs)
+    if not ((sum_weight > 1.0 - DTOL) & (sum_weight < 1.0 + DTOL)):
+        print(sum_weight)
+        raise Exception('weights do not sum to 1')
 
     return rlz_combs, weight_combs
 
@@ -253,86 +294,6 @@ def get_levels(source_branches, locs, vs30):
     hazard = next(get_rlz_curves_v3([locs[0]], [vs30], None, [id], None))
 
     return hazard.values[0].lvls
-
-
-"""
-# TODO: this is migrated. to THP now.
-def process_location_list(locs, toshi_ids, source_branches, aggs, imts, levels, vs30):
-    log.info('get values for %s locations and %s hazard_solutions' % (len(locs), len(toshi_ids)))
-    log.debug('aggs: %s' % (aggs))
-    log.debug('source_branches: %s' % (source_branches))
-    tic_fn = time.perf_counter()
-    values = load_realization_values(toshi_ids, locs, [vs30])
-
-    if not values:
-        log.info('missing values: %s' % (values))
-        return
-
-    columns = ['lat', 'lon', 'imt', 'agg', 'level', 'hazard']
-    index = range(len(locs) * len(imts) * len(aggs) * len(levels))
-    binned_hazard_curves = pd.DataFrame(columns=columns, index=index)
-
-    nlocs = len(locs)
-    naggs = len(aggs)
-    nlevels = len(levels)
-
-    cnt = 0
-    start_imt = 0
-    for imt in imts:
-        log.info('process_location_list() working on imt: %s' % imt)
-        tic_imt = time.perf_counter()
-        start_loc = start_imt
-        stop_imt = start_imt + nlocs * naggs * nlevels
-        binned_hazard_curves.loc[start_imt:stop_imt, 'imt'] = imt
-        start_imt = stop_imt
-
-        for loc in locs:
-            lat, lon = loc.split('~')
-            start_agg = start_loc
-            stop_loc = start_loc + naggs * nlevels
-            binned_hazard_curves.loc[start_loc:stop_loc, 'lat'] = lat
-            binned_hazard_curves.loc[start_loc:stop_loc, 'lon'] = lon
-            start_loc = stop_loc
-
-            log.debug('build_branches imt: %s, loc: %s, vs30: %s' % (imt, loc, vs30))
-
-            # tic1 = time.perf_counter()
-            weights, branch_probs = build_branches(source_branches, values, imt, loc, vs30)
-            hazard = calculate_aggs(branch_probs, aggs, weights)
-            # toc1 = time.perf_counter()
-            # print(f'time to calculate_aggs {toc1-tic1} seconds')
-
-            # tic_agg = time.perf_counter()
-            for aggind, agg in enumerate(aggs):
-
-                stop_agg = start_agg + nlevels
-                binned_hazard_curves.loc[start_agg:stop_agg, 'agg'] = str(agg)
-                start_agg = stop_agg
-
-                # tic = time.perf_counter()
-                for j, level in enumerate(levels):
-
-                    # binned_hazard_curves.loc[cnt, 'lat':'agg'] = pd.Series(
-                    #     {'lat': lat, 'lon': lon, 'imt': imt, 'agg': str(agg)}
-                    # )
-                    binned_hazard_curves.loc[cnt, 'level':'hazard'] = pd.Series(
-                        {'level': level, 'hazard': hazard[j, aggind]}
-                    )
-                    cnt += 1
-                # toc = time.perf_counter()
-                # print(f'time to store in df {toc-tic} seconds')
-
-            # toc_agg = time.perf_counter()
-            # if VERBOSE:
-            #     print(f'time to perform all aggregations for 1 location {loc}: {toc_agg-tic_agg:.4f} seconds')
-
-        toc_imt = time.perf_counter()
-        log.info('imt: %s took %.3f secs' % (imt, (toc_imt - tic_imt)))
-
-    toc_fn = time.perf_counter()
-    log.info('process_location_list took %.3f secs' % (toc_fn - tic_fn))
-    return binned_hazard_curves
-"""
 
 
 def concat_df_files(df_file_names):
