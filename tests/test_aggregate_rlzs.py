@@ -88,6 +88,7 @@ class TestBuldRealizationTable(unittest.TestCase):
         self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'rlz_combs.json')
         self._weight_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'weight_combs.json')
 
+    @unittest.skip("This test is pulling down realizations")
     def test_build_rlz_table(self):
 
         source_branches = json.load(open(self._sb_file, 'r'))
@@ -107,6 +108,7 @@ class TestCorrelatiedRealizationTable(unittest.TestCase):
         self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
         self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'rlz_combs_corr.json')
 
+    @unittest.skip("This test is actually pulling down realizations")
     def test_build_correlated_rlz_table(self):
 
         correlations = [
