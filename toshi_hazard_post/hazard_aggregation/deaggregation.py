@@ -16,6 +16,8 @@ from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import compute_hazard_a
 from toshi_hazard_post.hazard_aggregation.aggregation import build_source_branches
 from toshi_hazard_post.hazard_aggregation.locations import get_locations
 from toshi_hazard_post.local_config import NUM_WORKERS
+from toshi_hazard_post.hazard_aggregation.aggregation_task import fetch_source_branches
+from toshi_hazard_post.hazard_aggregation.aws_aggregation import save_source_branches
 
 from .aggregate_rlzs import (
     build_branches,
@@ -39,7 +41,7 @@ DeAggTaskArgs = namedtuple(
 
 def process_location_list_deagg(task_args):
     """The math happens inside here... REFACTOR ME. ported from THS."""
-    NUM_RLZ = 100
+    NUM_RLZ = 250
 
     hazard_model_id = task_args.hazard_model_id
     locs = task_args.locs
@@ -294,17 +296,28 @@ def process_deaggregation(config: AggregationConfig):
             if b.vs30 == vs30
         ]
 
-    source_branches = {}
-    for vs30 in config.deagg_vs30s:
-        source_branches[vs30] = build_source_branches(
-            config.logic_tree_permutations,
-            config.hazard_solutions,
-            config.src_correlations,
-            config.gmm_correlations,
-            vs30,
-            omit,
-            truncate=config.source_branches_truncate,
-        )
+
+    if config.reuse_source_branches_id:
+        log.info("reuse sources_branches_id: %s" % config.reuse_source_branches_id)
+        source_branches_id = config.reuse_source_branches_id
+        source_branches = fetch_source_branches(source_branches_id)
+        source_branches = {int(k): v for k, v in source_branches.items()}
+    else:
+        log.info("building the sources branches.")
+
+        source_branches = {}
+        for vs30 in config.deagg_vs30s:
+            source_branches[vs30] = build_source_branches(
+                config.logic_tree_permutations,
+                config.hazard_solutions,
+                config.src_correlations,
+                config.gmm_correlations,
+                vs30,
+                omit,
+                truncate=config.source_branches_truncate,
+            )
+        source_branches_id = save_source_branches(source_branches)
+        log.info("saved source_branches to id : %s" % source_branches_id)
 
     # TODO deagg gets own location list?
     locations = get_locations(config)
