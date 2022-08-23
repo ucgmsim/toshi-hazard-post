@@ -47,6 +47,8 @@ class AggregationConfig:
             self.deagg_imts = self.config.get('deaggregation').get('imts')
             self.deagg_invtime = self.config.get('deaggregation').get('inv_time')
             self.deagg_vs30s = self.config.get('deaggregation').get('vs30s')
+            self.deagg_nbranches = self.config.get('deaggregation').get('num_branches', 150)
+            self.deagg_metric = self.config.get('deaggregation').get('metric', 'distance')
 
 
     def _load_ltf(self):
@@ -74,4 +76,6 @@ class AggregationConfig:
         assert self.config['deaggregation']['poes']
         assert self.config['deaggregation']['aggs']
         assert self.config['deaggregation']['inv_time']
+        assert (self.deagg_metric == 'distance') | (self.deagg_metric == 'weight') | (self.deagg_metric == 'product')
+        
 

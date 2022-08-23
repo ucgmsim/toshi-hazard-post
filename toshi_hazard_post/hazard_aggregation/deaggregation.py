@@ -12,7 +12,7 @@ from nzshm_common.location.location import LOCATIONS_BY_ID
 from toshi_hazard_store.query_v3 import get_hazard_curves
 
 from toshi_hazard_post.branch_combinator import merge_ltbs_fromLT
-from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import compute_hazard_at_poe
+from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import compute_hazard_at_poe, compute_rate_at_iml
 from toshi_hazard_post.hazard_aggregation.aggregation import build_source_branches
 from toshi_hazard_post.hazard_aggregation.locations import get_locations
 from toshi_hazard_post.local_config import NUM_WORKERS
@@ -35,14 +35,13 @@ from .aggregation_config import AggregationConfig
 log = logging.getLogger(__name__)
 
 DeAggTaskArgs = namedtuple(
-    "DeAggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 poes inv_time"
+    "DeAggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 poes inv_time nbranches metric"
 )
 
 
 def process_location_list_deagg(task_args):
     """The math happens inside here... REFACTOR ME. ported from THS."""
-    NUM_RLZ = 250
-
+    
     hazard_model_id = task_args.hazard_model_id
     locs = task_args.locs
     toshi_ids = task_args.toshi_ids
@@ -53,6 +52,8 @@ def process_location_list_deagg(task_args):
     vs30 = task_args.vs30
     poes = task_args.poes
     inv_time = task_args.inv_time
+    nbranches_keep = task_args.nbranches
+    metric = task_args.metric
 
     # print(locs)
     log.info('get values for %s locations and %s hazard_solutions' % (len(locs), len(toshi_ids)))
@@ -97,30 +98,56 @@ def process_location_list_deagg(task_args):
                     # TODO: repeating a lot of code here. Unify with agg processing?
                     nbranches = len(source_branches) * len(source_branches[0]['weight_combs'])
                     log.info(f'nbranches: {nbranches}')
-                    dists = np.empty((nbranches,))
+                    metric_values = np.empty((nbranches,))
                     
                     
                     i = 0
                     tic = time.perf_counter()
                     for branch in source_branches:
                         rlz_combs = branch['rlz_combs']
+                        weight_combs = branch['weight_combs']
+                        branch_weight = branch['weight']
                         
-                        for rlz_comb in rlz_combs:
-                            rate = np.zeros(rate_shape)
-                            for rlz in rlz_comb:
-                                rate += prob_to_rate(values[rlz][loc][imt])
-                            prob = rate_to_prob(rate)
-                            rlz_level = compute_hazard_at_poe(levels, prob, poe, inv_time)
-                            dist = abs(rlz_level - target_level)
-                            dists[i] = dist
-                            log.debug(f'calculating realization i: {i}')
-                            i += 1
+                        if metric == 'distance':
+                            for rlz_comb in rlz_combs:
+                                log.debug(f'calculating realization i: {i}')
+                                rate = np.zeros(rate_shape)
+                                for rlz in rlz_comb:
+                                    rate += prob_to_rate(values[rlz][loc][imt])
+                                prob = rate_to_prob(rate)
+                                rlz_level = compute_hazard_at_poe(levels, prob, poe, inv_time)
+                                dist = abs(rlz_level - target_level)
+                                metric_values[i] = dist
+                                i += 1
 
-                    # find nearest NUM_RLZ realizations to the target
+                        elif metric == 'weight':
+                            for weight in weight_combs:
+                                log.debug(f'calculating realization i: {i}')
+                                metric_values[i] = weight * branch_weight
+                                i += 1
+
+                        elif metric == 'product':
+                            for weight, rlz_comb in zip(weight_combs,rlz_combs):
+                                log.debug(f'calculating realization i: {i}')
+                                rate = np.zeros(rate_shape)
+                                for rlz in rlz_comb:
+                                    rate += prob_to_rate(values[rlz][loc][imt])
+                                rate_at_targetiml = compute_rate_at_iml(levels, rate, target_level)
+                                metric_values[i] = rate_at_targetiml * weight * branch_weight
+                                i += 1
+
+
+
+                    # find nearest nbranches_keep realizations to the target
                     tic = time.perf_counter()
-                    sorter = np.argsort(dists)
-                    sorter = sorter[0:NUM_RLZ]
-                    dists = dists[sorter]
+                    sorter = np.argsort(metric_values)
+                    if metric == 'distance':
+                        sorter = sorter[:nbranches_keep]
+                    elif (metric == 'weight') | (metric == 'product'):
+                        sorter = sorter[-nbranches_keep:]
+                        sorter = np.flip(sorter)
+                    metric_values = metric_values[sorter]
+
                     i = 0
                     j = 0
                     deagg_specs = []
@@ -140,20 +167,26 @@ def process_location_list_deagg(task_args):
                                 source_ids, gsims = get_source_and_gsim(rlz_comb, vs30)
                                 dist = abs(rlz_level - target_level)
 
-                                log.info(f'regen branch {i} ({len(deagg_specs)} of {NUM_RLZ} for storage)')
+                                log.info(f'regenerating branch {i} ({len(deagg_specs)} of {nbranches_keep} for storage)')
 
                                 rlz_weight = weight * branch_weight
                                 hazard_ids = [id.split(':')[0] for id in rlz_comb]
 
+                                rate_at_targetiml = compute_rate_at_iml(levels, rate, target_level)
+                                product = rate_at_targetiml * rlz_weight
+
+                                rank = int(np.where(sorter == i)[0])
+
                                 deagg_spec = dict(
-                                    level=rlz_level,
+                                    rlz_level=rlz_level,
                                     source_ids=source_ids,
                                     gsims=gsims,
                                     rlz=rlz_comb,
                                     hazard_ids=hazard_ids,
                                     weight=rlz_weight,
                                     dist=dist,
-                                    rank=int(np.where(sorter == i)[0]),
+                                    product = product,
+                                    rank=rank,
                                 )
                                 deagg_specs.append(deagg_spec)
                                 j += 1
@@ -210,7 +243,6 @@ def process_local_deagg(hazard_model_id, toshi_ids, source_branches, coded_locat
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
 
-    num_workers = 1  # TODO: remove me!!!
     print('Creating %d workers' % num_workers)
     workers = [DeAggregationWorkerMP(task_queue, result_queue) for i in range(num_workers)]
     for w in workers:
@@ -238,6 +270,8 @@ def process_local_deagg(hazard_model_id, toshi_ids, source_branches, coded_locat
                 vs30,
                 config.deagg_poes,
                 config.deagg_invtime,
+                config.deagg_nbranches,
+                config.deagg_metric,
             )
 
             task_queue.put(t)
