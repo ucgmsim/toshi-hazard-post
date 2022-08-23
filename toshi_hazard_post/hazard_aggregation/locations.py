@@ -10,14 +10,13 @@ def get_locations(config):
     if config.locations == "NZ_34":
         locations = [(loc['latitude'], loc['longitude']) for loc in LOCATIONS_BY_ID.values()]
         if config.location_limit:
-            locations = locations[:config.location_limit]
+            locations = locations[: config.location_limit]
     else:
         locations = (
             load_grid(config.locations)
             if not config.location_limit
             else load_grid(config.locations)[: config.location_limit]
         )
-
 
     return locations
 

@@ -38,7 +38,7 @@ class AggregationConfig:
             self.reuse_source_branches_id = self.config.get('debug').get('reuse_source_branches_id')
 
         # deaggregation
-        #TODO: that's a lot of repeated config parameters. Do we want to make the config files seperate?
+        # TODO: that's a lot of repeated config parameters. Do we want to make the config files seperate?
         self.deaggregation = False
         if self.config.get('deaggregation'):
             self.deaggregation = True
@@ -47,9 +47,6 @@ class AggregationConfig:
             self.deagg_imts = self.config.get('deaggregation').get('imts')
             self.deagg_invtime = self.config.get('deaggregation').get('inv_time')
             self.deagg_vs30s = self.config.get('deaggregation').get('vs30s')
-            self.deagg_nbranches = self.config.get('deaggregation').get('num_branches', 150)
-            self.deagg_metric = self.config.get('deaggregation').get('metric', 'distance')
-
 
     def _load_ltf(self):
         ltf = Path(Path(self._config_file).parent, self.config['aggregation']['logic_tree_file'])
@@ -76,6 +73,3 @@ class AggregationConfig:
         assert self.config['deaggregation']['poes']
         assert self.config['deaggregation']['aggs']
         assert self.config['deaggregation']['inv_time']
-        assert (self.deagg_metric == 'distance') | (self.deagg_metric == 'weight') | (self.deagg_metric == 'product')
-        
-

@@ -8,7 +8,7 @@ import click
 from toshi_hazard_store.model import migrate_v3 as migrate
 
 from toshi_hazard_post.hazard_aggregation import AggregationConfig, process_aggregation
-from toshi_hazard_post.hazard_aggregation import process_deaggregation
+from toshi_hazard_post.hazard_aggregation import process_deaggregation, process_config_deaggregation
 from toshi_hazard_post.hazard_aggregation.aws_aggregation import distribute_aggregation, push_test_message
 
 log = logging.getLogger()
@@ -40,7 +40,12 @@ log.addHandler(screen_handler)
     default=lambda: os.environ.get("NZSHM22_THP_MODE", 'LOCAL'),
     type=click.Choice(['AWS', 'AWS_BATCH', 'LOCAL'], case_sensitive=True),
 )
-@click.option('--deagg','-d',is_flag=True)
+@click.option(
+    '--deagg',
+    '-d',
+    default='false',
+    type=click.Choice(['FALSE','CONFIG','PROCESS'], case_sensitive=False),
+)
 @click.option('--push-sns-test', '-pt', is_flag=True)
 @click.option('--migrate-tables', '-M', is_flag=True)
 @click.argument('config', type=click.Path(exists=True))  # help="path to a valid THP configuration file."
@@ -59,7 +64,9 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
 
     if mode == 'LOCAL':
         # process_aggregation(agconf, 'prefix')
-        if deagg:
+        if deagg == 'CONFIG':
+            process_config_deaggregation(agconf)
+        elif deagg == 'PROCESS':
             process_deaggregation(agconf)
         else:
             process_aggregation(agconf)

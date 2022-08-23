@@ -14,10 +14,10 @@ from toshi_hazard_store.query_v3 import get_hazard_curves
 from toshi_hazard_post.branch_combinator import merge_ltbs_fromLT
 from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import compute_hazard_at_poe, compute_rate_at_iml
 from toshi_hazard_post.hazard_aggregation.aggregation import build_source_branches
-from toshi_hazard_post.hazard_aggregation.locations import get_locations
-from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.hazard_aggregation.aggregation_task import fetch_source_branches
 from toshi_hazard_post.hazard_aggregation.aws_aggregation import save_source_branches
+from toshi_hazard_post.hazard_aggregation.locations import get_locations
+from toshi_hazard_post.local_config import NUM_WORKERS
 
 from .aggregate_rlzs import (
     build_branches,
@@ -35,13 +35,14 @@ from .aggregation_config import AggregationConfig
 log = logging.getLogger(__name__)
 
 DeAggTaskArgs = namedtuple(
-    "DeAggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 poes inv_time nbranches metric"
+    "DeAggTaskArgs",
+    "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 poes inv_time nbranches metric",
 )
 
 
 def process_location_list_deagg(task_args):
     """The math happens inside here... REFACTOR ME. ported from THS."""
-    
+
     hazard_model_id = task_args.hazard_model_id
     locs = task_args.locs
     toshi_ids = task_args.toshi_ids
@@ -99,15 +100,14 @@ def process_location_list_deagg(task_args):
                     nbranches = len(source_branches) * len(source_branches[0]['weight_combs'])
                     log.info(f'nbranches: {nbranches}')
                     metric_values = np.empty((nbranches,))
-                    
-                    
+
                     i = 0
                     tic = time.perf_counter()
                     for branch in source_branches:
                         rlz_combs = branch['rlz_combs']
                         weight_combs = branch['weight_combs']
                         branch_weight = branch['weight']
-                        
+
                         if metric == 'distance':
                             for rlz_comb in rlz_combs:
                                 log.debug(f'calculating realization i: {i}')
@@ -127,7 +127,7 @@ def process_location_list_deagg(task_args):
                                 i += 1
 
                         elif metric == 'product':
-                            for weight, rlz_comb in zip(weight_combs,rlz_combs):
+                            for weight, rlz_comb in zip(weight_combs, rlz_combs):
                                 log.debug(f'calculating realization i: {i}')
                                 rate = np.zeros(rate_shape)
                                 for rlz in rlz_comb:
@@ -135,8 +135,6 @@ def process_location_list_deagg(task_args):
                                 rate_at_targetiml = compute_rate_at_iml(levels, rate, target_level)
                                 metric_values[i] = rate_at_targetiml * weight * branch_weight
                                 i += 1
-
-
 
                     # find nearest nbranches_keep realizations to the target
                     tic = time.perf_counter()
@@ -167,7 +165,9 @@ def process_location_list_deagg(task_args):
                                 source_ids, gsims = get_source_and_gsim(rlz_comb, vs30)
                                 dist = abs(rlz_level - target_level)
 
-                                log.info(f'regenerating branch {i} ({len(deagg_specs)} of {nbranches_keep} for storage)')
+                                log.info(
+                                    f'regenerating branch {i} ({len(deagg_specs)} of {nbranches_keep} for storage)'
+                                )
 
                                 rlz_weight = weight * branch_weight
                                 hazard_ids = [id.split(':')[0] for id in rlz_comb]
@@ -185,7 +185,7 @@ def process_location_list_deagg(task_args):
                                     hazard_ids=hazard_ids,
                                     weight=rlz_weight,
                                     dist=dist,
-                                    product = product,
+                                    product=product,
                                     rank=rank,
                                 )
                                 deagg_specs.append(deagg_spec)
@@ -330,7 +330,6 @@ def process_deaggregation(config: AggregationConfig):
             if b.vs30 == vs30
         ]
 
-
     if config.reuse_source_branches_id:
         log.info("reuse sources_branches_id: %s" % config.reuse_source_branches_id)
         source_branches_id = config.reuse_source_branches_id
@@ -374,5 +373,65 @@ def process_deaggregation(config: AggregationConfig):
 
     deagg_configs = add_site_name(deagg_configs)
 
+    with open('deagg_configs.json', 'w') as deagg_file:
+        json.dump(deagg_configs, deagg_file)
+
+
+def process_local_config_deagg(hazard_model_id, loc, vs30, poe, agg, imt, inv_time):
+
+    hc = next(get_hazard_curves([loc], [vs30], [hazard_model_id], [imt], [agg]))
+    levels = []
+    hazard_vals = []
+    for v in hc.values:
+        levels.append(v.lvl)
+        hazard_vals.append(v.val)
+    target_level = compute_hazard_at_poe(levels, hazard_vals, poe, inv_time)
+    deagg_config = dict(
+        vs30=vs30,
+        inv_time=inv_time,
+        imt=imt,
+        agg=agg,
+        poe=poe,
+        location=loc,
+        target_level=target_level,
+    )
+
+    return deagg_config
+
+
+def process_config_deaggregation(config: AggregationConfig):
+
+    if not config.deaggregation:
+        raise Exception('a deaggregation configuration must be specified for deagg mode')
+    try:
+        config.validate_deagg()
+    except:
+        raise Exception('invalid deaggregation configuration')
+
+    # assume an aggregation has already been performed that covers the parameters requested in the deagg. This can waste time in 2 ways
+    # 1) must re-construct the source_branches
+    # 2) if an agg has not been performed then the query comes back empty and we've wasted our time
+
+    locations = get_locations(config)
+    resolution = 0.001
+    coded_locations = [CodedLocation(*loc, resolution) for loc in locations]
+    locs = [loc.downsample(0.001).code for loc in coded_locations]
+    poes = config.deagg_poes
+    aggs = config.deagg_aggs
+    imts = config.deagg_imts
+    inv_time = config.deagg_invtime
+    hazard_model_id = config.hazard_model_id
+
+    deagg_configs = []
+
+    for loc in locs:
+        for vs30 in config.deagg_vs30s:
+            for poe in poes:
+                for agg in aggs:
+                    for imt in imts:
+                        deagg_config = process_local_config_deagg(hazard_model_id, loc, vs30, poe, agg, imt, inv_time)
+                        deagg_configs.append(deagg_config)
+
+    deagg_configs = add_site_name(deagg_configs)
     with open('deagg_configs.json', 'w') as deagg_file:
         json.dump(deagg_configs, deagg_file)
