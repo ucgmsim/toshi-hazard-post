@@ -26,6 +26,7 @@ from .aggregate_rlzs import (
     get_imts,
     get_levels,
     get_source_and_gsim,
+    get_source_ids,
     load_realization_values,
     prob_to_rate,
     rate_to_prob,
@@ -377,7 +378,7 @@ def process_deaggregation(config: AggregationConfig):
         json.dump(deagg_configs, deagg_file)
 
 
-def process_local_config_deagg(hazard_model_id, loc, vs30, poe, agg, imt, inv_time):
+def process_local_config_deagg(hazard_model_id, toshi_ids, loc, vs30, poe, agg, imt, inv_time):
 
     hc = next(get_hazard_curves([loc], [vs30], [hazard_model_id], [imt], [agg]))
     levels = []
@@ -386,6 +387,7 @@ def process_local_config_deagg(hazard_model_id, loc, vs30, poe, agg, imt, inv_ti
         levels.append(v.lvl)
         hazard_vals.append(v.val)
     target_level = compute_hazard_at_poe(levels, hazard_vals, poe, inv_time)
+    source_info = get_source_ids(toshi_ids, vs30)
     deagg_config = dict(
         vs30=vs30,
         inv_time=inv_time,
@@ -394,7 +396,10 @@ def process_local_config_deagg(hazard_model_id, loc, vs30, poe, agg, imt, inv_ti
         poe=poe,
         location=loc,
         target_level=target_level,
+        deagg_specs=source_info,
     )
+
+    
 
     return deagg_config
 
@@ -411,6 +416,15 @@ def process_config_deaggregation(config: AggregationConfig):
     # assume an aggregation has already been performed that covers the parameters requested in the deagg. This can waste time in 2 ways
     # 1) must re-construct the source_branches
     # 2) if an agg has not been performed then the query comes back empty and we've wasted our time
+
+    omit: List[str] = []
+    toshi_ids = {}
+    for vs30 in config.deagg_vs30s:
+        toshi_ids[vs30] = [
+            b.hazard_solution_id
+            for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit)
+            if b.vs30 == vs30
+        ]
 
     locations = get_locations(config)
     resolution = 0.001
@@ -429,7 +443,7 @@ def process_config_deaggregation(config: AggregationConfig):
             for poe in poes:
                 for agg in aggs:
                     for imt in imts:
-                        deagg_config = process_local_config_deagg(hazard_model_id, loc, vs30, poe, agg, imt, inv_time)
+                        deagg_config = process_local_config_deagg(hazard_model_id, toshi_ids[vs30], loc, vs30, poe, agg, imt, inv_time)
                         deagg_configs.append(deagg_config)
 
     deagg_configs = add_site_name(deagg_configs)

@@ -389,6 +389,17 @@ def compute_hazard_at_poe(levels, values, poe, inv_time):
 #                     )
 #     return disagg_rlzs
 
+def get_source_ids(toshi_ids, vs30):
+
+    source_info = []
+    for meta in get_hazard_metadata_v3(toshi_ids, [vs30]):
+        rlz_lt = ast.literal_eval(meta.rlz_lt)
+        source_ids = list(rlz_lt['source combination'].values())[0].split('|')
+        nrlz = len(rlz_lt['source combination'])
+        source_info.append(dict(source_ids=source_ids, nrlz=nrlz, source_tree_hazid = meta.hazard_solution_id))
+
+    return source_info
+
 
 def get_source_and_gsim(rlz, vs30):
 
