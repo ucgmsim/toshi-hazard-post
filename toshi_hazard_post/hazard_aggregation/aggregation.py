@@ -17,6 +17,7 @@ from toshi_hazard_store import model
 from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT
 from toshi_hazard_post.hazard_aggregation.locations import get_locations
 from toshi_hazard_post.local_config import NUM_WORKERS
+from toshi_hazard_post.util.file_utils import save_deaggs
 
 from .aggregate_rlzs import (
     build_branches,
@@ -25,12 +26,13 @@ from .aggregate_rlzs import (
     get_imts,
     get_levels,
     load_realization_values,
+    load_realization_values_deagg,
 )
 from .aggregation_config import AggregationConfig
 
 log = logging.getLogger(__name__)
 
-AggTaskArgs = namedtuple("AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30")
+AggTaskArgs = namedtuple("AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg")
 
 
 @dataclass
@@ -78,8 +80,11 @@ def process_location_list(task_args):
     imts = task_args.imts
     levels = task_args.levels
     vs30 = task_args.vs30
+    deagg = task_args.deagg
 
     # print(locs)
+    if deagg:
+        log.info('performing deaggregation')
     log.info('get values for %s locations and %s hazard_solutions' % (len(locs), len(toshi_ids)))
     log.debug('aggs: %s' % (aggs))
     log.debug('imts: %s' % (imts))
@@ -88,7 +93,10 @@ def process_location_list(task_args):
     # log.debug('source_branches: %s' % (source_branches))
 
     tic_fn = time.perf_counter()
-    values = load_realization_values(toshi_ids, locs, [vs30])
+    if deagg:
+        values = load_realization_values_deagg(toshi_ids, locs, [vs30])
+    else:
+        values = load_realization_values(toshi_ids, locs, [vs30])
 
     if not values:
         log.info('missing values: %s' % (values))
@@ -111,26 +119,29 @@ def process_location_list(task_args):
             # toc1 = time.perf_counter()
             # print(f'time to calculate_aggs {toc1-tic1} seconds')
 
-            with model.HazardAggregation.batch_write() as batch:
-                for aggind, agg in enumerate(aggs):
-                    hazard_vals = []
-                    for j, level in enumerate(levels):
-                        hazard_vals.append((level, hazard[j, aggind]))  # tuple lvl, val
+            if deagg:
+                save_deaggs(hazard, loc, imt) #TODO: need more information about deagg to save (e.g. poe, inv_time)
+            else:
+                with model.HazardAggregation.batch_write() as batch:
+                    for aggind, agg in enumerate(aggs):
+                        hazard_vals = []
+                        for j, level in enumerate(levels):
+                            hazard_vals.append((level, hazard[j, aggind]))  # tuple lvl, val
 
-                    if not hazard_vals:
-                        log.debug('no hazard_vals for agg %s imt %s' % (agg, imt))
-                        continue
-                    else:
-                        log.debug('hazard_vals :%s' % hazard_vals)
+                        if not hazard_vals:
+                            log.debug('no hazard_vals for agg %s imt %s' % (agg, imt))
+                            continue
+                        else:
+                            log.debug('hazard_vals :%s' % hazard_vals)
 
-                    hag = model.HazardAggregation(
-                        values=[model.LevelValuePairAttribute(lvl=lvl, val=val) for lvl, val in hazard_vals],
-                        vs30=vs30,
-                        imt=imt,
-                        agg=agg,
-                        hazard_model_id=task_args.hazard_model_id,
-                    ).set_location(location)
-                    batch.save(hag)
+                        hag = model.HazardAggregation(
+                            values=[model.LevelValuePairAttribute(lvl=lvl, val=val) for lvl, val in hazard_vals],
+                            vs30=vs30,
+                            imt=imt,
+                            agg=agg,
+                            hazard_model_id=task_args.hazard_model_id,
+                        ).set_location(location)
+                        batch.save(hag)
 
         toc_imt = time.perf_counter()
         log.info('imt: %s took %.3f secs' % (imt, (toc_imt - tic_imt)))
@@ -165,7 +176,7 @@ class AggregationWorkerMP(multiprocessing.Process):
             self.result_queue.put(str(nt.grid_loc))
 
 
-def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers):
+def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False):
     """Run task locally using Multiprocessing. ported from THS."""
     # num_workers = 1
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
@@ -195,6 +206,7 @@ def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, 
                 config.imts,
                 levels,
                 vs30,
+                deagg,
             )
 
             task_queue.put(t)
@@ -218,7 +230,7 @@ def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, 
     return results
 
 
-def process_aggregation(config: AggregationConfig):
+def process_aggregation(config: AggregationConfig, deagg=False):
     """Configure the tasks."""
     omit: List[str] = []
 
@@ -241,7 +253,6 @@ def process_aggregation(config: AggregationConfig):
             omit,
             truncate=config.source_branches_truncate,
         )
-
     locations = get_locations(config)
 
     resolution = 0.001
@@ -257,5 +268,5 @@ def process_aggregation(config: AggregationConfig):
         assert imt in avail_imts
 
     process_local(
-        config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS
+        config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
     )  # TODO: use source_branches dict

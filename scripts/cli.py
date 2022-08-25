@@ -67,7 +67,8 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
         if deagg == 'CONFIG':
             process_config_deaggregation(agconf)
         elif deagg == 'PROCESS':
-            process_deaggregation(agconf)
+            process_aggregation(agconf, deagg=True)
+            # process_deaggregation(agconf)
         else:
             process_aggregation(agconf)
         return

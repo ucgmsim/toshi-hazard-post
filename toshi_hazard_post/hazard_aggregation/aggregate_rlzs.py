@@ -6,9 +6,13 @@ import time
 from functools import reduce
 from operator import mul
 
+
 import numpy as np
 import pandas as pd
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
+
+from toshi_hazard_post.util.toshi_client import download_csv
+from toshi_hazard_post.util.file_utils import get_disagg_mdt
 
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_DATA import data as gtdata
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
@@ -20,6 +24,7 @@ from toshi_hazard_post.data_functions import weighted_quantile
 DTOL = 1.0e-6
 inv_time = 1.0
 VERBOSE = True
+DOWNLOAD_DIR = '/work/chrisdc/NZSHM-WORKING/PROD/'
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +63,47 @@ def load_realization_values(toshi_ids, locs, vs30s):
             % (err, toshi_ids, locs, vs30s)
         )
         raise
+
+    # check that the correct number of records came back
+    ids_ret = []
+    for k1, v1 in values.items():
+        nlocs_ret = len(v1.keys())
+        if not nlocs_ret == len(locs):
+            log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
+        ids_ret += [k1.split(':')[0]]
+    ids_ret = set(ids_ret)
+    if len(ids_ret) != len(toshi_ids):
+        log.warn('Missing %s toshi IDs' % (len(toshi_ids) - len(ids_ret)))
+        log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
+        toshi_ids = set(toshi_ids)
+        print('Missing ids: %s' % (toshi_ids - ids_ret))
+
+    toc = time.perf_counter()
+    print(f'time to load realizations: {toc-tic:.1f} seconds')
+
+    return values
+
+def load_realization_values_deagg(toshi_ids, locs, vs30s):
+
+    tic = time.perf_counter()
+    log.info('loading %s hazard IDs ... ' % len(toshi_ids))
+    
+
+    values = {}
+
+    # download csv archives
+    downloads = download_csv(toshi_ids, DOWNLOAD_DIR)
+    for download in downloads.values():
+        csv_archive = download['filepath']
+        hazard_solution_id = download['hazard_id']
+        disaggs, location, imt = get_disagg_mdt(csv_archive)
+        for rlz,disagg in disaggs.items():
+            key = ':'.join((hazard_solution_id, rlz))
+            if key not in values:
+                values[key] = {}
+            values[key][location] = {}
+            values[key][location][imt] = np.array(disaggs[rlz])
+
 
     # check that the correct number of records came back
     ids_ret = []
