@@ -73,8 +73,8 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
             process_aggregation(agconf)
         return
     if 'AWS_BATCH' in mode: #TODO: multiple vs30s
-        if deagg:
-            raise Exception(f'deaggregation not supported in {mode} mode')
+        # if deagg:
+        #     raise Exception(f'deaggregation not supported in {mode} mode')
         if migrate_tables:
             click.echo("Ensuring that dynamodb tables are available in target region & stage.")
             migrate()

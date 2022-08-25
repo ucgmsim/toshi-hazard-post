@@ -90,10 +90,11 @@ def weight_and_ids(data):
 
     nodes = data['data']['node1']['children']['edges']
     for obj in nodes:
-        tag = get_tag(obj['node']['child']['arguments'])
-        vs30 = get_vs30(obj['node']['child']['arguments'])
-        hazard_solution_id = obj['node']['child']['hazard_solution']['id']
-        yield Member(**tag[0]['members'][0], group=None, hazard_solution_id=hazard_solution_id, vs30=vs30)
+        if obj['node']['child']['hazard_solution']:
+            tag = get_tag(obj['node']['child']['arguments'])
+            vs30 = get_vs30(obj['node']['child']['arguments'])
+            hazard_solution_id = obj['node']['child']['hazard_solution']['id']
+            yield Member(**tag[0]['members'][0], group=None, hazard_solution_id=hazard_solution_id, vs30=vs30)
 
 
 def all_members_dict(ltbs):

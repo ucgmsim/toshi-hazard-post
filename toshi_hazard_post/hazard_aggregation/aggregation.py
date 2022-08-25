@@ -234,11 +234,16 @@ def process_aggregation(config: AggregationConfig, deagg=False):
     """Configure the tasks."""
     omit: List[str] = []
 
+    if deagg:
+        gtdata = config.deagg_solutions
+    else:
+        gtdata = config.hazard_solutions
+
     toshi_ids = {}
     for vs30 in config.vs30s:
         toshi_ids[vs30] = [
             b.hazard_solution_id
-            for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit)
+            for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=gtdata, omit=omit)
             if b.vs30 == vs30
         ]
 
@@ -246,7 +251,7 @@ def process_aggregation(config: AggregationConfig, deagg=False):
     for vs30 in config.vs30s:
         source_branches[vs30] = build_source_branches(
             config.logic_tree_permutations,
-            config.hazard_solutions,
+            gtdata,
             config.src_correlations,
             config.gmm_correlations,
             vs30,
