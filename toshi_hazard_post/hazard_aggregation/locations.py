@@ -7,7 +7,14 @@ from nzshm_common.location.location import LOCATIONS_BY_ID
 
 def get_locations(config):
 
-    if config.locations == "NZ_34":
+    if type(config.locations) is list:
+        locations = []
+        for loc in config.locations:
+            if '~' in loc:
+                locations.append(tuple(map(float, loc.split('~'))))
+            else:
+                locations.append((LOCATIONS_BY_ID[loc]['latitude'], LOCATIONS_BY_ID[loc]['longitude']))
+    elif config.locations == "NZ_34":
         locations = [(loc['latitude'], loc['longitude']) for loc in LOCATIONS_BY_ID.values()]
         if config.location_limit:
             locations = locations[: config.location_limit]

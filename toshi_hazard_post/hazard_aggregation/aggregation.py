@@ -107,6 +107,7 @@ def process_location_list(task_args):
 
         tic_imt = time.perf_counter()
         for loc in locs:
+            log.info(f'process_location_list() working on loc {loc}')
             lat, lon = loc.split('~')
             resolution = 0.001
             location = CodedLocation(float(lat), float(lon), resolution)
@@ -174,6 +175,31 @@ class AggregationWorkerMP(multiprocessing.Process):
             self.task_queue.task_done()
             log.info('%s task done.' % self.name)
             self.result_queue.put(str(nt.grid_loc))
+
+
+def process_local_serial(hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False):
+    """ run task serially. This is temporoary to help debug deaggs """
+    
+    toshi_ids = {int(k): v for k, v in toshi_ids.items()}
+    source_branches = {int(k): v for k, v in source_branches.items()}
+
+    for coded_loc in coded_locations:
+        for vs30 in config.vs30s:
+            t = AggTaskArgs(
+                hazard_model_id,
+                coded_loc.downsample(0.1).code,
+                [coded_loc.downsample(0.001).code],
+                toshi_ids[vs30],
+                source_branches[vs30],
+                config.aggs,
+                config.imts,
+                levels,
+                vs30,
+                deagg,
+            )
+
+
+            process_location_list(t)
 
 
 def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False):
@@ -265,13 +291,20 @@ def process_aggregation(config: AggregationConfig, deagg=False):
 
     example_loc_code = coded_locations[0].downsample(0.001).code
 
-    levels = get_levels(
-        source_branches[config.vs30s[0]], [example_loc_code], config.vs30s[0]
-    )  # TODO: get seperate levels for every IMT
-    avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0])
-    for imt in config.imts:
-        assert imt in avail_imts
+    if deagg: # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
+        levels = []
+    else:
+        levels = get_levels(
+            source_branches[config.vs30s[0]], [example_loc_code], config.vs30s[0]
+        )  # TODO: get seperate levels for every IMT
+        avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0]) # TODO: equiv check for deaggs
+        for imt in config.imts:
+            assert imt in avail_imts
 
-    process_local(
-        config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
-    )  # TODO: use source_branches dict
+    # process_local(
+    #     config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
+    # )  # TODO: use source_branches dict
+
+    process_local_serial(
+    config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
+)  # TODO: use source_branches dict

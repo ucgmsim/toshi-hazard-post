@@ -43,8 +43,8 @@ log.addHandler(screen_handler)
 @click.option(
     '--deagg',
     '-d',
-    default='false',
-    type=click.Choice(['FALSE','CONFIG','PROCESS'], case_sensitive=False),
+    default='',
+    type=click.Choice(['','CONFIG','PROCESS'], case_sensitive=False),
 )
 @click.option('--push-sns-test', '-pt', is_flag=True)
 @click.option('--migrate-tables', '-M', is_flag=True)

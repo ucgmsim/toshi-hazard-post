@@ -1,3 +1,4 @@
+import json
 import ast
 import itertools
 import logging
@@ -93,17 +94,19 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s):
 
     # download csv archives
     downloads = download_csv(toshi_ids, DOWNLOAD_DIR)
-    for download in downloads.values():
+    log.info('finished downloading csv archives')
+    for i, download in enumerate(downloads.values()):
         csv_archive = download['filepath']
         hazard_solution_id = download['hazard_id']
         disaggs, location, imt = get_disagg_mdt(csv_archive)
-        for rlz,disagg in disaggs.items():
+        log.info(f'finished loading data from csv archive {i+1} of {len(downloads)}')
+        for rlz in disaggs.keys():
             key = ':'.join((hazard_solution_id, rlz))
             if key not in values:
                 values[key] = {}
             values[key][location] = {}
             values[key][location][imt] = np.array(disaggs[rlz])
-
+    
 
     # check that the correct number of records came back
     ids_ret = []
@@ -263,7 +266,9 @@ def build_source_branch(values, rlz_combs, imt, loc):
     rate_shape = values[k1][k2][k3].shape
 
     tic = time.perf_counter()
+    nbranches = len(rlz_combs)
     for i, rlz_comb in enumerate(rlz_combs):
+        log.debug(f'build_source_branches() working on gmm branch {i+1} of {nbranches}')
         rate = np.zeros(rate_shape)
         for rlz in rlz_comb:
             rate += prob_to_rate(values[rlz][loc][imt])
@@ -299,7 +304,9 @@ def build_branches(source_branches, values, imt, loc, vs30):
     tic = time.perf_counter()
 
     weights = np.array([])
+    nbranches = len(source_branches)
     for i, branch in enumerate(source_branches):
+        log.info(f'build_branches() building branch {i+1} of {nbranches}')
 
         # rlz_combs, weight_combs = build_rlz_table(branch, vs30)
         rlz_combs = branch['rlz_combs']

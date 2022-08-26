@@ -43,10 +43,7 @@ class AggregationConfig:
         if self.config.get('deaggregation'):
             self.deaggregation = True
             self.deagg_poes = self.config.get('deaggregation').get('poes')
-            self.deagg_aggs = self.config.get('deaggregation').get('aggs')
-            self.deagg_imts = self.config.get('deaggregation').get('imts')
             self.deagg_invtime = self.config.get('deaggregation').get('inv_time')
-            self.deagg_vs30s = self.config.get('deaggregation').get('vs30s')
             self.deagg_gtdatafile = self.config.get('deaggregation').get('gtdata_file')
             self._load_deagg()
 
@@ -77,7 +74,5 @@ class AggregationConfig:
     def validate_deagg(self):
         """Check the deaggregation configuration is valid."""
         print(self.config['deaggregation'])
-        assert self.config['deaggregation']['poes']
-        assert self.config['deaggregation']['aggs']
         assert self.config['deaggregation']['inv_time']
         assert self.config['deaggregation']['gtdata_file']
