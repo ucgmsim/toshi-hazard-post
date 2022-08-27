@@ -419,7 +419,7 @@ def process_config_deaggregation(config: AggregationConfig):
 
     omit: List[str] = []
     toshi_ids = {}
-    for vs30 in config.deagg_vs30s:
+    for vs30 in config.vs30s:
         toshi_ids[vs30] = [
             b.hazard_solution_id
             for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=omit)
@@ -431,15 +431,15 @@ def process_config_deaggregation(config: AggregationConfig):
     coded_locations = [CodedLocation(*loc, resolution) for loc in locations]
     locs = [loc.downsample(0.001).code for loc in coded_locations]
     poes = config.deagg_poes
-    aggs = config.deagg_aggs
-    imts = config.deagg_imts
+    aggs = config.aggs
+    imts = config.imts
     inv_time = config.deagg_invtime
     hazard_model_id = config.hazard_model_id
 
     deagg_configs = []
 
     for loc in locs:
-        for vs30 in config.deagg_vs30s:
+        for vs30 in config.vs30s:
             for poe in poes:
                 for agg in aggs:
                     for imt in imts:
