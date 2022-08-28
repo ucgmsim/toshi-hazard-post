@@ -20,19 +20,20 @@ def disagg_df(rlz_names):
 
     columns = ['imt','mag','dist','trt'] + rlz_names
     imts = ['PGA']
-    mags = np.arange(5.25,10,.5)
+    mags = np.arange(5.1, 10.0, 0.2)
+    # mags = np.arange(5.25, 10.0, 0.5)
     dists = np.arange(5,550,10)
     trts =  ['Active Shallow Crust', 'Subduction Interface', 'Subduction Intraslab']
     index = range(len(imts) * len(mags) * len(dists) * len(trts))
     disaggs = pd.DataFrame(columns=columns, index=index)
     for i, (imt, mag, dist, trt) in enumerate(itertools.product(imts, mags, dists, trts)):
         disaggs.loc[i,'imt'] = imt
-        disaggs.loc[i,'mag'] = mag
-        disaggs.loc[i,'dist'] = dist
+        disaggs.loc[i,'mag'] = f'{mag:0.3}'
+        disaggs.loc[i,'dist'] = f'{int(dist)}'
         disaggs.loc[i,'trt'] = trt
         for rlz in rlz_names:
             disaggs.loc[i,rlz] = 0
-            
+
     return disaggs
 
 
@@ -90,14 +91,14 @@ def get_disagg_mdt(csv_archive):
             for row in disagg_reader:
                 disagg_data = DisaggData(*row)
                 imt = disagg_data.imt
-                mag = float(disagg_data.mag)
-                dist = float(disagg_data.dist)
+                mag = f'{float(disagg_data.mag):0.3}'
+                dist = f'{int(float(disagg_data.dist))}'
                 trt = disagg_data.trt
                 ind = (disaggs['imt'].isin([imt])) & (disaggs['mag'].isin([mag])) & (disaggs['dist'].isin([dist])) & (disaggs['trt'].isin([trt]))
+                if not any(ind):
+                    raise Exception(f'no index found for {csv_archive} row: {row}')
                 disaggs.iloc[ind,4:] = list(map(float,row[5:]))
-                
-                # for rlz in rlz_names:
-                    # disaggs.loc[ind, rlz ] = float(getattr(disagg_data,rlz))
+
 
     disaggs_dict = {}    
     for rlz in rlz_names:
