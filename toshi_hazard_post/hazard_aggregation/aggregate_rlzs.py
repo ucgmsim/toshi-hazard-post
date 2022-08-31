@@ -144,37 +144,45 @@ def build_rlz_table(branch, vs30, correlations=None):
     ids = branch['ids']
     rlz_sets = {}
     weight_sets = {}
+    trts = set()
     for meta in get_hazard_metadata_v3(ids, [vs30]):
-        gsim_lt = ast.literal_eval(meta.gsim_lt)
-        trts = list(set(gsim_lt['trt'].values()))
-        trts.sort()
-        for trt in trts:
-            rlz_sets[trt] = {}
-            weight_sets[trt] = {}
-
-    for meta in get_hazard_metadata_v3(ids, [vs30]):
-        rlz_lt = ast.literal_eval(meta.rlz_lt)
-        gsim_lt = ast.literal_eval(meta.gsim_lt)
-        for trt in rlz_sets.keys():
-            if trt in rlz_lt:
-                # gsims = list(set(rlz_lt[trt].values()))
-                gsims = list(set(gsim_lt['uncertainty'].values()))
-                gsims.sort()
-                for gsim in gsims:
-                    rlz_sets[trt][gsim] = []
-
-    for meta in get_hazard_metadata_v3(ids, [vs30]):
-        rlz_lt = ast.literal_eval(meta.rlz_lt)
-        gsim_lt = ast.literal_eval(meta.gsim_lt)
         hazard_id = meta.hazard_solution_id
-        trts = list(set(gsim_lt['trt'].values()))
-        trts.sort()
+        gsim_lt = ast.literal_eval(meta.gsim_lt)
+        trts = set(gsim_lt['trt'].values())
         for trt in trts:
-            # for rlz, gsim in rlz_lt[trt].items():
+            if not rlz_sets.get(trt):
+                rlz_sets[trt] = {}
+                weight_sets[trt] = {}
             for rlz, gsim in gsim_lt['uncertainty'].items():
                 rlz_key = ':'.join((hazard_id, rlz))
+                if not rlz_sets[trt].get(gsim):
+                    rlz_sets[trt][gsim] = []
                 rlz_sets[trt][gsim].append(rlz_key)
                 weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
+
+    # for meta in get_hazard_metadata_v3(ids, [vs30]):
+    #     rlz_lt = ast.literal_eval(meta.rlz_lt)
+    #     gsim_lt = ast.literal_eval(meta.gsim_lt)
+    #     for trt in rlz_sets.keys():
+    #         if trt in rlz_lt:
+    #             # gsims = list(set(rlz_lt[trt].values()))
+    #             gsims = list(set(gsim_lt['uncertainty'].values()))
+    #             gsims.sort()
+    #             for gsim in gsims:
+    #                 rlz_sets[trt][gsim] = []
+
+    # for meta in get_hazard_metadata_v3(ids, [vs30]):
+    #     rlz_lt = ast.literal_eval(meta.rlz_lt)
+    #     gsim_lt = ast.literal_eval(meta.gsim_lt)
+    #     hazard_id = meta.hazard_solution_id
+    #     trts = list(set(gsim_lt['trt'].values()))
+    #     trts.sort()
+    #     for trt in trts:
+    #         # for rlz, gsim in rlz_lt[trt].items():
+    #         for rlz, gsim in gsim_lt['uncertainty'].items():
+    #             rlz_key = ':'.join((hazard_id, rlz))
+    #             rlz_sets[trt][gsim].append(rlz_key)
+    #             weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
 
     # find correlated gsims and mappings between gsim name and rlz_key
     if correlations:

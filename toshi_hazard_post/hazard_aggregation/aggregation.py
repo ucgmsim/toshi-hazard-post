@@ -5,6 +5,7 @@ import time
 from collections import namedtuple
 from dataclasses import dataclass
 from typing import List
+import cProfile
 
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
@@ -31,6 +32,8 @@ from .aggregate_rlzs import (
 from .aggregation_config import AggregationConfig
 
 log = logging.getLogger(__name__)
+pr = cProfile.Profile()
+
 
 AggTaskArgs = namedtuple(
     "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg"
@@ -55,6 +58,8 @@ def build_source_branches(
     logic_tree_permutations, gtdata, src_correlations, gmm_correlations, vs30, omit, truncate=None
 ):
     """ported from THS. aggregate_rlzs_mp"""
+    # pr.enable()
+    
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
 
     source_branches = get_weighted_branches(grouped, src_correlations)
@@ -69,6 +74,9 @@ def build_source_branches(
         )  # TODO: add correlations to GMCM LT
         source_branches[i]['rlz_combs'] = rlz_combs
         source_branches[i]['weight_combs'] = weight_combs
+    
+    # pr.disable()
+    # pr.print_stats(sort='time')
 
     return source_branches
 
@@ -291,6 +299,8 @@ def process_aggregation(config: AggregationConfig, deagg=False):
             omit,
             truncate=config.source_branches_truncate,
         )
+    breakpoint()
+    assert 0
     locations = get_locations(config)
 
     resolution = 0.001
