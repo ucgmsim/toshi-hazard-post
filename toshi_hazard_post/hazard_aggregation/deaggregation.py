@@ -399,8 +399,6 @@ def process_local_config_deagg(hazard_model_id, toshi_ids, loc, vs30, poe, agg, 
         deagg_specs=source_info,
     )
 
-    
-
     return deagg_config
 
 
@@ -443,7 +441,9 @@ def process_config_deaggregation(config: AggregationConfig):
             for poe in poes:
                 for agg in aggs:
                     for imt in imts:
-                        deagg_config = process_local_config_deagg(hazard_model_id, toshi_ids[vs30], loc, vs30, poe, agg, imt, inv_time)
+                        deagg_config = process_local_config_deagg(
+                            hazard_model_id, toshi_ids[vs30], loc, vs30, poe, agg, imt, inv_time
+                        )
                         deagg_configs.append(deagg_config)
 
     deagg_configs = add_site_name(deagg_configs)

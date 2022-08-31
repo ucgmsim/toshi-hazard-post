@@ -32,7 +32,9 @@ from .aggregation_config import AggregationConfig
 
 log = logging.getLogger(__name__)
 
-AggTaskArgs = namedtuple("AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg")
+AggTaskArgs = namedtuple(
+    "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg"
+)
 
 
 @dataclass
@@ -71,7 +73,7 @@ def build_source_branches(
     return source_branches
 
 
-def process_location_list(task_args):
+def process_location_list(task_args, poe=None):
     """The math happens inside here... REFACTOR ME. ported from THS."""
     locs = task_args.locs
     toshi_ids = task_args.toshi_ids
@@ -121,7 +123,9 @@ def process_location_list(task_args):
             # print(f'time to calculate_aggs {toc1-tic1} seconds')
 
             if deagg:
-                save_deaggs(hazard, loc, imt) #TODO: need more information about deagg to save (e.g. poe, inv_time)
+                save_deaggs(
+                    hazard, loc, imt, poe
+                )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
             else:
                 with model.HazardAggregation.batch_write() as batch:
                     for aggind, agg in enumerate(aggs):
@@ -177,9 +181,11 @@ class AggregationWorkerMP(multiprocessing.Process):
             self.result_queue.put(str(nt.grid_loc))
 
 
-def process_local_serial(hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False):
-    """ run task serially. This is temporoary to help debug deaggs """
-    
+def process_local_serial(
+    hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False
+):
+    """run task serially. This is temporoary to help debug deaggs"""
+
     toshi_ids = {int(k): v for k, v in toshi_ids.items()}
     source_branches = {int(k): v for k, v in source_branches.items()}
 
@@ -198,11 +204,12 @@ def process_local_serial(hazard_model_id, toshi_ids, source_branches, coded_loca
                 deagg,
             )
 
+            process_location_list(t, config.deagg_poes[0])
 
-            process_location_list(t)
 
-
-def process_local(hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False):
+def process_local(
+    hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False
+):
     """Run task locally using Multiprocessing. ported from THS."""
     # num_workers = 1
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
@@ -291,13 +298,13 @@ def process_aggregation(config: AggregationConfig, deagg=False):
 
     example_loc_code = coded_locations[0].downsample(0.001).code
 
-    if deagg: # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
+    if deagg:  # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
         levels = []
     else:
         levels = get_levels(
             source_branches[config.vs30s[0]], [example_loc_code], config.vs30s[0]
         )  # TODO: get seperate levels for every IMT
-        avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0]) # TODO: equiv check for deaggs
+        avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0])  # TODO: equiv check for deaggs
         for imt in config.imts:
             assert imt in avail_imts
 
@@ -306,5 +313,5 @@ def process_aggregation(config: AggregationConfig, deagg=False):
     # )  # TODO: use source_branches dict
 
     process_local_serial(
-    config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
-)  # TODO: use source_branches dict
+        config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
+    )  # TODO: use source_branches dict

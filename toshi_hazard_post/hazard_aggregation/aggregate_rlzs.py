@@ -1,29 +1,28 @@
-import json
 import ast
 import itertools
+import json
 import logging
 import math
 import time
 from functools import reduce
 from operator import mul
 
-
 import numpy as np
 import pandas as pd
+from numba import jit
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
-
-from toshi_hazard_post.util.toshi_client import download_csv
-from toshi_hazard_post.util.file_utils import get_disagg_mdt
 
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_DATA import data as gtdata
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
 from toshi_hazard_post.data_functions import weighted_quantile
+from toshi_hazard_post.util.file_utils import get_disagg_mdt
+from toshi_hazard_post.util.toshi_client import download_csv
 
 # from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
 # from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
 
 DTOL = 1.0e-6
-inv_time = 1.0
+INV_TIME = 1.0
 VERBOSE = True
 DOWNLOAD_DIR = '/work/chrisdc/NZSHM-WORKING/PROD/'
 
@@ -84,11 +83,11 @@ def load_realization_values(toshi_ids, locs, vs30s):
 
     return values
 
+
 def load_realization_values_deagg(toshi_ids, locs, vs30s):
 
     tic = time.perf_counter()
     log.info('loading %s hazard IDs ... ' % len(toshi_ids))
-    
 
     values = {}
 
@@ -106,7 +105,6 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s):
                 values[key] = {}
             values[key][location] = {}
             values[key][location][imt] = np.array(disaggs[rlz])
-    
 
     # check that the correct number of records came back
     ids_ret = []
@@ -247,14 +245,32 @@ def get_weights(branch, vs30):
     return weights
 
 
+@jit(nopython=True)
 def prob_to_rate(prob):
 
-    return -np.log(1 - prob) / inv_time
+    return -np.log(1 - prob) / INV_TIME
 
 
+@jit(nopython=True)
 def rate_to_prob(rate):
 
-    return 1.0 - np.exp(-inv_time * rate)
+    return 1.0 - np.exp(-INV_TIME * rate)
+
+
+# @jit(nopython=True)
+def calc_weighted_sum(rlz_combs, rate_shape, values, loc, imt):
+
+    nrows = len(rlz_combs)
+    prob_table = np.empty((nrows, rate_shape[0]))
+
+    for i, rlz_comb in enumerate(rlz_combs):
+        rate = np.zeros(rate_shape)
+        for rlz in rlz_comb:
+            rate += prob_to_rate(values[rlz][loc][imt])
+        prob = rate_to_prob(rate)
+        prob_table[i, :] = prob
+
+    return prob_table
 
 
 def build_source_branch(values, rlz_combs, imt, loc):
@@ -266,17 +282,8 @@ def build_source_branch(values, rlz_combs, imt, loc):
     rate_shape = values[k1][k2][k3].shape
 
     tic = time.perf_counter()
-    nbranches = len(rlz_combs)
-    for i, rlz_comb in enumerate(rlz_combs):
-        log.debug(f'build_source_branches() working on gmm branch {i+1} of {nbranches}')
-        rate = np.zeros(rate_shape)
-        for rlz in rlz_comb:
-            rate += prob_to_rate(values[rlz][loc][imt])
-        prob = rate_to_prob(rate)
-        if i == 0:
-            prob_table = np.array(prob)
-        else:
-            prob_table = np.vstack((prob_table, np.array(prob)))
+    # nbranches = len(rlz_combs)
+    prob_table = calc_weighted_sum(rlz_combs, rate_shape, values, loc, imt)
 
     toc = time.perf_counter()
     log.debug('build_source_branch took: %s' % (toc - tic))
@@ -284,18 +291,23 @@ def build_source_branch(values, rlz_combs, imt, loc):
 
 
 def calculate_aggs(branch_probs, aggs, weight_combs):
-
-    tic = time.perf_counter()
-    median = np.array([])
-    for i in range(branch_probs.shape[1]):
+    nrows = branch_probs.shape[1]
+    ncols = len(aggs)
+    median = np.empty((nrows, ncols))
+    for i in range(nrows):
         quantiles = weighted_quantile(branch_probs[:, i], aggs, sample_weight=weight_combs)
-        if i == 0:
-            median = np.array(quantiles)
-        else:
-            median = np.vstack((median, quantiles))
-    toc = time.perf_counter()
-    log.debug('calculate_aggs took: %s' % (toc - tic))
+        median[i, :] = np.array(quantiles)
     return median
+
+
+def get_len_rate(values):
+
+    k1 = next(iter(values.keys()))
+    k2 = next(iter(values[k1].keys()))
+    k3 = next(iter(values[k1][k2].keys()))
+    rate_shape = values[k1][k2][k3].shape
+
+    return rate_shape[0]
 
 
 def build_branches(source_branches, values, imt, loc, vs30):
@@ -303,24 +315,26 @@ def build_branches(source_branches, values, imt, loc, vs30):
 
     tic = time.perf_counter()
 
-    weights = np.array([])
     nbranches = len(source_branches)
-    for i, branch in enumerate(source_branches):
-        log.info(f'build_branches() building branch {i+1} of {nbranches}')
-
+    nrows = len(source_branches[0]['rlz_combs']) * nbranches
+    ncols = get_len_rate(values)
+    branch_probs = np.empty((nrows, ncols))
+    weights = np.empty((nrows,))
+    for i, branch in enumerate(source_branches):  # ~320 source branches
+        tic = time.perf_counter()
         # rlz_combs, weight_combs = build_rlz_table(branch, vs30)
         rlz_combs = branch['rlz_combs']
         weight_combs = branch['weight_combs']
 
         w = np.array(weight_combs) * branch['weight']
-        weights = np.hstack((weights, w))
+        weights[i * len(w) : (i + 1) * len(w)] = w
 
         # set of realization probabilties for a single complete source branch
         # these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve
-        if i == 0:
-            branch_probs = build_source_branch(values, rlz_combs, imt, loc)
-        else:
-            branch_probs = np.vstack((branch_probs, build_source_branch(values, rlz_combs, imt, loc)))
+        branch_probs[i * len(w) : (i + 1) * len(w), :] = build_source_branch(values, rlz_combs, imt, loc)
+
+        toc = time.perf_counter()
+        log.info(f'build_branches() built branch {i+1} of {nbranches} in {toc-tic} seconds')
 
     toc = time.perf_counter()
     log.debug('build_branches took: %s ' % (toc - tic))
@@ -442,6 +456,7 @@ def compute_hazard_at_poe(levels, values, poe, inv_time):
 #                     )
 #     return disagg_rlzs
 
+
 def get_source_ids(toshi_ids, vs30):
 
     source_info = []
@@ -449,7 +464,7 @@ def get_source_ids(toshi_ids, vs30):
         rlz_lt = ast.literal_eval(meta.rlz_lt)
         source_ids = list(rlz_lt['source combination'].values())[0].split('|')
         nrlz = len(rlz_lt['source combination'])
-        source_info.append(dict(source_ids=source_ids, nrlz=nrlz, source_tree_hazid = meta.hazard_solution_id))
+        source_info.append(dict(source_ids=source_ids, nrlz=nrlz, source_tree_hazid=meta.hazard_solution_id))
 
     return source_info
 

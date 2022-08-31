@@ -1,16 +1,14 @@
-import time
-import io
 import csv
+import io
+import itertools
 import json
 import logging
-import itertools
-
-import pandas as pd
-import numpy as np
-
-from zipfile import ZipFile
+import time
 from collections import namedtuple
+from zipfile import ZipFile
 
+import numpy as np
+import pandas as pd
 from nzshm_common.location.code_location import CodedLocation
 
 log = logging.getLogger(__name__)
@@ -18,24 +16,24 @@ log = logging.getLogger(__name__)
 
 def disagg_df(rlz_names):
 
-    columns = ['imt','mag','dist','trt'] + rlz_names
-    imts = ['PGA']
-    mags = np.arange(5.1, 10.0, 0.2)
-    # mags = np.arange(5.25, 10.0, 0.5)
-    dists = np.arange(5,550,10)
-    trts =  ['Active Shallow Crust', 'Subduction Interface', 'Subduction Intraslab']
-    index = range(len(imts) * len(mags) * len(dists) * len(trts))
+    columns = ['imt', 'mag', 'dist', 'trt'] + rlz_names
+    # imts = ['PGA']
+    # mags = np.arange(5.1, 10.0, 0.2)
+    mags = np.arange(5.25, 10.0, 0.5)
+    dists = np.arange(5, 550, 10)
+    trts = ['Active Shallow Crust', 'Subduction Interface', 'Subduction Intraslab']
+    # index = range(len(imts) * len(mags) * len(dists) * len(trts))
+    index = range(len(mags) * len(dists) * len(trts))
     disaggs = pd.DataFrame(columns=columns, index=index)
-    for i, (imt, mag, dist, trt) in enumerate(itertools.product(imts, mags, dists, trts)):
-        disaggs.loc[i,'imt'] = imt
-        disaggs.loc[i,'mag'] = f'{mag:0.3}'
-        disaggs.loc[i,'dist'] = f'{int(dist)}'
-        disaggs.loc[i,'trt'] = trt
+    # for i, (imt, mag, dist, trt) in enumerate(itertools.product(imts, mags, dists, trts)):
+    for i, (mag, dist, trt) in enumerate(itertools.product(mags, dists, trts)):
+        disaggs.loc[i, 'mag'] = f'{mag:0.3}'
+        disaggs.loc[i, 'dist'] = f'{int(dist)}'
+        disaggs.loc[i, 'trt'] = trt
         for rlz in rlz_names:
-            disaggs.loc[i,rlz] = 0
+            disaggs.loc[i, rlz] = 0
 
     return disaggs
-
 
 
 def get_location(header):
@@ -45,7 +43,7 @@ def get_location(header):
     """
 
     info = header[-1]
-    start_lon = info.index('lon=')+4
+    start_lon = info.index('lon=') + 4
     tail = info[start_lon:]
     try:
         end_lon = tail.index(',')
@@ -53,7 +51,7 @@ def get_location(header):
     except:
         lon = tail[:]
 
-    start_lat = info.index('lat=')+4
+    start_lat = info.index('lat=') + 4
     tail = info[start_lat:]
     try:
         end_lat = tail.index(',')
@@ -61,9 +59,10 @@ def get_location(header):
     except:
         lat = tail[:]
 
-    location = CodedLocation(float(lat),float(lon),0.001).code
+    location = CodedLocation(float(lat), float(lon), 0.001).code
 
     return location
+
 
 def get_disagg_mdt(csv_archive):
     """
@@ -94,25 +93,23 @@ def get_disagg_mdt(csv_archive):
                 mag = f'{float(disagg_data.mag):0.3}'
                 dist = f'{int(float(disagg_data.dist))}'
                 trt = disagg_data.trt
-                ind = (disaggs['imt'].isin([imt])) & (disaggs['mag'].isin([mag])) & (disaggs['dist'].isin([dist])) & (disaggs['trt'].isin([trt]))
+                # ind = (disaggs['imt'].isin([imt])) & (disaggs['mag'].isin([mag])) & (disaggs['dist'].isin([dist])) & (disaggs['trt'].isin([trt]))
+                ind = (disaggs['mag'].isin([mag])) & (disaggs['dist'].isin([dist])) & (disaggs['trt'].isin([trt]))
                 if not any(ind):
                     raise Exception(f'no index found for {csv_archive} row: {row}')
-                disaggs.iloc[ind,4:] = list(map(float,row[5:]))
+                disaggs.iloc[ind, 4:] = list(map(float, row[5:]))
 
-
-    disaggs_dict = {}    
+    disaggs_dict = {}
     for rlz in rlz_names:
         disaggs_dict[rlz[3:]] = disaggs[rlz].to_numpy(dtype='float64')
 
     return disaggs_dict, location, imt
 
 
-def save_deaggs(deagg_data, loc, imt):
+def save_deaggs(deagg_data, loc, imt, poe):
 
-    deagg_filename = f'deagg_{loc}_{imt}.npy'
+    deagg_filename = f'deagg_{loc}_{imt}_{int(poe*100)}.npy'
     # with open(deagg_filename,'w') as jsonfile:
     #     json.dump(deagg_data, jsonfile)
-    np.save(deagg_filename,deagg_data)
+    np.save(deagg_filename, deagg_data)
     log.info(f'saved deagg results to {deagg_filename}')
-
-        
