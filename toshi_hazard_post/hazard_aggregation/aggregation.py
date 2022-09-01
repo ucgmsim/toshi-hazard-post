@@ -288,6 +288,7 @@ def process_aggregation(config: AggregationConfig, deagg=False):
             if b.vs30 == vs30
         ]
 
+    tic = time.perf_counter()
     source_branches = {}
     for vs30 in config.vs30s:
         source_branches[vs30] = build_source_branches(
@@ -299,6 +300,7 @@ def process_aggregation(config: AggregationConfig, deagg=False):
             omit,
             truncate=config.source_branches_truncate,
         )
+    log.info(f'time to build source branches {time.perf_counter()-tic:0.1f} seconds')
     breakpoint()
     assert 0
     locations = get_locations(config)

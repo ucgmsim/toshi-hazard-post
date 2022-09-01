@@ -132,6 +132,7 @@ def build_rlz_table(branch, vs30, correlations=None):
     assumes only one source per run and the same gsim weights in every run
     """
 
+
     if correlations:
         correlation_master = [corr[0] for corr in correlations]
         correlation_puppet = [corr[1] for corr in correlations]
@@ -145,6 +146,7 @@ def build_rlz_table(branch, vs30, correlations=None):
     rlz_sets = {}
     weight_sets = {}
     trts = set()
+
     for meta in get_hazard_metadata_v3(ids, [vs30]):
         hazard_id = meta.hazard_solution_id
         gsim_lt = ast.literal_eval(meta.gsim_lt)
@@ -159,6 +161,7 @@ def build_rlz_table(branch, vs30, correlations=None):
                     rlz_sets[trt][gsim] = []
                 rlz_sets[trt][gsim].append(rlz_key)
                 weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
+    print(f'ids {ids}')
 
     # for meta in get_hazard_metadata_v3(ids, [vs30]):
     #     rlz_lt = ast.literal_eval(meta.rlz_lt)
@@ -185,6 +188,7 @@ def build_rlz_table(branch, vs30, correlations=None):
     #             weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
 
     # find correlated gsims and mappings between gsim name and rlz_key
+    
     if correlations:
         all_rlz = [(gsim, rlz) for rlz_set in rlz_sets.values() for gsim, rlz in rlz_set.items()]
         correlation_list = []
@@ -205,12 +209,11 @@ def build_rlz_table(branch, vs30, correlations=None):
         for gsim in v.keys():
             rlz_sets_tmp[k].append(v[gsim])
             weight_sets_tmp[k].append(weight_sets[k][gsim])
-
+    
     rlz_lists = list(rlz_sets_tmp.values())
     weight_lists = list(weight_sets_tmp.values())
 
     # TODO: fix rlz from the same ID grouped together
-    # TODO: I sure hope itertools.product produces the same order every time
     rlz_iter = itertools.product(*rlz_lists)
     weight_iter = itertools.product(*weight_lists)
     rlz_combs = []
@@ -227,8 +230,7 @@ def build_rlz_table(branch, vs30, correlations=None):
             weight_combs.append(reduce(mul, weight_group, 1))
 
     toc = time.perf_counter()
-    if VERBOSE:
-        print(f'time to build realization table: {toc-tic:.1f} seconds')
+    log.info(f'time to build realization table: {toc-tic:.1f} seconds')
 
     sum_weight = sum(weight_combs)
     if not ((sum_weight > 1.0 - DTOL) & (sum_weight < 1.0 + DTOL)):
