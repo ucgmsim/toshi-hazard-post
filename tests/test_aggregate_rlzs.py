@@ -96,8 +96,12 @@ class TestBuldRealizationTable(unittest.TestCase):
         rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
         weight_combs_expected = json.load(open(self._weight_combs_filepath, 'r'))
 
+        rlz_combs.sort()
+        rlz_combs_expected.sort()
+
         assert rlz_combs == rlz_combs_expected
-        assert weight_combs == weight_combs_expected
+
+        assert set(weight_combs) == set(weight_combs_expected)
 
         assert sum(weight_combs) == pytest.approx(1.0)
 
@@ -136,6 +140,9 @@ class TestCorrelatiedRealizationTable(unittest.TestCase):
         rlz_combs, weight_combs = build_rlz_table(source_branches[0], 400, correlations)
 
         rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
+
+        rlz_combs.sort()
+        rlz_combs_expected.sort()
 
         assert rlz_combs == rlz_combs_expected
 
