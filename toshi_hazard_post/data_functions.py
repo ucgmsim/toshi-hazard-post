@@ -1,4 +1,19 @@
 import numpy as np
+import math
+import logging
+
+log = logging.getLogger(__name__)
+
+def weighted_avg_and_std(values, weights):
+    """
+    Return the weighted average and standard deviation.
+
+    values, weights -- Numpy ndarrays with the same shape.
+    """
+    average = np.average(values, weights=weights)
+    # Fast and numerically precise:
+    variance = np.average((values-average)**2, weights=weights)
+    return (average, math.sqrt(variance))
 
 
 def weighted_quantile(values, quantiles, sample_weight=None, values_sorted=False, old_style=False):
@@ -21,11 +36,17 @@ def weighted_quantile(values, quantiles, sample_weight=None, values_sorted=False
     sample_weight = sample_weight / sum(sample_weight)
 
     get_mean = False
+    get_std = False
     if 'mean' in quantiles:
         get_mean = True
         mean_ind = quantiles.index('mean')
         quantiles = quantiles[0:mean_ind] + quantiles[mean_ind + 1 :]
         mean = np.sum(sample_weight * values)
+    if 'std' in quantiles:
+        get_std = True
+        std_ind = quantiles.index('std')
+        quantiles = quantiles[0:std_ind] + quantiles[std_ind + 1 :]
+        avg, std = weighted_avg_and_std(values, sample_weight)
 
     quantiles = np.array(
         [float(q) for q in quantiles]
@@ -50,5 +71,7 @@ def weighted_quantile(values, quantiles, sample_weight=None, values_sorted=False
     wq = np.interp(quantiles, weighted_quantiles, values)
     if get_mean:
         wq = np.append(np.append(wq[0:mean_ind], np.array([mean])), wq[mean_ind:])
+    if get_std:
+        wq = np.append(np.append(wq[0:std_ind], np.array([std])), wq[std_ind:])
 
     return wq
