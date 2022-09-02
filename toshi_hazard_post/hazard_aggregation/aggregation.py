@@ -1,11 +1,11 @@
 """Hazard aggregation task dispatch."""
+import cProfile
 import logging
 import multiprocessing
 import time
 from collections import namedtuple
 from dataclasses import dataclass
 from typing import List
-import cProfile
 
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
@@ -28,6 +28,7 @@ from .aggregate_rlzs import (
     get_levels,
     load_realization_values,
     load_realization_values_deagg,
+    preload_meta,
 )
 from .aggregation_config import AggregationConfig
 
@@ -55,11 +56,11 @@ class DistributedAggregationTaskArguments:
 
 
 def build_source_branches(
-    logic_tree_permutations, gtdata, src_correlations, gmm_correlations, vs30, omit, truncate=None
+    logic_tree_permutations, gtdata, src_correlations, gmm_correlations, vs30, omit, toshi_ids, truncate=None
 ):
     """ported from THS. aggregate_rlzs_mp"""
     # pr.enable()
-    
+
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
 
     source_branches = get_weighted_branches(grouped, src_correlations)
@@ -68,13 +69,15 @@ def build_source_branches(
         # for testing only
         source_branches = source_branches[:truncate]
 
+    metadata = preload_meta(toshi_ids, vs30)
+
     for i in range(len(source_branches)):
         rlz_combs, weight_combs = build_rlz_table(
-            source_branches[i], vs30, gmm_correlations
+            source_branches[i], metadata, gmm_correlations
         )  # TODO: add correlations to GMCM LT
         source_branches[i]['rlz_combs'] = rlz_combs
         source_branches[i]['weight_combs'] = weight_combs
-    
+
     # pr.disable()
     # pr.print_stats(sort='time')
 
@@ -288,7 +291,6 @@ def process_aggregation(config: AggregationConfig, deagg=False):
             if b.vs30 == vs30
         ]
 
-    tic = time.perf_counter()
     source_branches = {}
     for vs30 in config.vs30s:
         source_branches[vs30] = build_source_branches(
@@ -298,11 +300,10 @@ def process_aggregation(config: AggregationConfig, deagg=False):
             config.gmm_correlations,
             vs30,
             omit,
+            toshi_ids[vs30],
             truncate=config.source_branches_truncate,
         )
-    log.info(f'time to build source branches {time.perf_counter()-tic:0.1f} seconds')
-    breakpoint()
-    assert 0
+    log.info('finished building logic tree ')
     locations = get_locations(config)
 
     resolution = 0.001

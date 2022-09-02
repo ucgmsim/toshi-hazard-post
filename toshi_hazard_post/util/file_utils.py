@@ -1,9 +1,7 @@
 import csv
 import io
 import itertools
-import json
 import logging
-import time
 from collections import namedtuple
 from zipfile import ZipFile
 
@@ -74,7 +72,6 @@ def get_disagg_mdt(csv_archive):
     # because each hazard_id only has a single TRT, we must insert zeros for the other TRTs to treat all disagg arrays the same
     # assume the order and TRTs to be Active Shallow Crust, Subduction Interface, Subduction Intraslab
     TRT_ORDER = ['Active Shallow Crust', 'Subduction Interface', 'Subduction Intraslab']
-    ntrt = len(TRT_ORDER)
 
     with ZipFile(csv_archive) as zipf:
         with io.TextIOWrapper(zipf.open('Mag_Dist_TRT-0_1.csv'), encoding="utf-8") as mag_dist_TRT_file:

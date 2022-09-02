@@ -1,8 +1,6 @@
 import ast
 import itertools
-import json
 import logging
-import math
 import time
 from functools import reduce
 from operator import mul
@@ -126,12 +124,22 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s):
     return values
 
 
-def build_rlz_table(branch, vs30, correlations=None):
+def preload_meta(ids, vs30):
+
+    metadata = {}
+    for meta in get_hazard_metadata_v3(ids, [vs30]):
+        hazard_id = meta.hazard_solution_id
+        gsim_lt = ast.literal_eval(meta.gsim_lt)
+        metadata[hazard_id] = gsim_lt
+
+    return metadata
+
+
+def build_rlz_table(branch, metadata, correlations=None):
     """
     build the table of ground motion combinations and weights for a single source branch
     assumes only one source per run and the same gsim weights in every run
     """
-
 
     if correlations:
         correlation_master = [corr[0] for corr in correlations]
@@ -140,16 +148,12 @@ def build_rlz_table(branch, vs30, correlations=None):
         correlation_master = []
         correlation_puppet = []
 
-    tic = time.perf_counter()
-
-    ids = branch['ids']
     rlz_sets = {}
     weight_sets = {}
     trts = set()
 
-    for meta in get_hazard_metadata_v3(ids, [vs30]):
-        hazard_id = meta.hazard_solution_id
-        gsim_lt = ast.literal_eval(meta.gsim_lt)
+    for hazard_id in branch['ids']:
+        gsim_lt = metadata[hazard_id]
         trts = set(gsim_lt['trt'].values())
         for trt in trts:
             if not rlz_sets.get(trt):
@@ -161,34 +165,9 @@ def build_rlz_table(branch, vs30, correlations=None):
                     rlz_sets[trt][gsim] = []
                 rlz_sets[trt][gsim].append(rlz_key)
                 weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
-    print(f'ids {ids}')
-
-    # for meta in get_hazard_metadata_v3(ids, [vs30]):
-    #     rlz_lt = ast.literal_eval(meta.rlz_lt)
-    #     gsim_lt = ast.literal_eval(meta.gsim_lt)
-    #     for trt in rlz_sets.keys():
-    #         if trt in rlz_lt:
-    #             # gsims = list(set(rlz_lt[trt].values()))
-    #             gsims = list(set(gsim_lt['uncertainty'].values()))
-    #             gsims.sort()
-    #             for gsim in gsims:
-    #                 rlz_sets[trt][gsim] = []
-
-    # for meta in get_hazard_metadata_v3(ids, [vs30]):
-    #     rlz_lt = ast.literal_eval(meta.rlz_lt)
-    #     gsim_lt = ast.literal_eval(meta.gsim_lt)
-    #     hazard_id = meta.hazard_solution_id
-    #     trts = list(set(gsim_lt['trt'].values()))
-    #     trts.sort()
-    #     for trt in trts:
-    #         # for rlz, gsim in rlz_lt[trt].items():
-    #         for rlz, gsim in gsim_lt['uncertainty'].items():
-    #             rlz_key = ':'.join((hazard_id, rlz))
-    #             rlz_sets[trt][gsim].append(rlz_key)
-    #             weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
 
     # find correlated gsims and mappings between gsim name and rlz_key
-    
+
     if correlations:
         all_rlz = [(gsim, rlz) for rlz_set in rlz_sets.values() for gsim, rlz in rlz_set.items()]
         correlation_list = []
@@ -209,7 +188,7 @@ def build_rlz_table(branch, vs30, correlations=None):
         for gsim in v.keys():
             rlz_sets_tmp[k].append(v[gsim])
             weight_sets_tmp[k].append(weight_sets[k][gsim])
-    
+
     rlz_lists = list(rlz_sets_tmp.values())
     weight_lists = list(weight_sets_tmp.values())
 
@@ -228,9 +207,6 @@ def build_rlz_table(branch, vs30, correlations=None):
         else:
             rlz_combs.append([s for src in src_group for s in src])
             weight_combs.append(reduce(mul, weight_group, 1))
-
-    toc = time.perf_counter()
-    log.info(f'time to build realization table: {toc-tic:.1f} seconds')
 
     sum_weight = sum(weight_combs)
     if not ((sum_weight > 1.0 - DTOL) & (sum_weight < 1.0 + DTOL)):
@@ -397,74 +373,6 @@ def compute_hazard_at_poe(levels, values, poe, inv_time):
     rp = -inv_time / np.log(1 - poe)
     haz = np.exp(np.interp(np.log(1 / rp), np.flip(np.log(values)), np.flip(np.log(levels))))
     return haz
-
-
-# def process_disagg_location_list(hazard_curves, source_branches, toshi_ids, poes, inv_time, vs30, locs, aggs, imts):
-
-#     values = load_realization_values(toshi_ids, locs, [vs30])
-#     k1 = next(iter(values.keys()))
-#     k2 = next(iter(values[k1].keys()))
-#     k3 = next(iter(values[k1][k2].keys()))
-#     rate_shape = values[k1][k2][k3].shape
-
-#     disagg_rlzs = []
-#     for loc in locs:
-#         lat, lon = loc.split('~')
-#         for poe in poes:
-#             for agg in aggs:
-#                 for imt in imts:
-#                     # disagg_key = ':'.join((loc, str(poe), str(agg), imt))
-
-#                     # get target level of shaking
-#                     hc = hazard_curves.loc[
-#                         (hazard_curves['agg'] == agg)
-#                         & (hazard_curves['imt'] == imt)
-#                         & (hazard_curves['lat'] == lat)
-#                         & (hazard_curves['lon'] == lon)
-#                     ]
-#                     levels = hc['level'].to_numpy()
-#                     hazard_vals = hc['hazard'].to_numpy()
-#                     target_level = compute_hazard_at_poe(levels, hazard_vals, poe, inv_time)
-#                     min_dist = math.inf
-
-#                     # find realization with nearest level of shaking
-#                     # TODO: repeating a lot of code here. Unify with agg processing code when done
-#                     for i, branch in enumerate(source_branches):
-#                         rlz_combs = branch['rlz_combs']
-
-#                         for i, rlz_comb in enumerate(rlz_combs):
-#                             rate = np.zeros(rate_shape)
-#                             for rlz in rlz_comb:
-#                                 rate += prob_to_rate(values[rlz][loc][imt])
-#                             prob = rate_to_prob(rate)
-#                             rlz_level = compute_hazard_at_poe(levels, prob, poe, inv_time)
-#                             dist = abs(rlz_level - target_level)
-#                             if dist < min_dist:
-#                                 nearest_rlz = rlz_comb
-#                                 min_dist = dist
-#                                 nearest_level = rlz_level
-
-#                     hazard_ids = [id.split(':')[0] for id in nearest_rlz]
-#                     source_ids, gsims = get_source_and_gsim(nearest_rlz, vs30)
-
-#                     disagg_rlzs.append(
-#                         dict(
-#                             vs30=vs30,
-#                             source_ids=source_ids,
-#                             inv_time=inv_time,
-#                             imt=imt,
-#                             agg=agg,
-#                             poe=poe,
-#                             level=nearest_level,
-#                             location=loc,
-#                             gsims=gsims,
-#                             dist=min_dist,
-#                             nearest_rlz=nearest_rlz,
-#                             target_level=target_level,
-#                             hazard_ids=hazard_ids,
-#                         )
-#                     )
-#     return disagg_rlzs
 
 
 def get_source_ids(toshi_ids, vs30):

@@ -315,7 +315,8 @@ def process_deaggregation(config: AggregationConfig):
         raise Exception('a deaggregation configuration must be specified for deagg mode')
     try:
         config.validate_deagg()
-    except:
+    except AssertionError as error:
+        log.error(error)
         raise Exception('invalid deaggregation configuration')
 
     # assume an aggregation has already been performed that covers the parameters requested in the deagg. This can waste time in 2 ways
