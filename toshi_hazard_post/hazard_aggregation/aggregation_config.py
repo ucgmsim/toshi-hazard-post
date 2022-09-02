@@ -45,7 +45,6 @@ class AggregationConfig:
             self.deagg_poes = self.config.get('deaggregation').get('poes')
             self.deagg_invtime = self.config.get('deaggregation').get('inv_time')
             self.deagg_gtdatafile = self.config.get('deaggregation').get('gtdata_file')
-            self._load_deagg()
 
     def _load_deagg(self):
         ltf = Path(Path(self._config_file).parent, self.config['deaggregation']['gtdata_file'])
@@ -75,4 +74,10 @@ class AggregationConfig:
         """Check the deaggregation configuration is valid."""
         print(self.config['deaggregation'])
         assert self.config['deaggregation']['inv_time']
+
+    def validate_deagg_file(self):
+        """Check that the deagg data file exists and load it"""
         assert self.config['deaggregation']['gtdata_file']
+        ltf = Path(Path(self._config_file).parent, self.config['deaggregation']['gtdata_file'])
+        assert ltf.exists()
+        self._load_deagg()

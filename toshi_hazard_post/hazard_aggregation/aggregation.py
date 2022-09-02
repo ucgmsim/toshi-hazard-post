@@ -37,7 +37,7 @@ pr = cProfile.Profile()
 
 
 AggTaskArgs = namedtuple(
-    "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg"
+    "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe"
 )
 
 
@@ -84,7 +84,7 @@ def build_source_branches(
     return source_branches
 
 
-def process_location_list(task_args, poe=None):
+def process_location_list(task_args):
     """The math happens inside here... REFACTOR ME. ported from THS."""
     locs = task_args.locs
     toshi_ids = task_args.toshi_ids
@@ -94,6 +94,9 @@ def process_location_list(task_args, poe=None):
     levels = task_args.levels
     vs30 = task_args.vs30
     deagg = task_args.deagg
+
+    if deagg:
+        poe = task_args.poe
 
     # print(locs)
     if deagg:
@@ -213,9 +216,11 @@ def process_local_serial(
                 levels,
                 vs30,
                 deagg,
+                config.deagg_poes[0],
             )
 
-            process_location_list(t, config.deagg_poes[0])
+            # process_location_list(t, config.deagg_poes[0])
+            process_location_list(t)
 
 
 def process_local(
@@ -251,6 +256,9 @@ def process_local(
                 levels,
                 vs30,
                 deagg,
+                config.deagg_poes[
+                    0
+                ],  # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
             )
 
             task_queue.put(t)
@@ -279,6 +287,8 @@ def process_aggregation(config: AggregationConfig, deagg=False):
     omit: List[str] = []
 
     if deagg:
+        config.validate_deagg()
+        config.validate_deagg_file()
         gtdata = config.deagg_solutions
     else:
         gtdata = config.hazard_solutions
@@ -321,10 +331,10 @@ def process_aggregation(config: AggregationConfig, deagg=False):
         for imt in config.imts:
             assert imt in avail_imts
 
-    # process_local(
-    #     config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
-    # )  # TODO: use source_branches dict
-
-    process_local_serial(
+    process_local(
         config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
     )  # TODO: use source_branches dict
+
+    # process_local_serial(
+    #     config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
+    # )  # TODO: use source_branches dict

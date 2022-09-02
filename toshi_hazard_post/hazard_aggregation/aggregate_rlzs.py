@@ -299,15 +299,13 @@ def get_len_rate(values):
 def build_branches(source_branches, values, imt, loc, vs30):
     '''for each source branch, assemble the gsim realization combinations'''
 
-    tic = time.perf_counter()
-
     nbranches = len(source_branches)
     nrows = len(source_branches[0]['rlz_combs']) * nbranches
     ncols = get_len_rate(values)
     branch_probs = np.empty((nrows, ncols))
     weights = np.empty((nrows,))
+    tic = time.process_time()
     for i, branch in enumerate(source_branches):  # ~320 source branches
-        tic = time.perf_counter()
         # rlz_combs, weight_combs = build_rlz_table(branch, vs30)
         rlz_combs = branch['rlz_combs']
         weight_combs = branch['weight_combs']
@@ -319,8 +317,7 @@ def build_branches(source_branches, values, imt, loc, vs30):
         # these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve
         branch_probs[i * len(w) : (i + 1) * len(w), :] = build_source_branch(values, rlz_combs, imt, loc)
 
-        toc = time.perf_counter()
-        log.info(f'build_branches() built branch {i+1} of {nbranches} in {toc-tic} seconds')
+        log.debug(f'built branch {i+1} of {nbranches}')
 
     toc = time.perf_counter()
     log.debug('build_branches took: %s ' % (toc - tic))
