@@ -3,7 +3,7 @@ import json
 import logging
 from dataclasses import asdict
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 import boto3
 from nzshm_common.location.code_location import CodedLocation
@@ -77,6 +77,7 @@ def save_source_branches(source_branches):
 
 def distribute_aggregation(config: AggregationConfig, process_mode: str):
     """Configure the tasks using toshi to store the configuration."""
+    omit: List[str] = []
 
     toshi_ids = {}
     for vs30 in config.vs30s:
@@ -104,7 +105,8 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
                 config.src_correlations,
                 config.gmm_correlations,
                 vs30,
-                omit=[],
+                omit,
+                toshi_ids[vs30],
                 truncate=config.source_branches_truncate,
             )
         source_branches_id = save_source_branches(source_branches)

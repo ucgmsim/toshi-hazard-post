@@ -239,7 +239,8 @@ def process_local(
     tic = time.perf_counter()
     # Enqueue jobs
     num_jobs = 0
-
+    deagg_poe = config['deagg_poes'][0] if deagg else None # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
+    
     toshi_ids = {int(k): v for k, v in toshi_ids.items()}
     source_branches = {int(k): v for k, v in source_branches.items()}
 
@@ -256,9 +257,7 @@ def process_local(
                 levels,
                 vs30,
                 deagg,
-                config.deagg_poes[
-                    0
-                ],  # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
+                deagg_poe,
             )
 
             task_queue.put(t)
