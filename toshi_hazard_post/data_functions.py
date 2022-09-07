@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import logging
+import time
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +17,13 @@ def weighted_avg_and_std(values, weights):
     return (average, math.sqrt(variance))
 
 
-def weighted_quantile(values, quantiles, sample_weight=None, values_sorted=False, old_style=False):
+def calculate_mean(sample_weight,values):
+    
+    return np.sum(sample_weight * values)
+
+
+
+def calculate_weighted_quantiles(values, sample_weight, quantiles):
     """Very close to numpy.percentile, but supports weights.
     NOTE: quantiles should be in [0, 1]!
     :param values: numpy.array with data
@@ -29,6 +36,22 @@ def weighted_quantile(values, quantiles, sample_weight=None, values_sorted=False
     :return: numpy.array with computed quantiles.
     """
 
+    sorter = np.argsort(values)
+    values = values[sorter]
+    sample_weight = sample_weight[sorter]
+
+    weighted_quantiles = np.cumsum(sample_weight) - 0.5 * sample_weight
+    weighted_quantiles /= np.sum(sample_weight)
+
+    wq = np.interp(quantiles, weighted_quantiles, values)
+
+    return wq
+
+
+def weighted_quantile(values, quantiles, sample_weight=None):
+   
+    tic = time.perf_counter()
+
     values = np.array(values)
     if sample_weight is None:
         sample_weight = np.ones(len(values))
@@ -37,16 +60,23 @@ def weighted_quantile(values, quantiles, sample_weight=None, values_sorted=False
 
     get_mean = False
     get_std = False
-    if 'mean' in quantiles:
-        get_mean = True
-        mean_ind = quantiles.index('mean')
-        quantiles = quantiles[0:mean_ind] + quantiles[mean_ind + 1 :]
-        mean = np.sum(sample_weight * values)
-    if 'std' in quantiles:
-        get_std = True
-        std_ind = quantiles.index('std')
-        quantiles = quantiles[0:std_ind] + quantiles[std_ind + 1 :]
-        avg, std = weighted_avg_and_std(values, sample_weight)
+    get_cov = False
+    if ('mean' in quantiles) | ('std' in quantiles) | ('cov' in quantiles):
+        mean, std = weighted_avg_and_std(values, sample_weight)
+        if 'mean' in quantiles:
+            get_mean = True
+            mean_ind = quantiles.index('mean')
+            quantiles = quantiles[0:mean_ind] + quantiles[mean_ind + 1 :]
+        if 'std' in quantiles:
+            get_std = True
+            std_ind = quantiles.index('std')
+            quantiles = quantiles[0:std_ind] + quantiles[std_ind + 1 :]
+        if 'cov' in quantiles:
+            get_cov = True
+            cov_ind = quantiles.index('cov')
+            quantiles = quantiles[0:cov_ind] + quantiles[cov_ind + 1 :]
+            cov = std/mean
+                
 
     quantiles = np.array(
         [float(q) for q in quantiles]
@@ -55,23 +85,18 @@ def weighted_quantile(values, quantiles, sample_weight=None, values_sorted=False
 
     assert np.all(quantiles >= 0) and np.all(quantiles <= 1), 'quantiles should be in [0, 1]'
 
-    if not values_sorted:
-        sorter = np.argsort(values)
-        values = values[sorter]
-        sample_weight = sample_weight[sorter]
+    wq = calculate_weighted_quantiles(values, sample_weight, quantiles)
 
-    weighted_quantiles = np.cumsum(sample_weight) - 0.5 * sample_weight
-    if old_style:
-        # To be convenient with numpy.percentile
-        weighted_quantiles -= weighted_quantiles[0]
-        weighted_quantiles /= weighted_quantiles[-1]
-    else:
-        weighted_quantiles /= np.sum(sample_weight)
-
-    wq = np.interp(quantiles, weighted_quantiles, values)
-    if get_mean:
-        wq = np.append(np.append(wq[0:mean_ind], np.array([mean])), wq[mean_ind:])
+    if get_cov:
+        wq = np.append(np.append(wq[0:cov_ind], np.array([cov])), wq[cov_ind:])    
     if get_std:
         wq = np.append(np.append(wq[0:std_ind], np.array([std])), wq[std_ind:])
+    if get_mean:
+        wq = np.append(np.append(wq[0:mean_ind], np.array([mean])), wq[mean_ind:])
+
+
+
+    toc = time.perf_counter()
+    log.debug(f'time to calculate weighted quantiles {toc-tic} seconds')
 
     return wq
