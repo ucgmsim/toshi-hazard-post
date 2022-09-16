@@ -14,20 +14,19 @@ log = logging.getLogger(__name__)
 
 def disagg_df(rlz_names):
 
-    columns = ['imt', 'mag', 'dist', 'trt'] + rlz_names
+    columns = ['imt', 'mag', 'dist', 'trt', 'eps'] + rlz_names
     # imts = ['PGA']
-    # mags = np.arange(5.1, 10.0, 0.2)
     mags = np.arange(5.25, 10.0, 0.5)
+    epss = np.arange(-3,5,2)
     dists = np.arange(5, 550, 10)
     trts = ['Active Shallow Crust', 'Subduction Interface', 'Subduction Intraslab']
-    # index = range(len(imts) * len(mags) * len(dists) * len(trts))
-    index = range(len(mags) * len(dists) * len(trts))
+    index = range(len(mags) * len(dists) * len(trts) * len(epss))
     disaggs = pd.DataFrame(columns=columns, index=index)
-    # for i, (imt, mag, dist, trt) in enumerate(itertools.product(imts, mags, dists, trts)):
-    for i, (mag, dist, trt) in enumerate(itertools.product(mags, dists, trts)):
+    for i, (mag, dist, trt, eps) in enumerate(itertools.product(mags, dists, trts, epss)):
         disaggs.loc[i, 'mag'] = f'{mag:0.3}'
         disaggs.loc[i, 'dist'] = f'{int(dist)}'
         disaggs.loc[i, 'trt'] = trt
+        disaggs.loc[i, 'eps'] = f'{int(eps)}'
         for rlz in rlz_names:
             disaggs.loc[i, rlz] = 0
 
@@ -62,7 +61,7 @@ def get_location(header):
     return location
 
 
-def get_disagg_mdt(csv_archive):
+def get_disagg(csv_archive):
     """
     get the disagg data from the csv archive
     this is terrible and hacky and only temporory until disagg data is stored by THS
@@ -70,14 +69,14 @@ def get_disagg_mdt(csv_archive):
     """
 
     with ZipFile(csv_archive) as zipf:
-        with io.TextIOWrapper(zipf.open('Mag_Dist_TRT-0_1.csv'), encoding="utf-8") as mag_dist_TRT_file:
-            disagg_reader = csv.reader(mag_dist_TRT_file)
+        with io.TextIOWrapper(zipf.open('Mag_Dist_TRT_Eps-0_1.csv'), encoding="utf-8") as disagg_file:
+            disagg_reader = csv.reader(disagg_file)
             header0 = next(disagg_reader)
             location = get_location(header0)
 
             header = next(disagg_reader)
             DisaggData = namedtuple("DisaggData", header, rename=True)
-            rlz_names = header[5:]
+            rlz_names = header[6:]
             disaggs = disagg_df(rlz_names)
 
             for row in disagg_reader:
@@ -85,17 +84,19 @@ def get_disagg_mdt(csv_archive):
                 imt = disagg_data.imt
                 mag = f'{float(disagg_data.mag):0.3}'
                 dist = f'{int(float(disagg_data.dist))}'
+                eps = f'{int(float(disagg_data.eps))}'
                 trt = disagg_data.trt
-                # ind = (disaggs['imt'].isin([imt])) & (disaggs['mag'].isin([mag])) & (disaggs['dist'].isin([dist])) & (disaggs['trt'].isin([trt]))
-                ind = (disaggs['mag'].isin([mag])) & (disaggs['dist'].isin([dist])) & (disaggs['trt'].isin([trt]))
+                ind = (disaggs['mag'].isin([mag])) & (disaggs['dist'].isin([dist])) & (disaggs['trt'].isin([trt])) & (disaggs['eps'].isin([eps]))
                 if not any(ind):
-                    raise Exception(f'no index found for {csv_archive} row: {row}')
-                disaggs.iloc[ind, 4:] = list(map(float, row[5:]))
+                    exc_text = f'no index found for {csv_archive} row: {row}'
+                    exc_text += f'\nimt: {imt}, mag: {mag}, dist: {dist}, eps: {eps}, trt: {trt}'
+                    raise Exception(exc_text)
+                disaggs.iloc[ind, 5:] = list(map(float, row[6:]))
 
     disaggs_dict = {}
     for rlz in rlz_names:
         disaggs_dict[rlz[3:]] = disaggs[rlz].to_numpy(dtype='float64')
-
+    
     return disaggs_dict, location, imt
 
 

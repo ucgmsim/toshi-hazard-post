@@ -5,7 +5,9 @@ import multiprocessing
 import time
 from collections import namedtuple
 from dataclasses import dataclass
+from tokenize import group
 from typing import List
+import numpy as np
 
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
@@ -72,11 +74,12 @@ def build_source_branches(
     metadata = preload_meta(toshi_ids, vs30)
 
     for i in range(len(source_branches)):
-        rlz_combs, weight_combs = build_rlz_table(
+        rlz_combs, weight_combs, rlz_sets = build_rlz_table(
             source_branches[i], metadata, gmm_correlations
         )  # TODO: add correlations to GMCM LT
         source_branches[i]['rlz_combs'] = rlz_combs
         source_branches[i]['weight_combs'] = weight_combs
+        source_branches[i]['rlz_sets'] = rlz_sets
 
     # pr.disable()
     # pr.print_stats(sort='time')
@@ -133,9 +136,17 @@ def process_location_list(task_args):
             # TODO: make these two functions more readable
             weights, branch_probs = build_branches(source_branches, values, imt, loc, vs30)
             hazard = calculate_aggs(branch_probs, aggs, weights)
+            
+            # TODO: remove me!
+            # save_dir = '/work/chrisdc/NZSHM-WORKING/PROD/branch_rlz/'
+            # branches_filepath = save_dir + f'branches_{imt}-{loc}-{vs30}'
+            # weights_filepath = save_dir + f'weights_{imt}-{loc}-{vs30}'
+            # np.save(branches_filepath, branch_probs)
+            # np.save(weights_filepath, weights)
+
             # toc1 = time.perf_counter()
             # print(f'time to calculate_aggs {toc1-tic1} seconds')
-
+            
             if deagg:
                 save_deaggs(
                     hazard, loc, imt, poe
@@ -202,6 +213,7 @@ def process_local_serial(
 
     toshi_ids = {int(k): v for k, v in toshi_ids.items()}
     source_branches = {int(k): v for k, v in source_branches.items()}
+    deagg_poe = config.deagg_poes[0] if deagg else None # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
 
     for coded_loc in coded_locations:
         for vs30 in config.vs30s:
@@ -216,7 +228,7 @@ def process_local_serial(
                 levels,
                 vs30,
                 deagg,
-                config.deagg_poes[0],
+                deagg_poe,
             )
 
             # process_location_list(t, config.deagg_poes[0])
@@ -239,7 +251,7 @@ def process_local(
     tic = time.perf_counter()
     # Enqueue jobs
     num_jobs = 0
-    deagg_poe = config['deagg_poes'][0] if deagg else None # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
+    deagg_poe = config.deagg_poes[0] if deagg else None # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
     
     toshi_ids = {int(k): v for k, v in toshi_ids.items()}
     source_branches = {int(k): v for k, v in source_branches.items()}

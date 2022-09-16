@@ -13,7 +13,7 @@ from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_DATA import data as gtdata
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
 from toshi_hazard_post.data_functions import weighted_quantile
-from toshi_hazard_post.util.file_utils import get_disagg_mdt
+from toshi_hazard_post.util.file_utils import get_disagg
 from toshi_hazard_post.util.toshi_client import download_csv
 
 # from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
@@ -95,7 +95,7 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s):
     for i, download in enumerate(downloads.values()):
         csv_archive = download['filepath']
         hazard_solution_id = download['hazard_id']
-        disaggs, location, imt = get_disagg_mdt(csv_archive)
+        disaggs, location, imt = get_disagg(csv_archive)
         log.info(f'finished loading data from csv archive {i+1} of {len(downloads)}')
         for rlz in disaggs.keys():
             key = ':'.join((hazard_solution_id, rlz))
@@ -213,7 +213,7 @@ def build_rlz_table(branch, metadata, correlations=None):
         print(sum_weight)
         raise Exception('weights do not sum to 1')
 
-    return rlz_combs, weight_combs
+    return rlz_combs, weight_combs, rlz_sets
 
 
 def get_weights(branch, vs30):
