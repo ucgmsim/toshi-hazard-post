@@ -44,12 +44,12 @@ class AggregationConfig:
             self.deaggregation = True
             self.deagg_poes = self.config.get('deaggregation').get('poes')
             self.deagg_invtime = self.config.get('deaggregation').get('inv_time')
-            self.deagg_gtdatafile = self.config.get('deaggregation').get('gtdata_file')
+            self.deagg_gtdatafiles = self.config.get('deaggregation').get('gtdata_files')
 
-    def _load_deagg(self):
-        ltf = Path(Path(self._config_file).parent, self.config['deaggregation']['gtdata_file'])
-        assert ltf.exists()
-        self.deagg_solutions = json.load(ltf.open('r'))['deagg_solutions']
+    # def _load_deagg(self):
+        # ltf = Path(Path(self._config_file).parent, self.config['deaggregation']['gtdata_file'])
+        # assert ltf.exists()
+        # self.deagg_solutions = json.load(ltf.open('r'))['deagg_solutions']
 
     def _load_ltf(self):
         ltf = Path(Path(self._config_file).parent, self.config['aggregation']['logic_tree_file'])
@@ -77,7 +77,7 @@ class AggregationConfig:
 
     def validate_deagg_file(self):
         """Check that the deagg data file exists and load it"""
-        assert self.config['deaggregation']['gtdata_file']
-        ltf = Path(Path(self._config_file).parent, self.config['deaggregation']['gtdata_file'])
-        assert ltf.exists()
-        self._load_deagg()
+        # assert self.config['deaggregation']['gtdata_file']
+        # ltf = Path(Path(self._config_file).parent, self.config['deaggregation']['gtdata_file'])
+        # assert ltf.exists()
+        # self._load_deagg()

@@ -7,7 +7,9 @@ from collections import namedtuple
 from dataclasses import dataclass
 from tokenize import group
 from typing import List
+import json
 import numpy as np
+from pathlib import Path
 
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
@@ -41,6 +43,7 @@ pr = cProfile.Profile()
 AggTaskArgs = namedtuple(
     "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe"
 )
+DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtdatafile, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id")
 
 
 @dataclass
@@ -206,6 +209,32 @@ class AggregationWorkerMP(multiprocessing.Process):
             self.result_queue.put(str(nt.grid_loc))
 
 
+class DeAggregationWorkerMP(multiprocessing.Process):
+    """A worker that batches and saves records to DynamoDB. ported from THS."""
+
+    def __init__(self, task_queue, result_queue):
+        multiprocessing.Process.__init__(self)
+        self.task_queue = task_queue
+        self.result_queue = result_queue
+
+    def run(self):
+        log.info("worker %s running." % self.name)
+        proc_name = self.name
+
+        while True:
+            nt = self.task_queue.get()
+            if nt is None:
+                # Poison pill means shutdown
+                self.task_queue.task_done()
+                log.info('%s: Exiting' % proc_name)
+                break
+
+            process_single_deagg(nt)
+            self.task_queue.task_done()
+            log.info('%s task done.' % self.name)
+            self.result_queue.put(str(nt.gtdatafile))
+
+
 def process_local_serial(
     hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False
 ):
@@ -233,6 +262,7 @@ def process_local_serial(
 
             # process_location_list(t, config.deagg_poes[0])
             process_location_list(t)
+
 
 
 def process_local(
@@ -349,3 +379,126 @@ def process_aggregation(config: AggregationConfig, deagg=False):
     # process_local_serial(
     #     config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
     # )  # TODO: use source_branches dict
+
+
+
+def process_deaggregation(config: AggregationConfig):
+    """ Aggregate the Deaggregations in parallel."""
+
+    task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
+    result_queue: multiprocessing.Queue = multiprocessing.Queue()
+
+    num_workers = NUM_WORKERS
+    print('Creating %d workers' % num_workers)
+    workers = [DeAggregationWorkerMP(task_queue, result_queue) for i in range(num_workers)]
+    for w in workers:
+        w.start()
+
+    tic = time.perf_counter()
+    # Enqueue jobs
+    num_jobs = 0         
+
+    for gtdatafile in config.deagg_gtdatafiles:
+        t = DeaggTaskArgs(
+            gtdatafile,
+            config.logic_tree_permutations,
+            config.src_correlations,
+            config.gmm_correlations,
+            config.source_branches_truncate,
+            config.aggs[0], #TODO: assert len(config.aggs) == 1 on load config
+            config.hazard_model_id,
+        )
+
+        task_queue.put(t)
+        num_jobs += 1
+
+    # Add a poison pill for each to signal we've done everything
+    for i in range(num_workers):
+        task_queue.put(None)
+
+    # Wait for all of the tasks to finish
+    task_queue.join()
+
+    results = []
+    while num_jobs:
+        result = result_queue.get()
+        results.append(result)
+        num_jobs -= 1
+
+    toc = time.perf_counter()
+    print(f'time to run deaggregations: {toc-tic:.0f} seconds')
+    return results
+        
+
+def get_deagg_config(gtdatafile):
+
+    DeaggConfig = namedtuple("DeaggConfig", "vs30 imt location poe inv_time")
+    with open(gtdatafile,'r') as jsonfile:
+        data = json.load(jsonfile)
+    node = data['deagg_solutions']['data']['node1']['children']['edges'][0]
+    args = node['node']['child']['arguments']
+    for arg in args:
+        if arg['k'] == "disagg_config":
+            disagg_args =  json.loads(arg['v'].replace("'", '"'))
+        
+    location = disagg_args['location']
+    vs30 = int(disagg_args['vs30'])
+    imt = disagg_args['imt']
+    poe = float(disagg_args['poe'])
+    inv_time = int(disagg_args['inv_time'])
+    return DeaggConfig(vs30, imt, location, poe, inv_time)
+
+
+def get_gtdata(gtdatafile):
+
+    return json.load(Path(gtdatafile).open('r'))['deagg_solutions']
+
+def process_single_deagg(task_args: DeaggTaskArgs):
+
+    gtdatafile = task_args.gtdatafile
+    
+    deagg_config = get_deagg_config(gtdatafile)
+    gtdata = get_gtdata(gtdatafile)
+
+    location = deagg_config.location.split('~')
+    loc = (float(location[0]), float(location[1]))
+    resolution = 0.001
+    coded_location = CodedLocation(*loc, resolution)
+
+    omit: List[str] = []
+
+    toshi_ids = [
+        b.hazard_solution_id
+        for b in merge_ltbs_fromLT(task_args.logic_tree_permutations, gtdata=gtdata, omit=omit)
+        if b.vs30 == deagg_config.vs30
+    ]
+
+    source_branches = build_source_branches(
+        task_args.logic_tree_permutations,
+        gtdata,
+        task_args.src_correlations,
+        task_args.gmm_correlations,
+        deagg_config.vs30,
+        omit,
+        toshi_ids,
+        truncate=task_args.source_branches_truncate,
+    )
+    log.info('finished building logic tree ')
+
+    levels = [] # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
+    
+    t = AggTaskArgs(
+    task_args.hazard_model_id,
+    coded_location.downsample(0.1).code,
+    [coded_location.downsample(0.001).code],
+    toshi_ids,
+    source_branches,
+    [task_args.agg],
+    [deagg_config.imt],
+    levels,
+    deagg_config.vs30,
+    True,
+    deagg_config.poe,
+    )
+
+    process_location_list(t)

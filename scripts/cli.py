@@ -7,7 +7,7 @@ import sys
 import click
 from toshi_hazard_store.model import migrate_v3 as migrate
 
-from toshi_hazard_post.hazard_aggregation import AggregationConfig, process_aggregation
+from toshi_hazard_post.hazard_aggregation import AggregationConfig, process_aggregation, process_deaggregation
 from toshi_hazard_post.hazard_aggregation import process_config_deaggregation
 from toshi_hazard_post.hazard_aggregation.aws_aggregation import distribute_aggregation, push_test_message
 
@@ -66,7 +66,7 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
         if deagg == 'CONFIG':
             process_config_deaggregation(agconf)
         elif deagg == 'PROCESS':
-            process_aggregation(agconf, deagg=True)
+            process_deaggregation(agconf)
         else:
             process_aggregation(agconf)
         return
