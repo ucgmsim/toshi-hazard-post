@@ -244,32 +244,32 @@ def rate_to_prob(rate):
 
 
 # @jit(nopython=True)
-def calc_weighted_sum(rlz_combs, rate_shape, values, loc, imt):
+def calc_weighted_sum(rlz_combs, values, loc, imt, ind_lvl):
 
     nrows = len(rlz_combs)
-    prob_table = np.empty((nrows, rate_shape[0]))
+    prob_table = np.empty((nrows, ))
 
     for i, rlz_comb in enumerate(rlz_combs):
-        rate = np.zeros(rate_shape)
+        rate = 0
         for rlz in rlz_comb:
-            rate += prob_to_rate(values[rlz][loc][imt])
+            rate += prob_to_rate(values[rlz][loc][imt][ind_lvl])
         prob = rate_to_prob(rate)
-        prob_table[i, :] = prob
+        prob_table[i] = prob
 
     return prob_table
 
 
-def build_source_branch(values, rlz_combs, imt, loc):
+def build_source_branch(values, rlz_combs, imt, loc, ind_lvl):
 
     # TODO: there has got to be a better way to do this!
-    k1 = next(iter(values.keys()))
-    k2 = next(iter(values[k1].keys()))
-    k3 = next(iter(values[k1][k2].keys()))
-    rate_shape = values[k1][k2][k3].shape
+    # k1 = next(iter(values.keys()))
+    # k2 = next(iter(values[k1].keys()))
+    # k3 = next(iter(values[k1][k2].keys()))
+    # rate_shape = values[k1][k2][k3].shape
 
     tic = time.perf_counter()
     # nbranches = len(rlz_combs)
-    prob_table = calc_weighted_sum(rlz_combs, rate_shape, values, loc, imt)
+    prob_table = calc_weighted_sum(rlz_combs, values, loc, imt, ind_lvl)
 
     toc = time.perf_counter()
     log.debug('build_source_branch took: %s' % (toc - tic))
@@ -277,13 +277,8 @@ def build_source_branch(values, rlz_combs, imt, loc):
 
 
 def calculate_aggs(branch_probs, aggs, weight_combs):
-    nrows = branch_probs.shape[1]
-    ncols = len(aggs)
-    median = np.empty((nrows, ncols))
-    for i in range(nrows):
-        quantiles = weighted_quantile(branch_probs[:, i], aggs, sample_weight=weight_combs)
-        median[i, :] = np.array(quantiles)
-    return median
+
+    return np.array(weighted_quantile(branch_probs, aggs, sample_weight=weight_combs))
 
 
 def get_len_rate(values):
@@ -295,34 +290,46 @@ def get_len_rate(values):
 
     return rate_shape[0]
 
+def get_branch_weights(source_branches):
 
-def build_branches(source_branches, values, imt, loc, vs30):
-    '''for each source branch, assemble the gsim realization combinations'''
 
     nbranches = len(source_branches)
     nrows = len(source_branches[0]['rlz_combs']) * nbranches
-    ncols = get_len_rate(values)
-    branch_probs = np.empty((nrows, ncols))
     weights = np.empty((nrows,))
+    for i, branch in enumerate(source_branches):
+        weight_combs = branch['weight_combs']
+        w = np.array(weight_combs) * branch['weight']
+        weights[i * len(w) : (i + 1) * len(w)] = w
+
+    return weights
+
+
+def build_branches(source_branches, values, imt, loc, vs30, ind_lvl):
+    '''for each source branch, assemble the gsim realization combinations'''
+
+    nbranches = len(source_branches)
+    ncombs = len(source_branches[0]['rlz_combs'])
+    nrows =  ncombs * nbranches
+    # ncols = get_len_rate(values)
+    ncols = 1
+    # branch_probs = np.empty((nrows, ncols))
+    branch_probs = np.empty((nrows, ))
+    
     tic = time.process_time()
     for i, branch in enumerate(source_branches):  # ~320 source branches
         # rlz_combs, weight_combs = build_rlz_table(branch, vs30)
         rlz_combs = branch['rlz_combs']
-        weight_combs = branch['weight_combs']
-
-        w = np.array(weight_combs) * branch['weight']
-        weights[i * len(w) : (i + 1) * len(w)] = w
-
+        
         # set of realization probabilties for a single complete source branch
         # these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve
-        branch_probs[i * len(w) : (i + 1) * len(w), :] = build_source_branch(values, rlz_combs, imt, loc)
+        branch_probs[i * ncombs : (i + 1) * ncombs] = build_source_branch(values, rlz_combs, imt, loc, ind_lvl)
 
         log.debug(f'built branch {i+1} of {nbranches}')
 
     toc = time.perf_counter()
     log.debug('build_branches took: %s ' % (toc - tic))
 
-    return weights, branch_probs
+    return branch_probs
 
 
 def load_source_branches():

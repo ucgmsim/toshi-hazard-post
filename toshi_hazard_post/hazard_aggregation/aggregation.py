@@ -33,6 +33,8 @@ from .aggregate_rlzs import (
     load_realization_values,
     load_realization_values_deagg,
     preload_meta,
+    get_len_rate,
+    get_branch_weights,
 )
 from .aggregation_config import AggregationConfig
 
@@ -124,6 +126,7 @@ def process_location_list(task_args):
         log.info('missing values: %s' % (values))
         return
 
+    weights = get_branch_weights(source_branches)
     for imt in imts:
         log.info('process_location_list() working on imt: %s' % imt)
 
@@ -135,21 +138,24 @@ def process_location_list(task_args):
             location = CodedLocation(float(lat), float(lon), resolution)
             log.debug('build_branches imt: %s, loc: %s, vs30: %s' % (imt, loc, vs30))
 
-            # tic1 = time.perf_counter()
             # TODO: make these two functions more readable
-            weights, branch_probs = build_branches(source_branches, values, imt, loc, vs30)
-            hazard = calculate_aggs(branch_probs, aggs, weights)
-            
-            # TODO: remove me!
-            # save_dir = '/work/chrisdc/NZSHM-WORKING/PROD/branch_rlz/'
-            # branches_filepath = save_dir + f'branches_{imt}-{loc}-{vs30}'
-            # weights_filepath = save_dir + f'weights_{imt}-{loc}-{vs30}'
-            # np.save(branches_filepath, branch_probs)
-            # np.save(weights_filepath, weights)
+            ncols = get_len_rate(values)
+            nbranches = len(source_branches)
+            ncombs = len(source_branches[0]['rlz_combs'])
+            nrlz = nbranches*ncombs
+            hazard = np.empty((ncols ,len(aggs)))
+            pr.enable()
+            # for i in range(ncols):
+            for i in range(2):
+                
+                tic = time.perf_counter()    
+                branch_probs = build_branches(source_branches, values, imt, loc, vs30, i)
+                hazard[i,:] = calculate_aggs(branch_probs, aggs, weights)
+                log.info(f'time to calculate hazard for one level {time.perf_counter() - tic} seconds')
+            pr.disable()
+            pr.print_stats(sort='time')
+            assert 0
 
-            # toc1 = time.perf_counter()
-            # print(f'time to calculate_aggs {toc1-tic1} seconds')
-            
             if deagg:
                 save_deaggs(
                     hazard, loc, imt, poe
@@ -389,10 +395,10 @@ def process_deaggregation(config: AggregationConfig):
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
 
     num_workers = NUM_WORKERS
-    print('Creating %d workers' % num_workers)
-    workers = [DeAggregationWorkerMP(task_queue, result_queue) for i in range(num_workers)]
-    for w in workers:
-        w.start()
+    # print('Creating %d workers' % num_workers)
+    # workers = [DeAggregationWorkerMP(task_queue, result_queue) for i in range(num_workers)]
+    # for w in workers:
+    #     w.start()
 
     tic = time.perf_counter()
     # Enqueue jobs
@@ -409,25 +415,27 @@ def process_deaggregation(config: AggregationConfig):
             config.hazard_model_id,
         )
 
-        task_queue.put(t)
+        # task_queue.put(t)
+        process_single_deagg(t)
+        
         num_jobs += 1
 
-    # Add a poison pill for each to signal we've done everything
-    for i in range(num_workers):
-        task_queue.put(None)
+    # # Add a poison pill for each to signal we've done everything
+    # for i in range(num_workers):
+    #     task_queue.put(None)
 
-    # Wait for all of the tasks to finish
-    task_queue.join()
+    # # Wait for all of the tasks to finish
+    # task_queue.join()
 
-    results = []
-    while num_jobs:
-        result = result_queue.get()
-        results.append(result)
-        num_jobs -= 1
+    # results = []
+    # while num_jobs:
+    #     result = result_queue.get()
+    #     results.append(result)
+    #     num_jobs -= 1
 
     toc = time.perf_counter()
     print(f'time to run deaggregations: {toc-tic:.0f} seconds')
-    return results
+    # return results
         
 
 def get_deagg_config(gtdatafile):
