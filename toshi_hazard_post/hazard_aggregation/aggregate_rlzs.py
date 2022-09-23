@@ -244,22 +244,23 @@ def rate_to_prob(rate):
 
 
 # @jit(nopython=True)
-def calc_weighted_sum(rlz_combs, values, loc, imt, ind_lvl):
+def calc_weighted_sum(rlz_combs, values, loc, imt, start_ind, end_ind):
 
     nrows = len(rlz_combs)
-    prob_table = np.empty((nrows, ))
+    ncols = end_ind - start_ind
+    prob_table = np.empty((nrows, ncols))
 
     for i, rlz_comb in enumerate(rlz_combs):
-        rate = 0
+        rate = np.zeros((ncols, ))
         for rlz in rlz_comb:
-            rate += prob_to_rate(values[rlz][loc][imt][ind_lvl])
+            rate += prob_to_rate(values[rlz][loc][imt][start_ind:end_ind])
         prob = rate_to_prob(rate)
-        prob_table[i] = prob
+        prob_table[i,:] = prob
 
     return prob_table
 
 
-def build_source_branch(values, rlz_combs, imt, loc, ind_lvl):
+def build_source_branch(values, rlz_combs, imt, loc, start_ind, end_ind):
 
     # TODO: there has got to be a better way to do this!
     # k1 = next(iter(values.keys()))
@@ -269,7 +270,7 @@ def build_source_branch(values, rlz_combs, imt, loc, ind_lvl):
 
     tic = time.perf_counter()
     # nbranches = len(rlz_combs)
-    prob_table = calc_weighted_sum(rlz_combs, values, loc, imt, ind_lvl)
+    prob_table = calc_weighted_sum(rlz_combs, values, loc, imt, start_ind, end_ind)
 
     toc = time.perf_counter()
     log.debug('build_source_branch took: %s' % (toc - tic))
@@ -278,7 +279,14 @@ def build_source_branch(values, rlz_combs, imt, loc, ind_lvl):
 
 def calculate_aggs(branch_probs, aggs, weight_combs):
 
-    return np.array(weighted_quantile(branch_probs, aggs, sample_weight=weight_combs))
+    nrows = branch_probs.shape[1]
+    ncols = len(aggs)
+    median = np.empty((nrows, ncols))
+    for i in range(nrows):
+        quantiles = weighted_quantile(branch_probs[:, i], aggs, sample_weight=weight_combs)
+        median[i, :] = np.array(quantiles)
+    return median
+
 
 
 def get_len_rate(values):
@@ -304,16 +312,15 @@ def get_branch_weights(source_branches):
     return weights
 
 
-def build_branches(source_branches, values, imt, loc, vs30, ind_lvl):
+def build_branches(source_branches, values, imt, loc, vs30, start_ind, end_ind):
     '''for each source branch, assemble the gsim realization combinations'''
 
     nbranches = len(source_branches)
     ncombs = len(source_branches[0]['rlz_combs'])
     nrows =  ncombs * nbranches
     # ncols = get_len_rate(values)
-    ncols = 1
-    # branch_probs = np.empty((nrows, ncols))
-    branch_probs = np.empty((nrows, ))
+    ncols = end_ind - start_ind
+    branch_probs = np.empty((nrows, ncols))
     
     tic = time.process_time()
     for i, branch in enumerate(source_branches):  # ~320 source branches
@@ -322,7 +329,7 @@ def build_branches(source_branches, values, imt, loc, vs30, ind_lvl):
         
         # set of realization probabilties for a single complete source branch
         # these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve
-        branch_probs[i * ncombs : (i + 1) * ncombs] = build_source_branch(values, rlz_combs, imt, loc, ind_lvl)
+        branch_probs[i * ncombs : (i + 1) * ncombs, :] = build_source_branch(values, rlz_combs, imt, loc, start_ind, end_ind)
 
         log.debug(f'built branch {i+1} of {nbranches}')
 

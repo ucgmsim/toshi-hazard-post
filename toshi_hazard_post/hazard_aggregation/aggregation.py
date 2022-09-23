@@ -3,6 +3,7 @@ import cProfile
 import logging
 import multiprocessing
 import time
+import math
 from collections import namedtuple
 from dataclasses import dataclass
 from tokenize import group
@@ -144,17 +145,19 @@ def process_location_list(task_args):
             ncombs = len(source_branches[0]['rlz_combs'])
             nrlz = nbranches*ncombs
             hazard = np.empty((ncols ,len(aggs)))
-            pr.enable()
-            # for i in range(ncols):
-            for i in range(2):
-                
-                tic = time.perf_counter()    
-                branch_probs = build_branches(source_branches, values, imt, loc, vs30, i)
-                hazard[i,:] = calculate_aggs(branch_probs, aggs, weights)
+            stride = 100
+            # pr.enable()
+            for start_ind in range(0,ncols,stride):
+                end_ind = start_ind + stride
+                if end_ind > ncols:
+                    end_ind = ncols
+
+                tic = time.perf_counter()
+                branch_probs = build_branches(source_branches, values, imt, loc, vs30, start_ind, end_ind)
+                hazard[start_ind:end_ind,:] = calculate_aggs(branch_probs, aggs, weights)
                 log.info(f'time to calculate hazard for one level {time.perf_counter() - tic} seconds')
-            pr.disable()
-            pr.print_stats(sort='time')
-            assert 0
+            # pr.disable()
+            # pr.print_stats(sort='time')
 
             if deagg:
                 save_deaggs(
