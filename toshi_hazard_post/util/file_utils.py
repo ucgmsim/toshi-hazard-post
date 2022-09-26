@@ -100,9 +100,9 @@ def get_disagg(csv_archive):
     return disaggs_dict, location, imt
 
 
-def save_deaggs(deagg_data, loc, imt, poe):
+def save_deaggs(deagg_data, loc, imt, poe, vs30, model_id):
 
-    deagg_filename = f'deagg_{loc}_{imt}_{int(poe*100)}.npy'
+    deagg_filename = f'deagg_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}.npy'
     # with open(deagg_filename,'w') as jsonfile:
     #     json.dump(deagg_data, jsonfile)
     np.save(deagg_filename, deagg_data)

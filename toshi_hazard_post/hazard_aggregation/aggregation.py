@@ -161,7 +161,7 @@ def process_location_list(task_args):
 
             if deagg:
                 save_deaggs(
-                    hazard, loc, imt, poe
+                    hazard, loc, imt, poe, vs30, task_args.hazard_model_id
                 )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
             else:
                 with model.HazardAggregation.batch_write() as batch:
@@ -398,10 +398,10 @@ def process_deaggregation(config: AggregationConfig):
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
 
     num_workers = NUM_WORKERS
-    # print('Creating %d workers' % num_workers)
-    # workers = [DeAggregationWorkerMP(task_queue, result_queue) for i in range(num_workers)]
-    # for w in workers:
-    #     w.start()
+    print('Creating %d workers' % num_workers)
+    workers = [DeAggregationWorkerMP(task_queue, result_queue) for i in range(num_workers)]
+    for w in workers:
+        w.start()
 
     tic = time.perf_counter()
     # Enqueue jobs
@@ -418,27 +418,28 @@ def process_deaggregation(config: AggregationConfig):
             config.hazard_model_id,
         )
 
-        # task_queue.put(t)
-        process_single_deagg(t)
+        task_queue.put(t)
+        log.info('sleeping 10 seconds before queuing next task')
+        time.sleep(10)
         
         num_jobs += 1
 
-    # # Add a poison pill for each to signal we've done everything
-    # for i in range(num_workers):
-    #     task_queue.put(None)
+    # Add a poison pill for each to signal we've done everything
+    for i in range(num_workers):
+        task_queue.put(None)
 
-    # # Wait for all of the tasks to finish
-    # task_queue.join()
+    # Wait for all of the tasks to finish
+    task_queue.join()
 
-    # results = []
-    # while num_jobs:
-    #     result = result_queue.get()
-    #     results.append(result)
-    #     num_jobs -= 1
+    results = []
+    while num_jobs:
+        result = result_queue.get()
+        results.append(result)
+        num_jobs -= 1
 
     toc = time.perf_counter()
     print(f'time to run deaggregations: {toc-tic:.0f} seconds')
-    # return results
+    return results
         
 
 def get_deagg_config(gtdatafile):
