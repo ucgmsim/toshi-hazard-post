@@ -55,6 +55,9 @@ def load_realization_values(toshi_ids, locs, vs30s):
             values[key][res.nloc_001] = {}
             for val in res.values:
                 values[key][res.nloc_001][val.imt] = np.array(val.vals)
+                for i,v in enumerate(val.vals):
+                    if not v:
+                        log.debug('%s th value at location: %s, imt: %s, hazard key %s is %s' % (i, res.nloc_001, val.imt, key, val))
     except Exception as err:
         logging.warning(
             'load_realization_values() got exception %s with toshi_ids: %s , locs: %s vs30s: %s'
@@ -72,9 +75,10 @@ def load_realization_values(toshi_ids, locs, vs30s):
     ids_ret = set(ids_ret)
     if len(ids_ret) != len(toshi_ids):
         log.warn('Missing %s toshi IDs' % (len(toshi_ids) - len(ids_ret)))
-        log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
+        # log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
+        # log.warn('missing %s locations.' % (len(locs) - nlocs_ret))
         toshi_ids = set(toshi_ids)
-        print('Missing ids: %s' % (toshi_ids - ids_ret))
+        log.warn('Missing ids: %s' % (toshi_ids - ids_ret))
 
     toc = time.perf_counter()
     print(f'time to load realizations: {toc-tic:.1f} seconds')
