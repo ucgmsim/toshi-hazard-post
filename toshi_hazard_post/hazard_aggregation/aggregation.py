@@ -44,7 +44,7 @@ pr = cProfile.Profile()
 
 
 AggTaskArgs = namedtuple(
-    "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe"
+    "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe save_rlz"
 )
 DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtdatafile, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id")
 
@@ -103,6 +103,7 @@ def process_location_list(task_args):
     levels = task_args.levels
     vs30 = task_args.vs30
     deagg = task_args.deagg
+    save_rlz = task_args.save_rlz
 
     if deagg:
         poe = task_args.poe
@@ -111,9 +112,15 @@ def process_location_list(task_args):
     if deagg:
         log.info('performing deaggregation')
     log.info('get values for %s locations and %s hazard_solutions' % (len(locs), len(toshi_ids)))
+    log.debug('locs: %s' % (locs))
     log.debug('aggs: %s' % (aggs))
     log.debug('imts: %s' % (imts))
     log.debug('toshi_ids[:3]: %s' % (toshi_ids[:3]))
+
+    print('locs: %s' % (locs))
+    print('aggs: %s' % (aggs))
+    print('imts: %s' % (imts))
+    print('toshi_ids[:3]: %s' % (toshi_ids[:3]))
 
     # log.debug('source_branches: %s' % (source_branches))
 
@@ -146,7 +153,6 @@ def process_location_list(task_args):
             nrlz = nbranches*ncombs
             hazard = np.empty((ncols ,len(aggs)))
             stride = 100
-            # pr.enable()
             for start_ind in range(0,ncols,stride):
                 end_ind = start_ind + stride
                 if end_ind > ncols:
@@ -156,14 +162,25 @@ def process_location_list(task_args):
                 branch_probs = build_branches(source_branches, values, imt, loc, vs30, start_ind, end_ind)
                 hazard[start_ind:end_ind,:] = calculate_aggs(branch_probs, aggs, weights)
                 log.info(f'time to calculate hazard for one level {time.perf_counter() - tic} seconds')
-            # pr.disable()
-            # pr.print_stats(sort='time')
+
+                # TODO: replace with write to THS
+                if save_rlz:
+                    save_dir = '/work/chrisdc/NZSHM-WORKING/PROD/branch_rlz/SRWG/'
+                    branches_filepath = save_dir + f'branches_{imt}-{loc}-{vs30}'
+                    weights_filepath = save_dir + f'weights_{imt}-{loc}-{vs30}'
+                    source_branches_filepath = save_dir + f'source_branches_{imt}-{loc}-{vs30}.json'
+                    np.save(branches_filepath, branch_probs)
+                    np.save(weights_filepath, weights)
+                    with open(source_branches_filepath,'w') as jsonfile:
+                        json.dump(source_branches, jsonfile)
+                
 
             if deagg:
                 save_deaggs(
                     hazard, loc, imt, poe, vs30, task_args.hazard_model_id
                 )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
-            else:
+            # else:
+            elif False:
                 with model.HazardAggregation.batch_write() as batch:
                     for aggind, agg in enumerate(aggs):
                         hazard_vals = []
@@ -245,7 +262,7 @@ class DeAggregationWorkerMP(multiprocessing.Process):
 
 
 def process_local_serial(
-    hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False
+    hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False, save_rlz=False
 ):
     """run task serially. This is temporoary to help debug deaggs"""
 
@@ -267,6 +284,7 @@ def process_local_serial(
                 vs30,
                 deagg,
                 deagg_poe,
+                save_rlz,
             )
 
             # process_location_list(t, config.deagg_poes[0])
@@ -275,7 +293,7 @@ def process_local_serial(
 
 
 def process_local(
-    hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False
+    hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False, save_rlz=False
 ):
     """Run task locally using Multiprocessing. ported from THS."""
     # num_workers = 1
@@ -309,9 +327,12 @@ def process_local(
                 vs30,
                 deagg,
                 deagg_poe,
+                save_rlz,
             )
 
             task_queue.put(t)
+            # log.info('sleeping 10 seconds before queuing next task')
+            # time.sleep(10)
             num_jobs += 1
 
     # Add a poison pill for each to signal we've done everything
@@ -382,11 +403,11 @@ def process_aggregation(config: AggregationConfig, deagg=False):
             assert imt in avail_imts
 
     process_local(
-        config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
+        config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg, save_rlz=config.save_rlz
     )  # TODO: use source_branches dict
 
     # process_local_serial(
-    #     config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg
+    #     config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg, save_rlz=config.save_rlz
     # )  # TODO: use source_branches dict
 
 
@@ -419,8 +440,8 @@ def process_deaggregation(config: AggregationConfig):
         )
 
         task_queue.put(t)
-        log.info('sleeping 10 seconds before queuing next task')
-        time.sleep(10)
+        # log.info('sleeping 10 seconds before queuing next task')
+        # time.sleep(10)
         
         num_jobs += 1
 
@@ -511,6 +532,7 @@ def process_single_deagg(task_args: DeaggTaskArgs):
     deagg_config.vs30,
     True,
     deagg_config.poe,
+    False,
     )
 
     process_location_list(t)
