@@ -10,6 +10,8 @@ from toshi_hazard_store.query_v3 import get_hazard_curves
 from toshi_hazard_post.branch_combinator import merge_ltbs_fromLT
 from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import compute_hazard_at_poe
 from toshi_hazard_post.hazard_aggregation.locations import get_locations
+from toshi_hazard_post.local_config import NUM_WORKERS
+
 
 from .aggregate_rlzs import get_source_ids
 from .aggregation_config import AggregationConfig
@@ -35,7 +37,7 @@ def add_site_name(disagg_configs):
     return disagg_configs_copy
 
 
-def process_local_config_deagg(hazard_model_id, toshi_ids, loc, vs30, poe, agg, imt, inv_time):
+def process_local_config_deagg(hazard_model_id, toshi_ids, loc, vs30, poes, agg, imt, inv_time):
 
     hc = next(get_hazard_curves([loc], [vs30], [hazard_model_id], [imt], [agg]))
     levels = []
@@ -43,20 +45,24 @@ def process_local_config_deagg(hazard_model_id, toshi_ids, loc, vs30, poe, agg, 
     for v in hc.values:
         levels.append(v.lvl)
         hazard_vals.append(v.val)
-    target_level = compute_hazard_at_poe(levels, hazard_vals, poe, inv_time)
+    
     source_info = get_source_ids(toshi_ids, vs30)
-    deagg_config = dict(
-        vs30=vs30,
-        inv_time=inv_time,
-        imt=imt,
-        agg=agg,
-        poe=poe,
-        location=loc,
-        target_level=target_level,
-        deagg_specs=source_info,
-    )
+    deagg_configs = []
+    for poe in poes:
+        target_level = compute_hazard_at_poe(levels, hazard_vals, poe, inv_time)
+    
+        deagg_configs += [dict(
+            vs30=vs30,
+            inv_time=inv_time,
+            imt=imt,
+            agg=agg,
+            poe=poe,
+            location=loc,
+            target_level=target_level,
+            deagg_specs=source_info,
+        )]
 
-    return deagg_config
+    return deagg_configs
 
 
 def process_config_deaggregation(config: AggregationConfig):
@@ -95,15 +101,15 @@ def process_config_deaggregation(config: AggregationConfig):
 
     deagg_configs = []
 
+    # prcoess_local_config_deagg(hazard_model_id, toshi_ids, config, NUM_WORKERS)
+
     for loc in locs:
         for vs30 in config.vs30s:
-            for poe in poes:
-                for agg in aggs:
-                    for imt in imts:
-                        deagg_config = process_local_config_deagg(
-                            hazard_model_id, toshi_ids[vs30], loc, vs30, poe, agg, imt, inv_time
-                        )
-                        deagg_configs.append(deagg_config)
+            for agg in aggs:
+                for imt in imts:
+                    deagg_configs += process_local_config_deagg(
+                        hazard_model_id, toshi_ids[vs30], loc, vs30, poes, agg, imt, inv_time
+                    )
 
     deagg_configs = add_site_name(deagg_configs)
     with open('deagg_configs.json', 'w') as deagg_file:
