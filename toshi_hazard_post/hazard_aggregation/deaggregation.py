@@ -1,4 +1,5 @@
 import json
+import multiprocessing
 import logging
 from collections import namedtuple
 from typing import List
@@ -18,9 +19,9 @@ from .aggregation_config import AggregationConfig
 
 log = logging.getLogger(__name__)
 
-DeAggTaskArgs = namedtuple(
-    "DeAggTaskArgs",
-    "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 poes inv_time nbranches metric",
+ConfigDeAggTaskArgs = namedtuple(
+    "ConfigDeAggTaskArgs",
+    "hazard_model_id, toshi_ids, loc, vs30, poes, agg, imt, inv_time",
 )
 
 
@@ -37,7 +38,7 @@ def add_site_name(disagg_configs):
     return disagg_configs_copy
 
 
-def process_local_config_deagg(hazard_model_id, toshi_ids, loc, vs30, poes, agg, imt, inv_time):
+def process_config_deaggs(hazard_model_id, toshi_ids, loc, vs30, poes, agg, imt, inv_time):
 
     hc = next(get_hazard_curves([loc], [vs30], [hazard_model_id], [imt], [agg]))
     levels = []
@@ -65,6 +66,104 @@ def process_local_config_deagg(hazard_model_id, toshi_ids, loc, vs30, poes, agg,
     return deagg_configs
 
 
+def process_deagg_config(task_args: ConfigDeAggTaskArgs):
+
+    hazard_model_id = task_args.hazard_model_id
+    toshi_ids = task_args.toshi_ids
+    loc = task_args.loc
+    vs30 = task_args.vs30
+    poes = task_args.poes
+    agg = task_args.agg
+    imt = task_args.imt
+    inv_time = task_args.inv_time
+
+    return process_config_deaggs(
+    hazard_model_id, toshi_ids, loc, vs30, poes, agg, imt, inv_time
+    )
+
+
+
+class ConfigDeaggWorkerMP(multiprocessing.Process):
+
+    def __init__(self, task_queue, result_queue):
+        multiprocessing.Process.__init__(self)
+        self.task_queue = task_queue
+        self.result_queue = result_queue
+
+    def run(self):
+        log.info("worker %s running." % self.name)
+        proc_name = self.name
+
+        while True:
+            nt = self.task_queue.get()
+            if nt is None:
+                # Poison pill means shutdown
+                self.task_queue.task_done()
+                log.info('%s: Exiting' % proc_name)
+                break
+
+            deagg_configs = process_deagg_config(nt)
+            self.task_queue.task_done()
+            log.info('%s task done.' % self.name)
+            self.result_queue.put(deagg_configs)
+
+
+def process_local_config_deagg(hazard_model_id, toshi_ids, config, num_workers):
+
+    task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
+    result_queue: multiprocessing.Queue = multiprocessing.Queue()
+
+    print('Creating %d workers' % num_workers)
+    workers = [ConfigDeaggWorkerMP(task_queue, result_queue) for i in range(num_workers)]
+    for w in workers:
+        w.start()
+    num_jobs = 0
+
+    toshi_ids = {int(k): v for k, v in toshi_ids.items()}
+
+    locations = get_locations(config)
+    resolution = 0.001
+    coded_locations = [CodedLocation(*loc, resolution) for loc in locations]
+    
+    locs = [loc.downsample(0.001).code for loc in coded_locations]
+    poes = config.deagg_poes
+    aggs = config.aggs
+    imts = config.imts
+    inv_time = config.deagg_invtime
+
+    for loc in locs:
+        for vs30 in config.vs30s:
+            for agg in aggs:
+                for imt in imts:
+                    t = ConfigDeAggTaskArgs(
+                        hazard_model_id,
+                        toshi_ids[vs30],
+                        loc,
+                        vs30,
+                        poes,
+                        agg,
+                        imt,
+                        inv_time
+                    )
+                    task_queue.put(t)
+                    num_jobs += 1
+
+
+    for i in range(num_workers):
+        task_queue.put(None)
+
+    # Wait for all of the tasks to finish
+    task_queue.join()
+
+    results = []
+    while num_jobs:
+        result = result_queue.get()
+        results += result
+        num_jobs -= 1
+    
+    return results
+
+
 def process_config_deaggregation(config: AggregationConfig):
 
     if not config.deaggregation:
@@ -89,27 +188,12 @@ def process_config_deaggregation(config: AggregationConfig):
             if b.vs30 == vs30
         ]
 
-    locations = get_locations(config)
-    resolution = 0.001
-    coded_locations = [CodedLocation(*loc, resolution) for loc in locations]
-    locs = [loc.downsample(0.001).code for loc in coded_locations]
-    poes = config.deagg_poes
-    aggs = config.aggs
-    imts = config.imts
-    inv_time = config.deagg_invtime
+    
     hazard_model_id = config.hazard_model_id
 
     deagg_configs = []
 
-    # prcoess_local_config_deagg(hazard_model_id, toshi_ids, config, NUM_WORKERS)
-
-    for loc in locs:
-        for vs30 in config.vs30s:
-            for agg in aggs:
-                for imt in imts:
-                    deagg_configs += process_local_config_deagg(
-                        hazard_model_id, toshi_ids[vs30], loc, vs30, poes, agg, imt, inv_time
-                    )
+    deagg_configs = process_local_config_deagg(hazard_model_id, toshi_ids, config, NUM_WORKERS)
 
     deagg_configs = add_site_name(deagg_configs)
     with open('deagg_configs.json', 'w') as deagg_file:
