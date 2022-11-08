@@ -188,7 +188,6 @@ def process_config_deaggregation(config: AggregationConfig):
             if b.vs30 == vs30
         ]
 
-    
     hazard_model_id = config.hazard_model_id
 
     deagg_configs = []

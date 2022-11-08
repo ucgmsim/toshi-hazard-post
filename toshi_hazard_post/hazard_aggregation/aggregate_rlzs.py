@@ -86,7 +86,7 @@ def load_realization_values(toshi_ids, locs, vs30s):
     return values
 
 
-def load_realization_values_deagg(toshi_ids, locs, vs30s):
+def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
 
     tic = time.perf_counter()
     log.info('loading %s hazard IDs ... ' % len(toshi_ids))
@@ -99,7 +99,7 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s):
     for i, download in enumerate(downloads.values()):
         csv_archive = download['filepath']
         hazard_solution_id = download['hazard_id']
-        disaggs, location, imt = get_disagg(csv_archive)
+        disaggs, location, imt = get_disagg(csv_archive, deagg_dimensions)
         log.info(f'finished loading data from csv archive {i+1} of {len(downloads)}')
         for rlz in disaggs.keys():
             key = ':'.join((hazard_solution_id, rlz))

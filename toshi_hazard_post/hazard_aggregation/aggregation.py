@@ -46,7 +46,7 @@ pr = cProfile.Profile()
 AggTaskArgs = namedtuple(
     "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe save_rlz"
 )
-DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtdatafile, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id")
+DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtdatafile, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id dimensions")
 
 
 @dataclass
@@ -102,14 +102,14 @@ def process_location_list(task_args):
     imts = task_args.imts
     levels = task_args.levels
     vs30 = task_args.vs30
-    deagg = task_args.deagg
+    deagg_dimensions = task_args.deagg
     save_rlz = task_args.save_rlz
 
-    if deagg:
+    if deagg_dimensions:
         poe = task_args.poe
 
     # print(locs)
-    if deagg:
+    if deagg_dimensions:
         log.info('performing deaggregation')
     log.info('get values for %s locations and %s hazard_solutions' % (len(locs), len(toshi_ids)))
     log.debug('locs: %s' % (locs))
@@ -125,8 +125,8 @@ def process_location_list(task_args):
     # log.debug('source_branches: %s' % (source_branches))
 
     tic_fn = time.perf_counter()
-    if deagg:
-        values = load_realization_values_deagg(toshi_ids, locs, [vs30])
+    if deagg_dimensions:
+        values = load_realization_values_deagg(toshi_ids, locs, [vs30], deagg_dimensions)
     else:
         values = load_realization_values(toshi_ids, locs, [vs30])
 
@@ -175,12 +175,11 @@ def process_location_list(task_args):
                         json.dump(source_branches, jsonfile)
                 
 
-            if deagg:
+            if deagg_dimensions:
                 save_deaggs(
-                    hazard, loc, imt, poe, vs30, task_args.hazard_model_id
+                    hazard, loc, imt, poe, vs30, task_args.hazard_model_id, deagg_dimensions
                 )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
-            # else:
-            elif False:
+            else:
                 with model.HazardAggregation.batch_write() as batch:
                     for aggind, agg in enumerate(aggs):
                         hazard_vals = []
@@ -415,6 +414,11 @@ def process_aggregation(config: AggregationConfig, deagg=False):
 def process_deaggregation(config: AggregationConfig):
     """ Aggregate the Deaggregations in parallel."""
 
+    serial = False #for easier debugging
+    if serial:
+        results = process_deaggregation_serial(config)
+        return results
+
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
 
@@ -437,6 +441,7 @@ def process_deaggregation(config: AggregationConfig):
             config.source_branches_truncate,
             config.aggs[0], #TODO: assert len(config.aggs) == 1 on load config
             config.hazard_model_id,
+            config.deagg_dimensions,
         )
 
         task_queue.put(t)
@@ -461,7 +466,29 @@ def process_deaggregation(config: AggregationConfig):
     toc = time.perf_counter()
     print(f'time to run deaggregations: {toc-tic:.0f} seconds')
     return results
-        
+
+
+def process_deaggregation_serial(config: AggregationConfig):
+    """ Aggregate the Deaggregations in serail. For debugging."""
+
+    results = []
+    for gtdatafile in config.deagg_gtdatafiles:
+        t = DeaggTaskArgs(
+            gtdatafile,
+            config.logic_tree_permutations,
+            config.src_correlations,
+            config.gmm_correlations,
+            config.source_branches_truncate,
+            config.aggs[0], #TODO: assert len(config.aggs) == 1 on load config
+            config.hazard_model_id,
+            config.deagg_dimensions,
+        )
+
+        process_single_deagg(t)
+        results.append(t.gtdatafile)
+
+    return results
+
 
 def get_deagg_config(gtdatafile):
 
@@ -530,7 +557,7 @@ def process_single_deagg(task_args: DeaggTaskArgs):
     [deagg_config.imt],
     levels,
     deagg_config.vs30,
-    True,
+    task_args.dimensions,
     deagg_config.poe,
     False,
     )
