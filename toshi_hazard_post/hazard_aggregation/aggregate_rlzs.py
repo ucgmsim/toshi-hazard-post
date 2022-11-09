@@ -283,13 +283,16 @@ def build_source_branch(values, rlz_combs, imt, loc, start_ind, end_ind):
 
 def calculate_aggs(branch_probs, aggs, weight_combs):
 
+    branch_probs = prob_to_rate(branch_probs)
+
     nrows = branch_probs.shape[1]
     ncols = len(aggs)
     median = np.empty((nrows, ncols))
     for i in range(nrows):
         quantiles = weighted_quantile(branch_probs[:, i], aggs, sample_weight=weight_combs)
         median[i, :] = np.array(quantiles)
-    return median
+        
+    return rate_to_prob(median)
 
 
 
