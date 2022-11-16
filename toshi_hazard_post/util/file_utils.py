@@ -1,4 +1,5 @@
 import csv
+import os
 import io
 import itertools
 import logging
@@ -7,6 +8,7 @@ from zipfile import ZipFile
 from enum import Enum
 from operator import mul
 from functools import reduce
+from pathlib import Path
 
 
 import numpy as np
@@ -21,13 +23,15 @@ class Dimension(Enum):
    trt = 'TRT'
    eps = 'Eps'
 
-def disagg_df(rlz_names, dimensions):
+def disagg_df(rlz_names, dimensions, bin_widths):
 
     dimensions = list(map(str.lower, dimensions))
 
-    mags = np.arange(5.25, 10.0, 0.5)
-    epss = np.arange(-3,5,2) # epss = np.arange(-3.75,4.0,.5)
-    dists = np.arange(5, 550, 10)
+    mags = np.arange(0,10,bin_widths['mag']) + bin_widths['mag']/2.0
+    mags = mags[(mags>=5) & (mags<=10)]
+    epss = np.arange(-4,4,bin_widths['eps']) + bin_widths['eps']/2.0
+    dists = np.arange(0, 550, bin_widths['dist']) + bin_widths['dist']/2.0
+    
     trts = ['Active Shallow Crust', 'Subduction Interface', 'Subduction Intraslab']
 
     bins = dict(
@@ -37,16 +41,16 @@ def disagg_df(rlz_names, dimensions):
         eps = list(map('{:0.3f}'.format,epss)),
     )
     bins = {k:v for k,v in bins.items() if k in dimensions}
+    bin_centers = {k:v for k,v in bins.items() if k in dimensions}
     for rlz_name in rlz_names:
         bins[rlz_name] = [0]
 
-    return pd.MultiIndex.from_product(bins.values(), names=bins.keys()).to_frame(index=False)
+    return pd.MultiIndex.from_product(bins.values(), names=bins.keys()).to_frame(index=False), bin_centers
 
 
 def get_location(header):
     """
     get the location from the disagg csv
-    this is terrible and hacky and only temporory until disagg data is stored by THS
     """
 
     info = header[-1]
@@ -91,6 +95,21 @@ def get_values_from_csv(disagg_data):
     return values
 
 
+def get_bin_widths(header):
+
+    info = header[-1]
+    dimensions = ['mag','dist','eps']
+    bin_widths = {}
+
+    for d in dimensions:
+        s = d + '_bin_edges=['
+        tail = info[info.index(s)+len(s):]
+        bin_edges = list(map(float,tail[:tail.index(']')].split(', ')))
+        bin_widths[d] = bin_edges[1] - bin_edges[0]
+
+    return bin_widths
+
+
 def get_disagg(csv_archive, deagg_dimensions):
     """
     get the disagg data from the csv archive
@@ -106,11 +125,12 @@ def get_disagg(csv_archive, deagg_dimensions):
             disagg_reader = csv.reader(disagg_file)
             header0 = next(disagg_reader)
             location = get_location(header0)
+            bin_widths = get_bin_widths(header0)
 
             header = next(disagg_reader)
             DisaggData = namedtuple("DisaggData", header, rename=True)
             rlz_names = header[len(deagg_dimensions)+2:]
-            disaggs = disagg_df(rlz_names, deagg_dimensions)
+            disaggs, bins = disagg_df(rlz_names, deagg_dimensions, bin_widths)
 
             i = len(deagg_dimensions)
             j = i+2
@@ -129,14 +149,24 @@ def get_disagg(csv_archive, deagg_dimensions):
     for rlz in rlz_names:
         disaggs_dict[rlz[3:]] = disaggs[rlz].to_numpy(dtype='float64')
     
-    return disaggs_dict, location, imt
+    return disaggs_dict, bins, location, imt
 
 
-def save_deaggs(deagg_data, loc, imt, poe, vs30, model_id, deagg_dimensions):
+def save_deaggs(deagg_data, bins, loc, imt, poe, vs30, model_id, deagg_dimensions):
 
-    dim = '_'.join(deagg_dimensions)
+    bins_array = np.array(list(bins.values()),dtype=object)
+
+    shape = [len(v) for v in bins.values()]
+    deagg_data = deagg_data.reshape(shape)
+
+    working_dir = Path(os.getenv('NZSHM22_SCRIPT_WORK_PATH'))
+    dim = '-'.join(deagg_dimensions)
     deagg_filename = f'deagg_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}_{dim}.npy'
-    # with open(deagg_filename,'w') as jsonfile:
-    #     json.dump(deagg_data, jsonfile)
-    np.save(deagg_filename, deagg_data)
+    bins_filename = f'bins_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}_{dim}.npy'
+    deagg_dir = Path(working_dir, 'output_test')
+    if not deagg_dir.exists(): deagg_dir.mkdir()
+    deagg_filepath = Path(deagg_dir, deagg_filename)
+    bins_filepath = Path(deagg_dir, bins_filename)
+    np.save(deagg_filepath, deagg_data)
+    np.save(bins_filepath, bins_array)
     log.info(f'saved deagg results to {deagg_filename}')

@@ -126,7 +126,7 @@ def process_location_list(task_args):
 
     tic_fn = time.perf_counter()
     if deagg_dimensions:
-        values = load_realization_values_deagg(toshi_ids, locs, [vs30], deagg_dimensions)
+        values, bins = load_realization_values_deagg(toshi_ids, locs, [vs30], deagg_dimensions)
     else:
         values = load_realization_values(toshi_ids, locs, [vs30])
 
@@ -177,9 +177,10 @@ def process_location_list(task_args):
 
             if deagg_dimensions:
                 save_deaggs(
-                    hazard, loc, imt, poe, vs30, task_args.hazard_model_id, deagg_dimensions
+                     hazard, bins, loc, imt, poe, vs30, task_args.hazard_model_id, deagg_dimensions
                 )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
-            else:
+            # else:
+            elif False:
                 with model.HazardAggregation.batch_write() as batch:
                     for aggind, agg in enumerate(aggs):
                         hazard_vals = []
