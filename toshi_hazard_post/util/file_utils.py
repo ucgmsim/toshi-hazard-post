@@ -30,7 +30,7 @@ def disagg_df(rlz_names, dimensions, bin_widths):
     mags = np.arange(0,10,bin_widths['mag']) + bin_widths['mag']/2.0
     mags = mags[(mags>=5) & (mags<=10)]
     epss = np.arange(-4,4,bin_widths['eps']) + bin_widths['eps']/2.0
-    dists = np.arange(0, 550, bin_widths['dist']) + bin_widths['dist']/2.0
+    dists = np.array(bin_widths['dist']) #distance bins are defined explicitly
     
     trts = ['Active Shallow Crust', 'Subduction Interface', 'Subduction Intraslab']
 
@@ -40,8 +40,17 @@ def disagg_df(rlz_names, dimensions, bin_widths):
         trt = trts,
         eps = list(map('{:0.3f}'.format,epss)),
     )
+    
+    bin_centers = dict(
+        mag = mags,
+        dist = dists,
+        trt = trts,
+        eps = epss,
+    )
+    bin_centers = {k:v for k,v in bin_centers.items() if k in dimensions}
+
     bins = {k:v for k,v in bins.items() if k in dimensions}
-    bin_centers = {k:v for k,v in bins.items() if k in dimensions}
+    
     for rlz_name in rlz_names:
         bins[rlz_name] = [0]
 
@@ -105,7 +114,10 @@ def get_bin_widths(header):
         s = d + '_bin_edges=['
         tail = info[info.index(s)+len(s):]
         bin_edges = list(map(float,tail[:tail.index(']')].split(', ')))
-        bin_widths[d] = bin_edges[1] - bin_edges[0]
+        if d == 'dist': #distance bins are defined explicitly
+            bin_widths[d] = [ (bin_edges[i+1] + bin_edges[i])/2.0 for i in range(len(bin_edges)-1)]
+        else:
+            bin_widths[d] = bin_edges[1] - bin_edges[0]
 
     return bin_widths
 
@@ -163,7 +175,7 @@ def save_deaggs(deagg_data, bins, loc, imt, poe, vs30, model_id, deagg_dimension
     dim = '-'.join(deagg_dimensions)
     deagg_filename = f'deagg_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}_{dim}.npy'
     bins_filename = f'bins_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}_{dim}.npy'
-    deagg_dir = Path(working_dir, 'output_test')
+    deagg_dir = Path(working_dir, 'bintest')
     if not deagg_dir.exists(): deagg_dir.mkdir()
     deagg_filepath = Path(deagg_dir, deagg_filename)
     bins_filepath = Path(deagg_dir, bins_filename)
