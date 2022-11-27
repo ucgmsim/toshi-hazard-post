@@ -44,7 +44,7 @@ pr = cProfile.Profile()
 
 
 AggTaskArgs = namedtuple(
-    "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe save_rlz"
+    "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe deagg_imtl save_rlz"
 )
 DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtdatafile, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id dimensions")
 
@@ -107,6 +107,7 @@ def process_location_list(task_args):
 
     if deagg_dimensions:
         poe = task_args.poe
+        imtl = task_args.deagg_imtl
 
     # print(locs)
     if deagg_dimensions:
@@ -163,7 +164,7 @@ def process_location_list(task_args):
                 hazard[start_ind:end_ind,:] = calculate_aggs(branch_probs, aggs, weights)
                 log.info(f'time to calculate hazard for one level {time.perf_counter() - tic} seconds')
 
-                # TODO: replace with write to THS
+                # TODO: replace with write to THS, this only works if the len(levels) < stride
                 if save_rlz:
                     save_dir = '/work/chrisdc/NZSHM-WORKING/PROD/branch_rlz/SRWG/'
                     branches_filepath = save_dir + f'branches_{imt}-{loc}-{vs30}'
@@ -177,7 +178,7 @@ def process_location_list(task_args):
 
             if deagg_dimensions:
                 save_deaggs(
-                     hazard, bins, loc, imt, poe, vs30, task_args.hazard_model_id, deagg_dimensions
+                     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
                 )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
             # else:
             elif False:
@@ -284,6 +285,7 @@ def process_local_serial(
                 vs30,
                 deagg,
                 deagg_poe,
+                None,
                 save_rlz,
             )
 
@@ -327,6 +329,7 @@ def process_local(
                 vs30,
                 deagg,
                 deagg_poe,
+                None,
                 save_rlz,
             )
 
@@ -514,12 +517,19 @@ def get_gtdata(gtdatafile):
 
     return json.load(Path(gtdatafile).open('r'))['deagg_solutions']
 
+def get_imtl(gtdata):
+
+    for arg in gtdata['data']['node1']['children']['edges'][0]['node']['child']['arguments']: 
+        if arg['k'] == 'disagg_config':
+            return json.loads(arg['v'].replace("'",'"'))['level']
+
 def process_single_deagg(task_args: DeaggTaskArgs):
 
     gtdatafile = task_args.gtdatafile
     
     deagg_config = get_deagg_config(gtdatafile)
     gtdata = get_gtdata(gtdatafile)
+    imtl = get_imtl(gtdata)
 
     location = deagg_config.location.split('~')
     loc = (float(location[0]), float(location[1]))
@@ -560,6 +570,7 @@ def process_single_deagg(task_args: DeaggTaskArgs):
     deagg_config.vs30,
     task_args.dimensions,
     deagg_config.poe,
+    imtl,
     False,
     )
 

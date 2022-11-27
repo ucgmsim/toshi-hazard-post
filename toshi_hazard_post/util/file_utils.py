@@ -164,18 +164,19 @@ def get_disagg(csv_archive, deagg_dimensions):
     return disaggs_dict, bins, location, imt
 
 
-def save_deaggs(deagg_data, bins, loc, imt, poe, vs30, model_id, deagg_dimensions):
-
-    bins_array = np.array(list(bins.values()),dtype=object)
+def save_deaggs(deagg_data, bins, loc, imt, imtl, poe, vs30, model_id, deagg_dimensions):
 
     shape = [len(v) for v in bins.values()]
     deagg_data = deagg_data.reshape(shape)
+
+    bins['imtl'] = imtl # we're going to stash the IMTL of the disagg in the bins array
+    bins_array = np.array(list(bins.values()),dtype=object)
 
     working_dir = Path(os.getenv('NZSHM22_SCRIPT_WORK_PATH'))
     dim = '-'.join(deagg_dimensions)
     deagg_filename = f'deagg_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}_{dim}.npy'
     bins_filename = f'bins_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}_{dim}.npy'
-    deagg_dir = Path(working_dir, 'bintest')
+    deagg_dir = Path(working_dir, 'bintest3')
     if not deagg_dir.exists(): deagg_dir.mkdir()
     deagg_filepath = Path(deagg_dir, deagg_filename)
     bins_filepath = Path(deagg_dir, bins_filename)
