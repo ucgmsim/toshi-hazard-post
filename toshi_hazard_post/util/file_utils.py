@@ -9,6 +9,7 @@ from enum import Enum
 from operator import mul
 from functools import reduce
 from pathlib import Path
+from operator import mul
 
 
 import numpy as np
@@ -50,7 +51,12 @@ def disagg_df(rlz_names, dimensions, bin_widths):
     bin_centers = {k:v for k,v in bin_centers.items() if k in dimensions}
 
     bins = {k:v for k,v in bins.items() if k in dimensions}
-    
+    array_lens = [len(v) for v in bins.values()]
+    total_length = reduce(mul, array_lens)
+
+    log.info('bin centers %s' % bins)
+    log.info('total array length: %s' % total_length)
+
     for rlz_name in rlz_names:
         bins[rlz_name] = [0]
 
@@ -176,7 +182,7 @@ def save_deaggs(deagg_data, bins, loc, imt, imtl, poe, vs30, model_id, deagg_dim
     dim = '-'.join(deagg_dimensions)
     deagg_filename = f'deagg_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}_{dim}.npy'
     bins_filename = f'bins_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}_{dim}.npy'
-    deagg_dir = Path(working_dir, 'bintest3')
+    deagg_dir = Path(working_dir, 'deaggs')
     if not deagg_dir.exists(): deagg_dir.mkdir()
     deagg_filepath = Path(deagg_dir, deagg_filename)
     bins_filepath = Path(deagg_dir, bins_filename)

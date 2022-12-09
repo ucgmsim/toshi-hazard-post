@@ -45,7 +45,7 @@ class AggregationConfig:
             self.deaggregation = True
             self.deagg_poes = self.config.get('deaggregation').get('poes')
             self.deagg_invtime = self.config.get('deaggregation').get('inv_time')
-            self.deagg_gtdatafiles = self.config.get('deaggregation').get('gtdata_files')
+            self.deagg_gtids = self.config.get('deaggregation').get('gtids')
             self.deagg_dimensions = self.config.get('deaggregation').get('dimensions')
 
     # def _load_deagg(self):

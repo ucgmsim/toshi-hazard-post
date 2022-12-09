@@ -24,6 +24,7 @@ from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_l
 from toshi_hazard_post.hazard_aggregation.locations import get_locations
 from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.util.file_utils import save_deaggs
+from toshi_hazard_post.hazard_aggregation.toshi_api_support import get_gtdata, get_deagg_config, get_imtl
 
 from .aggregate_rlzs import (
     build_branches,
@@ -46,7 +47,7 @@ pr = cProfile.Profile()
 AggTaskArgs = namedtuple(
     "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe deagg_imtl save_rlz"
 )
-DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtdatafile, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id dimensions")
+DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtid, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id dimensions")
 
 
 @dataclass
@@ -153,7 +154,7 @@ def process_location_list(task_args):
             ncombs = len(source_branches[0]['rlz_combs'])
             nrlz = nbranches*ncombs
             hazard = np.empty((ncols ,len(aggs)))
-            stride = 100
+            stride = 100 # TODO: optimise stride length for avail. physical mem., number of threads, ...?
             for start_ind in range(0,ncols,stride):
                 end_ind = start_ind + stride
                 if end_ind > ncols:
@@ -259,7 +260,7 @@ class DeAggregationWorkerMP(multiprocessing.Process):
             process_single_deagg(nt)
             self.task_queue.task_done()
             log.info('%s task done.' % self.name)
-            self.result_queue.put(str(nt.gtdatafile))
+            self.result_queue.put(str(nt.gtid))
 
 
 def process_local_serial(
@@ -436,9 +437,9 @@ def process_deaggregation(config: AggregationConfig):
     # Enqueue jobs
     num_jobs = 0         
 
-    for gtdatafile in config.deagg_gtdatafiles:
+    for gtid in config.deagg_gtids:
         t = DeaggTaskArgs(
-            gtdatafile,
+            gtid,
             config.logic_tree_permutations,
             config.src_correlations,
             config.gmm_correlations,
@@ -449,8 +450,9 @@ def process_deaggregation(config: AggregationConfig):
         )
 
         task_queue.put(t)
-        # log.info('sleeping 10 seconds before queuing next task')
-        # time.sleep(10)
+        sleep_time = 10
+        log.info(f'sleeping {sleep_time} seconds before queuing next task')
+        time.sleep(sleep_time)
         
         num_jobs += 1
 
@@ -476,9 +478,9 @@ def process_deaggregation_serial(config: AggregationConfig):
     """ Aggregate the Deaggregations in serail. For debugging."""
 
     results = []
-    for gtdatafile in config.deagg_gtdatafiles:
+    for gtid in config.deagg_gtids:
         t = DeaggTaskArgs(
-            gtdatafile,
+            gtid,
             config.logic_tree_permutations,
             config.src_correlations,
             config.gmm_correlations,
@@ -489,47 +491,16 @@ def process_deaggregation_serial(config: AggregationConfig):
         )
 
         process_single_deagg(t)
-        results.append(t.gtdatafile)
+        results.append(t.gtid)
 
     return results
 
 
-def get_deagg_config(gtdatafile):
-
-    DeaggConfig = namedtuple("DeaggConfig", "vs30 imt location poe inv_time")
-    with open(gtdatafile,'r') as jsonfile:
-        data = json.load(jsonfile)
-    node = data['deagg_solutions']['data']['node1']['children']['edges'][0]
-    args = node['node']['child']['arguments']
-    for arg in args:
-        if arg['k'] == "disagg_config":
-            disagg_args =  json.loads(arg['v'].replace("'", '"'))
-        
-    location = disagg_args['location']
-    vs30 = int(disagg_args['vs30'])
-    imt = disagg_args['imt']
-    poe = float(disagg_args['poe'])
-    inv_time = int(disagg_args['inv_time'])
-    return DeaggConfig(vs30, imt, location, poe, inv_time)
-
-
-def get_gtdata(gtdatafile):
-
-    return json.load(Path(gtdatafile).open('r'))['deagg_solutions']
-
-def get_imtl(gtdata):
-
-    for arg in gtdata['data']['node1']['children']['edges'][0]['node']['child']['arguments']: 
-        if arg['k'] == 'disagg_config':
-            return json.loads(arg['v'].replace("'",'"'))['level']
-
 def process_single_deagg(task_args: DeaggTaskArgs):
 
-    gtdatafile = task_args.gtdatafile
-    
-    deagg_config = get_deagg_config(gtdatafile)
-    gtdata = get_gtdata(gtdatafile)
+    gtdata = get_gtdata(task_args.gtid)
     imtl = get_imtl(gtdata)
+    deagg_config = get_deagg_config(gtdata)
 
     location = deagg_config.location.split('~')
     loc = (float(location[0]), float(location[1]))
@@ -555,7 +526,7 @@ def process_single_deagg(task_args: DeaggTaskArgs):
         truncate=task_args.source_branches_truncate,
     )
     log.info('finished building logic tree ')
-
+    
     levels = [] # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
     
     t = AggTaskArgs(
