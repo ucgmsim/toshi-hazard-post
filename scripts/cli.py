@@ -3,6 +3,7 @@
 import logging
 import os
 import sys
+import warnings
 
 import click
 from toshi_hazard_store.model import migrate_v3 as migrate
@@ -64,6 +65,7 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
 
     if mode == 'LOCAL':
         if deagg == 'CONFIG':
+            warnings.warn('deagg CONFIG is deprecated.', DeprecationWarning)
             process_config_deaggregation(agconf)
         elif deagg == 'PROCESS':
             process_deaggregation(agconf)
