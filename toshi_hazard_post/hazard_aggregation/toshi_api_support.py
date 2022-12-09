@@ -2,13 +2,12 @@
 
 import json
 import logging
+from collections import namedtuple
 from pathlib import Path, PurePath
 from typing import Union
-from collections import namedtuple
 
-from nshm_toshi_client.toshi_file import ToshiFile
 from nshm_toshi_client.toshi_client_base import ToshiClientBase
-
+from nshm_toshi_client.toshi_file import ToshiFile
 
 from toshi_hazard_post.local_config import API_KEY, API_URL, S3_URL, WORK_PATH
 from toshi_hazard_post.util import archive
@@ -46,8 +45,7 @@ def save_sources_to_toshi(filepath: str, tag: str = None) -> str:
 
 
 class DisaggDetails(ToshiClientBase):
-
-    def __init__(self, url, s3_url, auth_token, with_schema_validation=False, headers=None ):
+    def __init__(self, url, s3_url, auth_token, with_schema_validation=False, headers=None):
         super().__init__(url, auth_token, with_schema_validation, headers)
         self._s3_url = s3_url
 
@@ -94,8 +92,8 @@ def get_deagg_config(data):
     args = node['node']['child']['arguments']
     for arg in args:
         if arg['k'] == "disagg_config":
-            disagg_args =  json.loads(arg['v'].replace("'", '"'))
-        
+            disagg_args = json.loads(arg['v'].replace("'", '"'))
+
     location = disagg_args['location']
     vs30 = int(disagg_args['vs30'])
     imt = disagg_args['imt']
@@ -106,12 +104,13 @@ def get_deagg_config(data):
 
 def get_gtdata(gtid):
 
-    headers={"x-api-key":API_KEY}
+    headers = {"x-api-key": API_KEY}
     disagg_api = DisaggDetails(API_URL, None, None, with_schema_validation=False, headers=headers)
     return {'data': disagg_api.get_dissag_detail(gtid)}
 
+
 def get_imtl(gtdata):
 
-    for arg in gtdata['data']['node1']['children']['edges'][0]['node']['child']['arguments']: 
+    for arg in gtdata['data']['node1']['children']['edges'][0]['node']['child']['arguments']:
         if arg['k'] == 'disagg_config':
-            return json.loads(arg['v'].replace("'",'"'))['level']
+            return json.loads(arg['v'].replace("'", '"'))['level']

@@ -1,6 +1,6 @@
 import json
-import multiprocessing
 import logging
+import multiprocessing
 from collections import namedtuple
 from typing import List
 
@@ -12,7 +12,6 @@ from toshi_hazard_post.branch_combinator import merge_ltbs_fromLT
 from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import compute_hazard_at_poe
 from toshi_hazard_post.hazard_aggregation.locations import get_locations
 from toshi_hazard_post.local_config import NUM_WORKERS
-
 
 from .aggregate_rlzs import get_source_ids
 from .aggregation_config import AggregationConfig
@@ -46,22 +45,24 @@ def process_config_deaggs(hazard_model_id, toshi_ids, loc, vs30, poes, agg, imt,
     for v in hc.values:
         levels.append(v.lvl)
         hazard_vals.append(v.val)
-    
+
     source_info = get_source_ids(toshi_ids, vs30)
     deagg_configs = []
     for poe in poes:
         target_level = compute_hazard_at_poe(levels, hazard_vals, poe, inv_time)
-    
-        deagg_configs += [dict(
-            vs30=vs30,
-            inv_time=inv_time,
-            imt=imt,
-            agg=agg,
-            poe=poe,
-            location=loc,
-            target_level=target_level,
-            deagg_specs=source_info,
-        )]
+
+        deagg_configs += [
+            dict(
+                vs30=vs30,
+                inv_time=inv_time,
+                imt=imt,
+                agg=agg,
+                poe=poe,
+                location=loc,
+                target_level=target_level,
+                deagg_specs=source_info,
+            )
+        ]
 
     return deagg_configs
 
@@ -77,14 +78,10 @@ def process_deagg_config(task_args: ConfigDeAggTaskArgs):
     imt = task_args.imt
     inv_time = task_args.inv_time
 
-    return process_config_deaggs(
-    hazard_model_id, toshi_ids, loc, vs30, poes, agg, imt, inv_time
-    )
-
+    return process_config_deaggs(hazard_model_id, toshi_ids, loc, vs30, poes, agg, imt, inv_time)
 
 
 class ConfigDeaggWorkerMP(multiprocessing.Process):
-
     def __init__(self, task_queue, result_queue):
         multiprocessing.Process.__init__(self)
         self.task_queue = task_queue
@@ -124,7 +121,7 @@ def process_local_config_deagg(hazard_model_id, toshi_ids, config, num_workers):
     locations = get_locations(config)
     resolution = 0.001
     coded_locations = [CodedLocation(*loc, resolution) for loc in locations]
-    
+
     locs = [loc.downsample(0.001).code for loc in coded_locations]
     poes = config.deagg_poes
     aggs = config.aggs
@@ -135,19 +132,9 @@ def process_local_config_deagg(hazard_model_id, toshi_ids, config, num_workers):
         for vs30 in config.vs30s:
             for agg in aggs:
                 for imt in imts:
-                    t = ConfigDeAggTaskArgs(
-                        hazard_model_id,
-                        toshi_ids[vs30],
-                        loc,
-                        vs30,
-                        poes,
-                        agg,
-                        imt,
-                        inv_time
-                    )
+                    t = ConfigDeAggTaskArgs(hazard_model_id, toshi_ids[vs30], loc, vs30, poes, agg, imt, inv_time)
                     task_queue.put(t)
                     num_jobs += 1
-
 
     for i in range(num_workers):
         task_queue.put(None)
@@ -160,7 +147,7 @@ def process_local_config_deagg(hazard_model_id, toshi_ids, config, num_workers):
         result = result_queue.get()
         results += result
         num_jobs -= 1
-    
+
     return results
 
 

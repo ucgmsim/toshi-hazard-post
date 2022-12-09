@@ -93,7 +93,7 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
         log.info("reuse sources_branches_id: %s" % config.reuse_source_branches_id)
         source_branches_id = config.reuse_source_branches_id
         source_branches = fetch_source_branches(source_branches_id)
-        source_branches = {int(k): v for k, v in source_branches.items()}        
+        source_branches = {int(k): v for k, v in source_branches.items()}
     else:
         log.info("building the sources branches.")
 

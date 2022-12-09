@@ -1,9 +1,11 @@
-import numpy as np
-import math
 import logging
+import math
 import time
 
+import numpy as np
+
 log = logging.getLogger(__name__)
+
 
 def weighted_avg_and_std(values, weights):
     """
@@ -13,14 +15,13 @@ def weighted_avg_and_std(values, weights):
     """
     average = np.average(values, weights=weights)
     # Fast and numerically precise:
-    variance = np.average((values-average)**2, weights=weights)
+    variance = np.average((values - average) ** 2, weights=weights)
     return (average, math.sqrt(variance))
 
 
-def calculate_mean(sample_weight,values):
-    
-    return np.sum(sample_weight * values)
+def calculate_mean(sample_weight, values):
 
+    return np.sum(sample_weight * values)
 
 
 def calculate_weighted_quantiles(values, sample_weight, quantiles):
@@ -49,7 +50,7 @@ def calculate_weighted_quantiles(values, sample_weight, quantiles):
 
 
 def weighted_quantile(values, quantiles, sample_weight=None):
-   
+
     tic = time.perf_counter()
 
     values = np.array(values)
@@ -75,8 +76,7 @@ def weighted_quantile(values, quantiles, sample_weight=None):
             get_cov = True
             cov_ind = quantiles.index('cov')
             quantiles = quantiles[0:cov_ind] + quantiles[cov_ind + 1 :]
-            cov = std/mean
-                
+            cov = std / mean
 
     quantiles = np.array(
         [float(q) for q in quantiles]
@@ -88,13 +88,11 @@ def weighted_quantile(values, quantiles, sample_weight=None):
     wq = calculate_weighted_quantiles(values, sample_weight, quantiles)
 
     if get_cov:
-        wq = np.append(np.append(wq[0:cov_ind], np.array([cov])), wq[cov_ind:])    
+        wq = np.append(np.append(wq[0:cov_ind], np.array([cov])), wq[cov_ind:])
     if get_std:
         wq = np.append(np.append(wq[0:std_ind], np.array([std])), wq[std_ind:])
     if get_mean:
         wq = np.append(np.append(wq[0:mean_ind], np.array([mean])), wq[mean_ind:])
-
-
 
     toc = time.perf_counter()
     log.debug(f'time to calculate weighted quantiles {toc-tic} seconds')

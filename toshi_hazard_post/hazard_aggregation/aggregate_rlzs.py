@@ -55,9 +55,12 @@ def load_realization_values(toshi_ids, locs, vs30s):
             values[key][res.nloc_001] = {}
             for val in res.values:
                 values[key][res.nloc_001][val.imt] = np.array(val.vals)
-                for i,v in enumerate(val.vals):
+                for i, v in enumerate(val.vals):
                     if not v:
-                        log.debug('%s th value at location: %s, imt: %s, hazard key %s is %s' % (i, res.nloc_001, val.imt, key, val))
+                        log.debug(
+                            '%s th value at location: %s, imt: %s, hazard key %s is %s'
+                            % (i, res.nloc_001, val.imt, key, val)
+                        )
     except Exception as err:
         logging.warning(
             'load_realization_values() got exception %s with toshi_ids: %s , locs: %s vs30s: %s'
@@ -255,11 +258,11 @@ def calc_weighted_sum(rlz_combs, values, loc, imt, start_ind, end_ind):
     prob_table = np.empty((nrows, ncols))
 
     for i, rlz_comb in enumerate(rlz_combs):
-        rate = np.zeros((ncols, ))
+        rate = np.zeros((ncols,))
         for rlz in rlz_comb:
             rate += prob_to_rate(values[rlz][loc][imt][start_ind:end_ind])
         prob = rate_to_prob(rate)
-        prob_table[i,:] = prob
+        prob_table[i, :] = prob
 
     return prob_table
 
@@ -291,9 +294,8 @@ def calculate_aggs(branch_probs, aggs, weight_combs):
     for i in range(nrows):
         quantiles = weighted_quantile(branch_probs[:, i], aggs, sample_weight=weight_combs)
         median[i, :] = np.array(quantiles)
-        
-    return rate_to_prob(median)
 
+    return rate_to_prob(median)
 
 
 def get_len_rate(values):
@@ -305,8 +307,8 @@ def get_len_rate(values):
 
     return rate_shape[0]
 
-def get_branch_weights(source_branches):
 
+def get_branch_weights(source_branches):
 
     nbranches = len(source_branches)
     nrows = len(source_branches[0]['rlz_combs']) * nbranches
@@ -324,19 +326,21 @@ def build_branches(source_branches, values, imt, loc, vs30, start_ind, end_ind):
 
     nbranches = len(source_branches)
     ncombs = len(source_branches[0]['rlz_combs'])
-    nrows =  ncombs * nbranches
+    nrows = ncombs * nbranches
     # ncols = get_len_rate(values)
     ncols = end_ind - start_ind
     branch_probs = np.empty((nrows, ncols))
-    
+
     tic = time.process_time()
     for i, branch in enumerate(source_branches):  # ~320 source branches
         # rlz_combs, weight_combs = build_rlz_table(branch, vs30)
         rlz_combs = branch['rlz_combs']
-        
+
         # set of realization probabilties for a single complete source branch
         # these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve
-        branch_probs[i * ncombs : (i + 1) * ncombs, :] = build_source_branch(values, rlz_combs, imt, loc, start_ind, end_ind)
+        branch_probs[i * ncombs : (i + 1) * ncombs, :] = build_source_branch(
+            values, rlz_combs, imt, loc, start_ind, end_ind
+        )
 
         log.debug(f'built branch {i+1} of {nbranches}')
 

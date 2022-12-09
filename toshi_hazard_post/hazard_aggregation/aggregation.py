@@ -1,17 +1,17 @@
 """Hazard aggregation task dispatch."""
 import cProfile
+import json
 import logging
+import math
 import multiprocessing
 import time
-import math
 from collections import namedtuple
 from dataclasses import dataclass
+from pathlib import Path
 from tokenize import group
 from typing import List
-import json
-import numpy as np
-from pathlib import Path
 
+import numpy as np
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
 
@@ -22,21 +22,21 @@ from toshi_hazard_store import model
 # )
 from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT
 from toshi_hazard_post.hazard_aggregation.locations import get_locations
+from toshi_hazard_post.hazard_aggregation.toshi_api_support import get_deagg_config, get_gtdata, get_imtl
 from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.util.file_utils import save_deaggs
-from toshi_hazard_post.hazard_aggregation.toshi_api_support import get_gtdata, get_deagg_config, get_imtl
 
 from .aggregate_rlzs import (
     build_branches,
     build_rlz_table,
     calculate_aggs,
+    get_branch_weights,
     get_imts,
+    get_len_rate,
     get_levels,
     load_realization_values,
     load_realization_values_deagg,
     preload_meta,
-    get_len_rate,
-    get_branch_weights,
 )
 from .aggregation_config import AggregationConfig
 
@@ -45,9 +45,13 @@ pr = cProfile.Profile()
 
 
 AggTaskArgs = namedtuple(
-    "AggTaskArgs", "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe deagg_imtl save_rlz"
+    "AggTaskArgs",
+    "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe deagg_imtl save_rlz",
 )
-DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtid, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id dimensions")
+DeaggTaskArgs = namedtuple(
+    "DeaggTaskArgs",
+    "gtid, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id dimensions",
+)
 
 
 @dataclass
@@ -152,17 +156,17 @@ def process_location_list(task_args):
             ncols = get_len_rate(values)
             nbranches = len(source_branches)
             ncombs = len(source_branches[0]['rlz_combs'])
-            nrlz = nbranches*ncombs
-            hazard = np.empty((ncols ,len(aggs)))
-            stride = 100 # TODO: optimise stride length for avail. physical mem., number of threads, ...?
-            for start_ind in range(0,ncols,stride):
+            nrlz = nbranches * ncombs
+            hazard = np.empty((ncols, len(aggs)))
+            stride = 100  # TODO: optimise stride length for avail. physical mem., number of threads, ...?
+            for start_ind in range(0, ncols, stride):
                 end_ind = start_ind + stride
                 if end_ind > ncols:
                     end_ind = ncols
 
                 tic = time.perf_counter()
                 branch_probs = build_branches(source_branches, values, imt, loc, vs30, start_ind, end_ind)
-                hazard[start_ind:end_ind,:] = calculate_aggs(branch_probs, aggs, weights)
+                hazard[start_ind:end_ind, :] = calculate_aggs(branch_probs, aggs, weights)
                 log.info(f'time to calculate hazard for one level {time.perf_counter() - tic} seconds')
 
                 # TODO: replace with write to THS, this only works if the len(levels) < stride
@@ -173,13 +177,12 @@ def process_location_list(task_args):
                     source_branches_filepath = save_dir + f'source_branches_{imt}-{loc}-{vs30}.json'
                     np.save(branches_filepath, branch_probs)
                     np.save(weights_filepath, weights)
-                    with open(source_branches_filepath,'w') as jsonfile:
+                    with open(source_branches_filepath, 'w') as jsonfile:
                         json.dump(source_branches, jsonfile)
-                
 
             if deagg_dimensions:
                 save_deaggs(
-                     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
+                    hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
                 )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
             # else:
             elif False:
@@ -264,13 +267,23 @@ class DeAggregationWorkerMP(multiprocessing.Process):
 
 
 def process_local_serial(
-    hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False, save_rlz=False
+    hazard_model_id,
+    toshi_ids,
+    source_branches,
+    coded_locations,
+    levels,
+    config,
+    num_workers,
+    deagg=False,
+    save_rlz=False,
 ):
     """run task serially. This is temporoary to help debug deaggs"""
 
     toshi_ids = {int(k): v for k, v in toshi_ids.items()}
     source_branches = {int(k): v for k, v in source_branches.items()}
-    deagg_poe = config.deagg_poes[0] if deagg else None # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
+    deagg_poe = (
+        config.deagg_poes[0] if deagg else None
+    )  # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
 
     for coded_loc in coded_locations:
         for vs30 in config.vs30s:
@@ -294,9 +307,16 @@ def process_local_serial(
             process_location_list(t)
 
 
-
 def process_local(
-    hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, num_workers, deagg=False, save_rlz=False
+    hazard_model_id,
+    toshi_ids,
+    source_branches,
+    coded_locations,
+    levels,
+    config,
+    num_workers,
+    deagg=False,
+    save_rlz=False,
 ):
     """Run task locally using Multiprocessing. ported from THS."""
     # num_workers = 1
@@ -311,8 +331,10 @@ def process_local(
     tic = time.perf_counter()
     # Enqueue jobs
     num_jobs = 0
-    deagg_poe = config.deagg_poes[0] if deagg else None # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
-    
+    deagg_poe = (
+        config.deagg_poes[0] if deagg else None
+    )  # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
+
     toshi_ids = {int(k): v for k, v in toshi_ids.items()}
     source_branches = {int(k): v for k, v in source_branches.items()}
 
@@ -407,7 +429,15 @@ def process_aggregation(config: AggregationConfig, deagg=False):
             assert imt in avail_imts
 
     process_local(
-        config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg, save_rlz=config.save_rlz
+        config.hazard_model_id,
+        toshi_ids,
+        source_branches,
+        coded_locations,
+        levels,
+        config,
+        NUM_WORKERS,
+        deagg=deagg,
+        save_rlz=config.save_rlz,
     )  # TODO: use source_branches dict
 
     # process_local_serial(
@@ -415,11 +445,10 @@ def process_aggregation(config: AggregationConfig, deagg=False):
     # )  # TODO: use source_branches dict
 
 
-
 def process_deaggregation(config: AggregationConfig):
-    """ Aggregate the Deaggregations in parallel."""
+    """Aggregate the Deaggregations in parallel."""
 
-    serial = False #for easier debugging
+    serial = False  # for easier debugging
     if serial:
         results = process_deaggregation_serial(config)
         return results
@@ -435,7 +464,7 @@ def process_deaggregation(config: AggregationConfig):
 
     tic = time.perf_counter()
     # Enqueue jobs
-    num_jobs = 0         
+    num_jobs = 0
 
     for gtid in config.deagg_gtids:
         t = DeaggTaskArgs(
@@ -444,7 +473,7 @@ def process_deaggregation(config: AggregationConfig):
             config.src_correlations,
             config.gmm_correlations,
             config.source_branches_truncate,
-            config.aggs[0], #TODO: assert len(config.aggs) == 1 on load config
+            config.aggs[0],  # TODO: assert len(config.aggs) == 1 on load config
             config.hazard_model_id,
             config.deagg_dimensions,
         )
@@ -453,7 +482,7 @@ def process_deaggregation(config: AggregationConfig):
         sleep_time = 10
         log.info(f'sleeping {sleep_time} seconds before queuing next task')
         time.sleep(sleep_time)
-        
+
         num_jobs += 1
 
     # Add a poison pill for each to signal we've done everything
@@ -475,7 +504,7 @@ def process_deaggregation(config: AggregationConfig):
 
 
 def process_deaggregation_serial(config: AggregationConfig):
-    """ Aggregate the Deaggregations in serail. For debugging."""
+    """Aggregate the Deaggregations in serail. For debugging."""
 
     results = []
     for gtid in config.deagg_gtids:
@@ -485,7 +514,7 @@ def process_deaggregation_serial(config: AggregationConfig):
             config.src_correlations,
             config.gmm_correlations,
             config.source_branches_truncate,
-            config.aggs[0], #TODO: assert len(config.aggs) == 1 on load config
+            config.aggs[0],  # TODO: assert len(config.aggs) == 1 on load config
             config.hazard_model_id,
             config.deagg_dimensions,
         )
@@ -526,23 +555,23 @@ def process_single_deagg(task_args: DeaggTaskArgs):
         truncate=task_args.source_branches_truncate,
     )
     log.info('finished building logic tree ')
-    
-    levels = [] # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
-    
+
+    levels = []  # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
+
     t = AggTaskArgs(
-    task_args.hazard_model_id,
-    coded_location.downsample(0.1).code,
-    [coded_location.downsample(0.001).code],
-    toshi_ids,
-    source_branches,
-    [task_args.agg],
-    [deagg_config.imt],
-    levels,
-    deagg_config.vs30,
-    task_args.dimensions,
-    deagg_config.poe,
-    imtl,
-    False,
+        task_args.hazard_model_id,
+        coded_location.downsample(0.1).code,
+        [coded_location.downsample(0.001).code],
+        toshi_ids,
+        source_branches,
+        [task_args.agg],
+        [deagg_config.imt],
+        levels,
+        deagg_config.vs30,
+        task_args.dimensions,
+        deagg_config.poe,
+        imtl,
+        False,
     )
 
     process_location_list(t)

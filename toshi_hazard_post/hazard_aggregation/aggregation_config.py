@@ -49,9 +49,9 @@ class AggregationConfig:
             self.deagg_dimensions = self.config.get('deaggregation').get('dimensions')
 
     # def _load_deagg(self):
-        # ltf = Path(Path(self._config_file).parent, self.config['deaggregation']['gtdata_file'])
-        # assert ltf.exists()
-        # self.deagg_solutions = json.load(ltf.open('r'))['deagg_solutions']
+    # ltf = Path(Path(self._config_file).parent, self.config['deaggregation']['gtdata_file'])
+    # assert ltf.exists()
+    # self.deagg_solutions = json.load(ltf.open('r'))['deagg_solutions']
 
     def _load_ltf(self):
         ltf = Path(Path(self._config_file).parent, self.config['aggregation']['logic_tree_file'])
