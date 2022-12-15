@@ -184,8 +184,7 @@ def process_location_list(task_args):
                 save_deaggs(
                     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
                 )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
-            # else:
-            elif False:
+            else:
                 with model.HazardAggregation.batch_write() as batch:
                     for aggind, agg in enumerate(aggs):
                         hazard_vals = []
