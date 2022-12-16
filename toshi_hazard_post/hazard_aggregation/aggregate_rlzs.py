@@ -7,12 +7,11 @@ from operator import mul
 
 import numpy as np
 import pandas as pd
-from numba import jit
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
 
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_DATA import data as gtdata
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
-from toshi_hazard_post.data_functions import weighted_quantile
+from toshi_hazard_post.calculators import prob_to_rate, rate_to_prob, calculate_weighted_quantiles, weighted_avg_and_std
 from toshi_hazard_post.util.file_utils import get_disagg
 from toshi_hazard_post.util.toshi_client import download_csv
 
@@ -25,6 +24,58 @@ VERBOSE = True
 DOWNLOAD_DIR = '/work/chrisdc/NZSHM-WORKING/PROD/'
 
 log = logging.getLogger(__name__)
+
+
+
+def weighted_quantile(values, quantiles, sample_weight=None):
+
+    tic = time.perf_counter()
+
+    values = np.array(values)
+    if sample_weight is None:
+        sample_weight = np.ones(len(values))
+    sample_weight = np.array(sample_weight)
+    sample_weight = sample_weight / sum(sample_weight)
+
+    get_mean = False
+    get_std = False
+    get_cov = False
+    if ('mean' in quantiles) | ('std' in quantiles) | ('cov' in quantiles):
+        mean, std = weighted_avg_and_std(values, sample_weight)
+        if 'mean' in quantiles:
+            get_mean = True
+            mean_ind = quantiles.index('mean')
+            quantiles = quantiles[0:mean_ind] + quantiles[mean_ind + 1 :]
+        if 'std' in quantiles:
+            get_std = True
+            std_ind = quantiles.index('std')
+            quantiles = quantiles[0:std_ind] + quantiles[std_ind + 1 :]
+        if 'cov' in quantiles:
+            get_cov = True
+            cov_ind = quantiles.index('cov')
+            quantiles = quantiles[0:cov_ind] + quantiles[cov_ind + 1 :]
+            cov = std / mean
+
+    quantiles = np.array(
+        [float(q) for q in quantiles]
+    )  # TODO this section is hacky, need to tighten up API with typing
+    # print(f'QUANTILES: {quantiles}')
+
+    assert np.all(quantiles >= 0) and np.all(quantiles <= 1), 'quantiles should be in [0, 1]'
+
+    wq = calculate_weighted_quantiles(values, sample_weight, quantiles)
+
+    if get_cov:
+        wq = np.append(np.append(wq[0:cov_ind], np.array([cov])), wq[cov_ind:])
+    if get_std:
+        wq = np.append(np.append(wq[0:std_ind], np.array([std])), wq[std_ind:])
+    if get_mean:
+        wq = np.append(np.append(wq[0:mean_ind], np.array([mean])), wq[mean_ind:])
+
+    toc = time.perf_counter()
+    log.debug(f'time to calculate weighted quantiles {toc-tic} seconds')
+
+    return wq
 
 
 def get_imts(source_branches, vs30):
@@ -238,17 +289,6 @@ def get_weights(branch, vs30):
     return weights
 
 
-@jit(nopython=True)
-def prob_to_rate(prob):
-
-    return -np.log(1 - prob) / INV_TIME
-
-
-@jit(nopython=True)
-def rate_to_prob(rate):
-
-    return 1.0 - np.exp(-INV_TIME * rate)
-
 
 # @jit(nopython=True)
 def calc_weighted_sum(rlz_combs, values, loc, imt, start_ind, end_ind):
@@ -260,8 +300,8 @@ def calc_weighted_sum(rlz_combs, values, loc, imt, start_ind, end_ind):
     for i, rlz_comb in enumerate(rlz_combs):
         rate = np.zeros((ncols,))
         for rlz in rlz_comb:
-            rate += prob_to_rate(values[rlz][loc][imt][start_ind:end_ind])
-        prob = rate_to_prob(rate)
+            rate += prob_to_rate(values[rlz][loc][imt][start_ind:end_ind], INV_TIME)
+        prob = rate_to_prob(rate, INV_TIME)
         prob_table[i, :] = prob
 
     return prob_table
@@ -286,7 +326,7 @@ def build_source_branch(values, rlz_combs, imt, loc, start_ind, end_ind):
 
 def calculate_aggs(branch_probs, aggs, weight_combs):
 
-    branch_probs = prob_to_rate(branch_probs)
+    branch_probs = prob_to_rate(branch_probs, INV_TIME)
 
     nrows = branch_probs.shape[1]
     ncols = len(aggs)
@@ -295,7 +335,7 @@ def calculate_aggs(branch_probs, aggs, weight_combs):
         quantiles = weighted_quantile(branch_probs[:, i], aggs, sample_weight=weight_combs)
         median[i, :] = np.array(quantiles)
 
-    return rate_to_prob(median)
+    return rate_to_prob(median, INV_TIME)
 
 
 def get_len_rate(values):
