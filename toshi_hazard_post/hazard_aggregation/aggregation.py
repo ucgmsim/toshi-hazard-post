@@ -21,8 +21,8 @@ from toshi_hazard_store import model
 #     merge_ltbs_fromLT,
 # )
 from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT
-from toshi_hazard_post.hazard_aggregation.locations import get_locations
-from toshi_hazard_post.hazard_aggregation.toshi_api_support import get_deagg_config, get_gtdata, get_imtl
+from toshi_hazard_post.locations import get_locations
+from toshi_hazard_post.toshi_api_support import get_deagg_config, get_gtdata, get_imtl
 from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.util.file_utils import save_deaggs
 
@@ -36,7 +36,6 @@ from .aggregate_rlzs import (
     get_levels,
     load_realization_values,
     load_realization_values_deagg,
-    preload_meta,
 )
 from .aggregation_config import AggregationConfig
 
@@ -68,34 +67,6 @@ class DistributedAggregationTaskArguments:
     vs30s: List[int]
 
 
-def build_source_branches(
-    logic_tree_permutations, gtdata, src_correlations, gmm_correlations, vs30, omit, toshi_ids, truncate=None
-):
-    """ported from THS. aggregate_rlzs_mp"""
-    # pr.enable()
-
-    grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
-
-    source_branches = get_weighted_branches(grouped, src_correlations)
-
-    if truncate:
-        # for testing only
-        source_branches = source_branches[:truncate]
-
-    metadata = preload_meta(toshi_ids, vs30)
-
-    for i in range(len(source_branches)):
-        rlz_combs, weight_combs, rlz_sets = build_rlz_table(
-            source_branches[i], metadata, gmm_correlations
-        )  # TODO: add correlations to GMCM LT
-        source_branches[i]['rlz_combs'] = rlz_combs
-        source_branches[i]['weight_combs'] = weight_combs
-        source_branches[i]['rlz_sets'] = rlz_sets
-
-    # pr.disable()
-    # pr.print_stats(sort='time')
-
-    return source_branches
 
 
 def process_location_list(task_args):
@@ -265,7 +236,7 @@ class DeAggregationWorkerMP(multiprocessing.Process):
             self.result_queue.put(str(nt.gtid))
 
 
-def process_local_serial(
+def process_aggregation_local_serial(
     hazard_model_id,
     toshi_ids,
     source_branches,
@@ -306,7 +277,7 @@ def process_local_serial(
             process_location_list(t)
 
 
-def process_local(
+def process_aggregation_local(
     hazard_model_id,
     toshi_ids,
     source_branches,
@@ -427,7 +398,7 @@ def process_aggregation(config: AggregationConfig, deagg=False):
         for imt in config.imts:
             assert imt in avail_imts
 
-    process_local(
+    process_aggregation_local(
         config.hazard_model_id,
         toshi_ids,
         source_branches,
@@ -439,7 +410,7 @@ def process_aggregation(config: AggregationConfig, deagg=False):
         save_rlz=config.save_rlz,
     )  # TODO: use source_branches dict
 
-    # process_local_serial(
+    # process_aggregation_local_serial(
     #     config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg, save_rlz=config.save_rlz
     # )  # TODO: use source_branches dict
 

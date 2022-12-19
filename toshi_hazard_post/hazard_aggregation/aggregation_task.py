@@ -18,7 +18,7 @@ from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_post.local_config import API_KEY, API_URL, LOGGING_CFG, NUM_WORKERS, S3_URL
 from toshi_hazard_post.util import decompress_config
 
-from .aggregation import DistributedAggregationTaskArguments, process_local
+from .aggregation import DistributedAggregationTaskArguments, process_aggregation_local
 
 # from toshi_hazard_store import model
 # from toshi_hazard_store.aggregate_rlzs import process_location_list
@@ -65,7 +65,7 @@ def process_args(args):
 
     print([loc for loc in args.locations])
     locations = [CodedLocation(loc['lat'], loc['lon'], resolution) for loc in args.locations]
-    results = process_local(
+    results = process_aggregation_local(
         args.hazard_model_id, args.toshi_ids, source_branches, locations, args.levels, args, num_workers=NUM_WORKERS
     )
     log.info(results)

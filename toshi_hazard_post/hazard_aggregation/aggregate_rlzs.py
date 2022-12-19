@@ -182,16 +182,6 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
     return values, bins
 
 
-def preload_meta(ids, vs30):
-
-    metadata = {}
-    for meta in get_hazard_metadata_v3(ids, [vs30]):
-        hazard_id = meta.hazard_solution_id
-        gsim_lt = ast.literal_eval(meta.gsim_lt)
-        metadata[hazard_id] = gsim_lt
-
-    return metadata
-
 
 def build_rlz_table(branch, metadata, correlations=None):
     """

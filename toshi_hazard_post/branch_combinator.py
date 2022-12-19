@@ -1,9 +1,13 @@
 # rom toshi_hazard_store.branch_combinator.SLT_test1 import *
+import ast
 import itertools
 import json
 import logging
 import math
 from collections import namedtuple
+
+from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
+
 
 DTOL = 1.0e-6
 
@@ -12,6 +16,47 @@ log = logging.getLogger(__name__)
 
 def get_branches():
     assert 0
+
+
+def preload_meta(ids, vs30):
+
+    metadata = {}
+    for meta in get_hazard_metadata_v3(ids, [vs30]):
+        hazard_id = meta.hazard_solution_id
+        gsim_lt = ast.literal_eval(meta.gsim_lt)
+        metadata[hazard_id] = gsim_lt
+
+    return metadata
+
+
+def build_source_branches(
+    logic_tree_permutations, gtdata, src_correlations, gmm_correlations, vs30, omit, toshi_ids, truncate=None
+):
+    """ported from THS. aggregate_rlzs_mp"""
+    # pr.enable()
+
+    grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
+
+    source_branches = get_weighted_branches(grouped, src_correlations)
+
+    if truncate:
+        # for testing only
+        source_branches = source_branches[:truncate]
+
+    metadata = preload_meta(toshi_ids, vs30)
+
+    for i in range(len(source_branches)):
+        rlz_combs, weight_combs, rlz_sets = build_rlz_table(
+            source_branches[i], metadata, gmm_correlations
+        )  # TODO: add correlations to GMCM LT
+        source_branches[i]['rlz_combs'] = rlz_combs
+        source_branches[i]['weight_combs'] = weight_combs
+        source_branches[i]['rlz_sets'] = rlz_sets
+
+    # pr.disable()
+    # pr.print_stats(sort='time')
+
+    return source_branches
 
 
 def get_weighted_branches(grouped_ltbs, correlations=None):
