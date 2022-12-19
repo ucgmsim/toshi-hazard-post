@@ -7,7 +7,7 @@ from operator import mul
 from pathlib import Path
 import pytest
 
-from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT
+from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT, build_rlz_table
 
 
 class TestCombinator(unittest.TestCase):

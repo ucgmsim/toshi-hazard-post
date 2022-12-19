@@ -7,8 +7,6 @@ import pytest
 from pathlib import Path
 from typing import List
 
-# from toshi_hazard_store.aggregate_rlzs import get_imts, get_levels, process_location_list
-# from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
 from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
 from toshi_hazard_post.locations import locations_nzpt2_and_nz34_binned, locations_nzpt2_and_nz34_chunked
 from toshi_hazard_post.data_functions import get_levels
@@ -24,8 +22,8 @@ class TestBuildAggregation(unittest.TestCase):
     """This test class disables openquake for testing, even if it's actually installed."""
 
     def setUp(self):
-        self._sb_file = Path(Path(__file__).parent, 'fixtures/aggregation', 'source_branches.json')
-        self._ltb_file = Path(Path(__file__).parent, 'fixtures/aggregation', 'SLT_TAG_FINAL.json')
+        self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches.json')
+        self._ltb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'SLT_TAG_FINAL.json')
 
     def tearDown(self):
         if self._temp_oq:
@@ -84,76 +82,3 @@ class TestBuildAggregation(unittest.TestCase):
 
         assert 0
 
-
-class TestBuldRealizationTable(unittest.TestCase):
-    def setUp(self):
-        self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
-        self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'rlz_combs.json')
-        self._weight_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'weight_combs.json')
-        self._metadata_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'metadata.json')
-
-    def test_build_rlz_table(self):
-
-        metadata = json.load(open(self._metadata_filepath, 'r'))
-        source_branches = json.load(open(self._sb_file, 'r'))
-        rlz_combs, weight_combs = build_rlz_table(source_branches[0], metadata)
-
-        rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
-        weight_combs_expected = json.load(open(self._weight_combs_filepath, 'r'))
-
-        rlz_combs_expected = [set(rce) for rce in rlz_combs_expected]
-        rlz_combs = [set(rc) for rc in rlz_combs]
-
-        for wce, rce in zip(weight_combs_expected, rlz_combs_expected):
-            assert rce in rlz_combs
-            assert weight_combs[rlz_combs.index(rce)] == pytest.approx(wce)
-
-        assert sum(weight_combs) == pytest.approx(1.0)
-
-
-class TestCorrelatiedRealizationTable(unittest.TestCase):
-    def setUp(self):
-        self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
-        self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'rlz_combs_corr.json')
-        self._metadata_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'metadata.json')
-
-    def test_build_correlated_rlz_table(self):
-
-        correlations = [
-            (
-                '[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = -1.28155',
-                '[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = -1.28155',
-            ),
-            (
-                '[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
-                '[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
-            ),
-            (
-                '[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 1.28155',
-                '[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 1.28155',
-            ),
-            ('[Atkinson2022SInter]\nepistemic = "Central"', '[Atkinson2022SSlab]\nepistemic = "Central"'),
-            ('[Atkinson2022SInter]\nepistemic = "Lower"', '[Atkinson2022SSlab]\nepistemic = "Lower"'),
-            ('[Atkinson2022SInter]\nepistemic = "Upper"', '[Atkinson2022SSlab]\nepistemic = "Upper"'),
-            (
-                '[KuehnEtAl2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
-                '[KuehnEtAl2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
-            ),
-            ('[ParkerEtAl2020SInter]', '[ParkerEtAl2020SSlab]'),
-        ]
-
-        metadata = json.load(open(self._metadata_filepath, 'r'))
-        source_branches = json.load(open(self._sb_file, 'r'))
-        rlz_combs, weight_combs = build_rlz_table(source_branches[0], metadata, correlations)
-
-        rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
-
-        rlz_combs_expected = [set(rce) for rce in rlz_combs_expected]
-        rlz_combs = [set(rc) for rc in rlz_combs]
-
-        for rce in rlz_combs_expected:
-            assert rce in rlz_combs
-
-        assert sum(weight_combs) == pytest.approx(1.0)
-
-        assert len(weight_combs) == len(rlz_combs)
