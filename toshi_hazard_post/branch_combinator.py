@@ -85,7 +85,7 @@ def weight_and_ids(data):
     def get_vs30(args):
         for arg in args:
             if arg['k'] == "vs30":
-                return int(arg['v'])
+                return int(float(arg['v']))
         assert 0
 
     nodes = data['data']['node1']['children']['edges']
