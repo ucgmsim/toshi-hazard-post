@@ -115,15 +115,15 @@ class TestGroupedLTBs(unittest.TestCase):
 class TestBuldRealizationTable(unittest.TestCase):
     def setUp(self):
         self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
-        self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'rlz_combs.json')
-        self._weight_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'weight_combs.json')
-        self._metadata_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'metadata.json')
+        self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'rlz_combs.json')
+        self._weight_combs_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'weight_combs.json')
+        self._metadata_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'metadata.json')
 
     def test_build_rlz_table(self):
 
         metadata = json.load(open(self._metadata_filepath, 'r'))
         source_branches = json.load(open(self._sb_file, 'r'))
-        rlz_combs, weight_combs = build_rlz_table(source_branches[0], metadata)
+        rlz_combs, weight_combs, rlz_sets = build_rlz_table(source_branches[0], metadata)
 
         rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
         weight_combs_expected = json.load(open(self._weight_combs_filepath, 'r'))
@@ -141,8 +141,8 @@ class TestBuldRealizationTable(unittest.TestCase):
 class TestCorrelatiedRealizationTable(unittest.TestCase):
     def setUp(self):
         self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
-        self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'rlz_combs_corr.json')
-        self._metadata_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'metadata.json')
+        self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'rlz_combs_corr.json')
+        self._metadata_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'metadata.json')
 
     def test_build_correlated_rlz_table(self):
 
@@ -171,7 +171,7 @@ class TestCorrelatiedRealizationTable(unittest.TestCase):
 
         metadata = json.load(open(self._metadata_filepath, 'r'))
         source_branches = json.load(open(self._sb_file, 'r'))
-        rlz_combs, weight_combs = build_rlz_table(source_branches[0], metadata, correlations)
+        rlz_combs, weight_combs, rlz_sets = build_rlz_table(source_branches[0], metadata, correlations)
 
         rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
 

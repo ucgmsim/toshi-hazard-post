@@ -34,7 +34,6 @@ from toshi_hazard_post.data_functions import (
 
 from .aggregate_rlzs import (
     build_branches,
-    build_rlz_table,
     calculate_aggs,
     get_branch_weights,
     get_len_rate,

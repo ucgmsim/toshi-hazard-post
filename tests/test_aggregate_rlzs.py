@@ -15,7 +15,7 @@ from toshi_hazard_post.hazard_aggregation.aggregation import process_location_li
 # from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
 
-from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import build_rlz_table
+from toshi_hazard_post.branch_combinator import build_rlz_table
 
 
 class TestBuildAggregation(unittest.TestCase):
