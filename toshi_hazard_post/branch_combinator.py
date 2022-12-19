@@ -1,10 +1,12 @@
-# rom toshi_hazard_store.branch_combinator.SLT_test1 import *
 import ast
 import itertools
 import json
 import logging
 import math
 from collections import namedtuple
+
+from functools import reduce
+from operator import mul
 
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
 
@@ -27,6 +29,87 @@ def preload_meta(ids, vs30):
         metadata[hazard_id] = gsim_lt
 
     return metadata
+
+
+def build_rlz_table(branch, metadata, correlations=None):
+    """
+    build the table of ground motion combinations and weights for a single source branch
+    assumes only one source per run and the same gsim weights in every run
+    """
+
+    if correlations:
+        correlation_master = [corr[0] for corr in correlations]
+        correlation_puppet = [corr[1] for corr in correlations]
+    else:
+        correlation_master = []
+        correlation_puppet = []
+
+    rlz_sets = {}
+    weight_sets = {}
+    trts = set()
+
+    for hazard_id in branch['ids']:
+        gsim_lt = metadata[hazard_id]
+        trts = set(gsim_lt['trt'].values())
+        for trt in trts:
+            if not rlz_sets.get(trt):
+                rlz_sets[trt] = {}
+                weight_sets[trt] = {}
+            for rlz, gsim in gsim_lt['uncertainty'].items():
+                rlz_key = ':'.join((hazard_id, rlz))
+                if not rlz_sets[trt].get(gsim):
+                    rlz_sets[trt][gsim] = []
+                rlz_sets[trt][gsim].append(rlz_key)
+                weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
+
+    # find correlated gsims and mappings between gsim name and rlz_key
+
+    if correlations:
+        all_rlz = [(gsim, rlz) for rlz_set in rlz_sets.values() for gsim, rlz in rlz_set.items()]
+        correlation_list = []
+        all_rlz_copy = all_rlz.copy()
+        for rlzm in all_rlz:
+            for i, cm in enumerate(correlation_master):
+                if cm == rlzm[0]:
+                    correlation_list.append(rlzm[1].copy())
+                    for rlzp in all_rlz_copy:
+                        if correlation_puppet[i] == rlzp[0]:
+                            correlation_list[-1] += rlzp[1]
+
+    rlz_sets_tmp = rlz_sets.copy()
+    weight_sets_tmp = weight_sets.copy()
+    for k, v in rlz_sets.items():
+        rlz_sets_tmp[k] = []
+        weight_sets_tmp[k] = []
+        for gsim in v.keys():
+            rlz_sets_tmp[k].append(v[gsim])
+            weight_sets_tmp[k].append(weight_sets[k][gsim])
+
+    rlz_lists = list(rlz_sets_tmp.values())
+    weight_lists = list(weight_sets_tmp.values())
+
+    # TODO: fix rlz from the same ID grouped together
+    rlz_iter = itertools.product(*rlz_lists)
+    weight_iter = itertools.product(*weight_lists)
+    rlz_combs = []
+    weight_combs = []
+
+    for src_group, weight_group in zip(rlz_iter, weight_iter):
+        if correlations:
+            foo = [s for src in src_group for s in src]
+            if any([len(set(foo).intersection(set(cl))) == len(cl) for cl in correlation_list]):
+                rlz_combs.append(foo)
+                weight_combs.append(reduce(mul, weight_group, 1))
+        else:
+            rlz_combs.append([s for src in src_group for s in src])
+            weight_combs.append(reduce(mul, weight_group, 1))
+
+    sum_weight = sum(weight_combs)
+    if not ((sum_weight > 1.0 - DTOL) & (sum_weight < 1.0 + DTOL)):
+        print(sum_weight)
+        raise Exception('weights do not sum to 1')
+
+    return rlz_combs, weight_combs, rlz_sets
 
 
 def build_source_branches(

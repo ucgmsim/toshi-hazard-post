@@ -5,11 +5,14 @@ import sys
 import unittest
 import pytest
 from pathlib import Path
+from typing import List
 
 # from toshi_hazard_store.aggregate_rlzs import get_imts, get_levels, process_location_list
 # from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
 from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
-from toshi_hazard_store.locations import locations_nzpt2_and_nz34_binned, locations_nzpt2_and_nz34_chunked
+from toshi_hazard_post.locations import locations_nzpt2_and_nz34_binned, locations_nzpt2_and_nz34_chunked
+from toshi_hazard_post.data_functions import get_levels
+from toshi_hazard_post.hazard_aggregation.aggregation import process_location_list
 
 # from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata

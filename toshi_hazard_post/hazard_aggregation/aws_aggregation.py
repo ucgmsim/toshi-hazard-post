@@ -17,8 +17,8 @@ from toshi_hazard_post.locations import get_locations, locations_by_chunk
 from toshi_hazard_post.local_config import API_URL, NUM_WORKERS, S3_URL, SNS_AGG_TASK_TOPIC, WORK_PATH
 from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 from toshi_hazard_post.util.sns import publish_message
+from toshi_hazard_post.data_functions import get_imts, get_levels
 
-from .aggregate_rlzs import get_imts, get_levels
 from .aggregation import DistributedAggregationTaskArguments
 from toshi_hazard_post.branch_combinator import build_source_branches
 

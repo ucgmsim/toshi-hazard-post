@@ -2,8 +2,6 @@ import ast
 import itertools
 import logging
 import time
-from functools import reduce
-from operator import mul
 
 import numpy as np
 import pandas as pd
@@ -12,8 +10,6 @@ from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_DATA import data as gtdata
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
 from toshi_hazard_post.calculators import prob_to_rate, rate_to_prob, calculate_weighted_quantiles, weighted_avg_and_std
-from toshi_hazard_post.util.file_utils import get_disagg
-from toshi_hazard_post.util.toshi_client import download_csv
 
 # from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
 # from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
@@ -21,7 +17,6 @@ from toshi_hazard_post.util.toshi_client import download_csv
 DTOL = 1.0e-6
 INV_TIME = 1.0
 VERBOSE = True
-DOWNLOAD_DIR = '/work/chrisdc/NZSHM-WORKING/PROD/'
 
 log = logging.getLogger(__name__)
 
@@ -78,190 +73,6 @@ def weighted_quantile(values, quantiles, sample_weight=None):
     return wq
 
 
-def get_imts(source_branches, vs30):
-
-    ids = source_branches[0]['ids']
-    meta = next(get_hazard_metadata_v3(ids, [vs30]))
-    imts = list(meta.imts)
-    imts.sort()
-
-    return imts
-
-
-def load_realization_values(toshi_ids, locs, vs30s):
-
-    tic = time.perf_counter()
-    # unique_ids = []
-    # for branch in source_branches:
-    #     unique_ids += branch['ids']
-    # unique_ids = list(set(unique_ids))
-    log.info('loading %s hazard IDs ... ' % len(toshi_ids))
-
-    values = {}
-    try:
-        for res in get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
-            key = ':'.join((res.hazard_solution_id, str(res.rlz)))
-            if key not in values:
-                values[key] = {}
-            values[key][res.nloc_001] = {}
-            for val in res.values:
-                values[key][res.nloc_001][val.imt] = np.array(val.vals)
-                for i, v in enumerate(val.vals):
-                    if not v:
-                        log.debug(
-                            '%s th value at location: %s, imt: %s, hazard key %s is %s'
-                            % (i, res.nloc_001, val.imt, key, val)
-                        )
-    except Exception as err:
-        logging.warning(
-            'load_realization_values() got exception %s with toshi_ids: %s , locs: %s vs30s: %s'
-            % (err, toshi_ids, locs, vs30s)
-        )
-        raise
-
-    # check that the correct number of records came back
-    ids_ret = []
-    for k1, v1 in values.items():
-        nlocs_ret = len(v1.keys())
-        if not nlocs_ret == len(locs):
-            log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
-        ids_ret += [k1.split(':')[0]]
-    ids_ret = set(ids_ret)
-    if len(ids_ret) != len(toshi_ids):
-        log.warn('Missing %s toshi IDs' % (len(toshi_ids) - len(ids_ret)))
-        # log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
-        # log.warn('missing %s locations.' % (len(locs) - nlocs_ret))
-        toshi_ids = set(toshi_ids)
-        log.warn('Missing ids: %s' % (toshi_ids - ids_ret))
-
-    toc = time.perf_counter()
-    print(f'time to load realizations: {toc-tic:.1f} seconds')
-
-    return values
-
-
-def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
-
-    tic = time.perf_counter()
-    log.info('loading %s hazard IDs ... ' % len(toshi_ids))
-
-    values = {}
-
-    # download csv archives
-    downloads = download_csv(toshi_ids, DOWNLOAD_DIR)
-    log.info('finished downloading csv archives')
-    for i, download in enumerate(downloads.values()):
-        csv_archive = download['filepath']
-        hazard_solution_id = download['hazard_id']
-        disaggs, bins, location, imt = get_disagg(csv_archive, deagg_dimensions)
-        log.info(f'finished loading data from csv archive {i+1} of {len(downloads)}')
-        for rlz in disaggs.keys():
-            key = ':'.join((hazard_solution_id, rlz))
-            if key not in values:
-                values[key] = {}
-            values[key][location] = {}
-            values[key][location][imt] = np.array(disaggs[rlz])
-
-    # check that the correct number of records came back
-    ids_ret = []
-    for k1, v1 in values.items():
-        nlocs_ret = len(v1.keys())
-        if not nlocs_ret == len(locs):
-            log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
-        ids_ret += [k1.split(':')[0]]
-    ids_ret = set(ids_ret)
-    if len(ids_ret) != len(toshi_ids):
-        log.warn('Missing %s toshi IDs' % (len(toshi_ids) - len(ids_ret)))
-        log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
-        toshi_ids = set(toshi_ids)
-        print('Missing ids: %s' % (toshi_ids - ids_ret))
-
-    toc = time.perf_counter()
-    print(f'time to load realizations: {toc-tic:.1f} seconds')
-
-    return values, bins
-
-
-
-def build_rlz_table(branch, metadata, correlations=None):
-    """
-    build the table of ground motion combinations and weights for a single source branch
-    assumes only one source per run and the same gsim weights in every run
-    """
-
-    if correlations:
-        correlation_master = [corr[0] for corr in correlations]
-        correlation_puppet = [corr[1] for corr in correlations]
-    else:
-        correlation_master = []
-        correlation_puppet = []
-
-    rlz_sets = {}
-    weight_sets = {}
-    trts = set()
-
-    for hazard_id in branch['ids']:
-        gsim_lt = metadata[hazard_id]
-        trts = set(gsim_lt['trt'].values())
-        for trt in trts:
-            if not rlz_sets.get(trt):
-                rlz_sets[trt] = {}
-                weight_sets[trt] = {}
-            for rlz, gsim in gsim_lt['uncertainty'].items():
-                rlz_key = ':'.join((hazard_id, rlz))
-                if not rlz_sets[trt].get(gsim):
-                    rlz_sets[trt][gsim] = []
-                rlz_sets[trt][gsim].append(rlz_key)
-                weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
-
-    # find correlated gsims and mappings between gsim name and rlz_key
-
-    if correlations:
-        all_rlz = [(gsim, rlz) for rlz_set in rlz_sets.values() for gsim, rlz in rlz_set.items()]
-        correlation_list = []
-        all_rlz_copy = all_rlz.copy()
-        for rlzm in all_rlz:
-            for i, cm in enumerate(correlation_master):
-                if cm == rlzm[0]:
-                    correlation_list.append(rlzm[1].copy())
-                    for rlzp in all_rlz_copy:
-                        if correlation_puppet[i] == rlzp[0]:
-                            correlation_list[-1] += rlzp[1]
-
-    rlz_sets_tmp = rlz_sets.copy()
-    weight_sets_tmp = weight_sets.copy()
-    for k, v in rlz_sets.items():
-        rlz_sets_tmp[k] = []
-        weight_sets_tmp[k] = []
-        for gsim in v.keys():
-            rlz_sets_tmp[k].append(v[gsim])
-            weight_sets_tmp[k].append(weight_sets[k][gsim])
-
-    rlz_lists = list(rlz_sets_tmp.values())
-    weight_lists = list(weight_sets_tmp.values())
-
-    # TODO: fix rlz from the same ID grouped together
-    rlz_iter = itertools.product(*rlz_lists)
-    weight_iter = itertools.product(*weight_lists)
-    rlz_combs = []
-    weight_combs = []
-
-    for src_group, weight_group in zip(rlz_iter, weight_iter):
-        if correlations:
-            foo = [s for src in src_group for s in src]
-            if any([len(set(foo).intersection(set(cl))) == len(cl) for cl in correlation_list]):
-                rlz_combs.append(foo)
-                weight_combs.append(reduce(mul, weight_group, 1))
-        else:
-            rlz_combs.append([s for src in src_group for s in src])
-            weight_combs.append(reduce(mul, weight_group, 1))
-
-    sum_weight = sum(weight_combs)
-    if not ((sum_weight > 1.0 - DTOL) & (sum_weight < 1.0 + DTOL)):
-        print(sum_weight)
-        raise Exception('weights do not sum to 1')
-
-    return rlz_combs, weight_combs, rlz_sets
 
 
 def get_weights(branch, vs30):
@@ -389,16 +200,6 @@ def load_source_branches():
     ]
 
     return source_branches
-
-
-def get_levels(source_branches, locs, vs30):
-
-    id = source_branches[0]['ids'][0]
-
-    log.info(f"get_levels locs[0]: {locs[0]} vs30: {vs30}, id {id}")
-    hazard = next(get_rlz_curves_v3([locs[0]], [vs30], None, [id], None))
-
-    return hazard.values[0].lvls
 
 
 def concat_df_files(df_file_names):
