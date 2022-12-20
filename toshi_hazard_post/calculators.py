@@ -2,25 +2,24 @@
 
 import logging
 import math
-import time
 
-from numba import jit
 import numpy as np
-
+from numba import jit
 
 log = logging.getLogger(__name__)
+
 
 @jit(nopython=True)
 def prob_to_rate(prob, inv_time):
     """Convert probability of exceedance to rate assuming Poisson distribution.
-    
+
     Parameters
     ----------
     prob : numpy array_like
         probability of exceedance
     inv_time : float
         time period for probability (e.g. 1.0 for annual probability)
-        
+
     Returns
     -------
     rate : numpy array_like
@@ -33,14 +32,14 @@ def prob_to_rate(prob, inv_time):
 @jit(nopython=True)
 def rate_to_prob(rate, inv_time):
     """Convert rate to probabiility of exceedance assuming Poisson distribution.
-    
+
     Parameters
     ----------
     rate : numpy array_like
         rate over inv_time
     inv_time : float
         time period of rate (e.g. 1.0 for annual rate)
-        
+
     Returns
     -------
     prob : numpy array_like
@@ -74,7 +73,7 @@ def weighted_avg_and_std(values, weights):
 
 def calculate_mean(values, weight):
     """Calculate weighted mean
-    
+
     Parameters
     ----------
     values : numpy array_like

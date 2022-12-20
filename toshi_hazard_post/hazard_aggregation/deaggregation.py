@@ -4,19 +4,14 @@ import time
 from collections import namedtuple
 from typing import List
 
-
 from nzshm_common.location.code_location import CodedLocation
 
-from toshi_hazard_post.hazard_aggregation.aggregation import process_location_list, AggTaskArgs
-from toshi_hazard_post.branch_combinator import merge_ltbs_fromLT, build_source_branches
-
-
-from .aggregation_config import AggregationConfig
-
+from toshi_hazard_post.branch_combinator import build_source_branches, merge_ltbs_fromLT
+from toshi_hazard_post.hazard_aggregation.aggregation import AggTaskArgs, process_location_list
+from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.toshi_api_support import get_deagg_config, get_gtdata, get_imtl
 
-from toshi_hazard_post.local_config import NUM_WORKERS
-
+from .aggregation_config import AggregationConfig
 
 log = logging.getLogger(__name__)
 
@@ -25,6 +20,7 @@ DeaggTaskArgs = namedtuple(
     "DeaggTaskArgs",
     "gtid, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id dimensions",
 )
+
 
 class DeAggregationWorkerMP(multiprocessing.Process):
     """A worker that batches and saves records to DynamoDB. ported from THS."""

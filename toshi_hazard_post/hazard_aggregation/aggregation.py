@@ -2,13 +2,10 @@
 import cProfile
 import json
 import logging
-import math
 import multiprocessing
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from pathlib import Path
-from tokenize import group
 from typing import List
 
 import numpy as np
@@ -20,25 +17,18 @@ from toshi_hazard_store import model
 #     grouped_ltbs,
 #     merge_ltbs_fromLT,
 # )
-from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT, build_source_branches
-from toshi_hazard_post.locations import get_locations
-from toshi_hazard_post.toshi_api_support import get_deagg_config, get_gtdata, get_imtl
-from toshi_hazard_post.local_config import NUM_WORKERS
-from toshi_hazard_post.util.file_utils import save_deaggs
+from toshi_hazard_post.branch_combinator import build_source_branches, merge_ltbs_fromLT
 from toshi_hazard_post.data_functions import (
+    get_imts,
+    get_levels,
     load_realization_values,
     load_realization_values_deagg,
-    get_imts,
-    get_levels
 )
+from toshi_hazard_post.local_config import NUM_WORKERS
+from toshi_hazard_post.locations import get_locations
+from toshi_hazard_post.util.file_utils import save_deaggs
 
-from .aggregate_rlzs import (
-    build_branches,
-    calculate_aggs,
-    get_branch_weights,
-    get_len_rate,
-)
-
+from .aggregate_rlzs import build_branches, calculate_aggs, get_branch_weights, get_len_rate
 from .aggregation_config import AggregationConfig
 
 log = logging.getLogger(__name__)
@@ -49,6 +39,7 @@ AggTaskArgs = namedtuple(
     "AggTaskArgs",
     "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe deagg_imtl save_rlz",
 )
+
 
 @dataclass
 class DistributedAggregationTaskArguments:
@@ -62,8 +53,6 @@ class DistributedAggregationTaskArguments:
     imts: List[str]
     levels: List[float]
     vs30s: List[int]
-
-
 
 
 def process_location_list(task_args):
@@ -122,9 +111,6 @@ def process_location_list(task_args):
 
             # TODO: make these two functions more readable
             ncols = get_len_rate(values)
-            nbranches = len(source_branches)
-            ncombs = len(source_branches[0]['rlz_combs'])
-            nrlz = nbranches * ncombs
             hazard = np.empty((ncols, len(aggs)))
             stride = 100  # TODO: optimise stride length for avail. physical mem., number of threads, ...?
             for start_ind in range(0, ncols, stride):
@@ -205,7 +191,6 @@ class AggregationWorkerMP(multiprocessing.Process):
             self.task_queue.task_done()
             log.info('%s task done.' % self.name)
             self.result_queue.put(str(nt.grid_loc))
-
 
 
 def process_aggregation_local_serial(
@@ -385,4 +370,3 @@ def process_aggregation(config: AggregationConfig, deagg=False):
     # process_aggregation_local_serial(
     #     config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg, save_rlz=config.save_rlz
     # )  # TODO: use source_branches dict
-

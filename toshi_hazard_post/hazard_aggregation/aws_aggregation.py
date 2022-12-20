@@ -12,20 +12,19 @@ import toshi_hazard_post.hazard_aggregation.aggregation_task
 
 # from toshi_hazard_store.aggregate_rlzs_mp import build_source_branches
 # from toshi_hazard_store.branch_combinator.branch_combinator import merge_ltbs_fromLT
-from toshi_hazard_post.branch_combinator import merge_ltbs_fromLT
-from toshi_hazard_post.locations import get_locations, locations_by_chunk
+from toshi_hazard_post.branch_combinator import build_source_branches, merge_ltbs_fromLT
+from toshi_hazard_post.data_functions import get_imts, get_levels
 from toshi_hazard_post.local_config import API_URL, NUM_WORKERS, S3_URL, SNS_AGG_TASK_TOPIC, WORK_PATH
+from toshi_hazard_post.locations import get_locations, locations_by_chunk
 from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 from toshi_hazard_post.util.sns import publish_message
-from toshi_hazard_post.data_functions import get_imts, get_levels
 
+from ..toshi_api_support import save_sources_to_toshi
 from .aggregation import DistributedAggregationTaskArguments
-from toshi_hazard_post.branch_combinator import build_source_branches
 
 # from toshi_hazard_post.util.util import compress_config
 from .aggregation_config import AggregationConfig
 from .aggregation_task import fetch_source_branches
-from ..toshi_api_support import save_sources_to_toshi
 
 log = logging.getLogger(__name__)
 

@@ -4,12 +4,10 @@ import json
 import logging
 import math
 from collections import namedtuple
-
 from functools import reduce
 from operator import mul
 
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
-
 
 DTOL = 1.0e-6
 

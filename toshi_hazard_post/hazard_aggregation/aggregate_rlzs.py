@@ -1,15 +1,14 @@
 import ast
-import itertools
 import logging
 import time
 
 import numpy as np
 import pandas as pd
-from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
+from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
 
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_DATA import data as gtdata
 # from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
-from toshi_hazard_post.calculators import prob_to_rate, rate_to_prob, calculate_weighted_quantiles, weighted_avg_and_std
+from toshi_hazard_post.calculators import calculate_weighted_quantiles, prob_to_rate, rate_to_prob, weighted_avg_and_std
 
 # from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
 # from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
@@ -19,7 +18,6 @@ INV_TIME = 1.0
 VERBOSE = True
 
 log = logging.getLogger(__name__)
-
 
 
 def weighted_quantile(values, quantiles, sample_weight=None):
@@ -73,8 +71,6 @@ def weighted_quantile(values, quantiles, sample_weight=None):
     return wq
 
 
-
-
 def get_weights(branch, vs30):
 
     weights = {}
@@ -88,7 +84,6 @@ def get_weights(branch, vs30):
             weights[rlz_key] = weight
 
     return weights
-
 
 
 # @jit(nopython=True)
@@ -229,6 +224,7 @@ def compute_hazard_at_poe(levels, values, poe, inv_time):
 
 
 def get_source_ids(toshi_ids, vs30):
+    """Not used."""
 
     source_info = []
     for meta in get_hazard_metadata_v3(toshi_ids, [vs30]):
@@ -241,6 +237,7 @@ def get_source_ids(toshi_ids, vs30):
 
 
 def get_source_and_gsim(rlz, vs30):
+    """Not used."""
 
     gsims = {}
     source_ids = []

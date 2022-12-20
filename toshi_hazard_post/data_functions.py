@@ -2,14 +2,14 @@ import logging
 import time
 
 import numpy as np
-
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
+
 from toshi_hazard_post.util.file_utils import get_disagg
 from toshi_hazard_post.util.toshi_client import download_csv
 
-
 DOWNLOAD_DIR = '/work/chrisdc/NZSHM-WORKING/PROD/'
 log = logging.getLogger(__name__)
+
 
 def get_levels(source_branches, locs, vs30):
 
@@ -20,6 +20,7 @@ def get_levels(source_branches, locs, vs30):
 
     return hazard.values[0].lvls
 
+
 def get_imts(source_branches, vs30):
 
     ids = source_branches[0]['ids']
@@ -28,6 +29,7 @@ def get_imts(source_branches, vs30):
     imts.sort()
 
     return imts
+
 
 def load_realization_values(toshi_ids, locs, vs30s):
 
@@ -81,7 +83,6 @@ def load_realization_values(toshi_ids, locs, vs30s):
     return values
 
 
-
 def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
 
     tic = time.perf_counter()
@@ -122,4 +123,3 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
     print(f'time to load realizations: {toc-tic:.1f} seconds')
 
     return values, bins
-

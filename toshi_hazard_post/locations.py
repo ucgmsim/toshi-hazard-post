@@ -112,8 +112,8 @@ def get_locations(config):
             else load_grid(config.locations)[: config.location_limit]
         )
     if config.locations == 'NZ_0_1_NB_1_1':  # TODO: hacky fix to a missing point in the oq calculation grid
-        l = locations.index((-34.7, 172.7))
-        locations = locations[0:l] + locations[l + 1 :]
+        ind_missing = locations.index((-34.7, 172.7))
+        locations = locations[0:ind_missing] + locations[ind_missing + 1 :]
 
     return locations
 

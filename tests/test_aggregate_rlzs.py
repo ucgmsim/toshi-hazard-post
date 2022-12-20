@@ -81,4 +81,3 @@ class TestBuildAggregation(unittest.TestCase):
             # hazard_curves = pd.concat([hazard_curves, binned_hazard_curves])
 
         assert 0
-
