@@ -212,11 +212,13 @@ def concat_df_files(df_file_names):
 
 
 def compute_rate_at_iml(levels, rates, target_level):
+    """Not used."""
 
     return np.exp(np.interp(np.log(target_level), np.log(levels), np.log(rates)))
 
 
 def compute_hazard_at_poe(levels, values, poe, inv_time):
+    """Not used."""
 
     rp = -inv_time / np.log(1 - poe)
     haz = np.exp(np.interp(np.log(1 / rp), np.flip(np.log(values)), np.flip(np.log(levels))))

@@ -43,7 +43,7 @@ AggTaskArgs = namedtuple(
 
 @dataclass
 class DistributedAggregationTaskArguments:
-    """Class for pass arguments to Distributed Tasks."""
+    """Class for passing arguments to Distributed Tasks."""
 
     hazard_model_id: str
     source_branches_id: str
@@ -55,8 +55,40 @@ class DistributedAggregationTaskArguments:
     vs30s: List[int]
 
 
+class AggregationWorkerMP(multiprocessing.Process):
+    """A worker that batches and saves records to DynamoDB. ported from THS."""
+
+    def __init__(self, task_queue, result_queue):
+        multiprocessing.Process.__init__(self)
+        self.task_queue = task_queue
+        self.result_queue = result_queue
+
+    def run(self):
+        log.info("worker %s running." % self.name)
+        proc_name = self.name
+
+        while True:
+            nt = self.task_queue.get()
+            if nt is None:
+                # Poison pill means shutdown
+                self.task_queue.task_done()
+                log.info('%s: Exiting' % proc_name)
+                break
+
+            process_location_list(nt)
+            self.task_queue.task_done()
+            log.info('%s task done.' % self.name)
+            self.result_queue.put(str(nt.grid_loc))
+
+
 def process_location_list(task_args):
-    """The math happens inside here... REFACTOR ME. ported from THS."""
+    """For each imt and location, get the weighed aggregate statiscits of the hazard curve (or flattened disagg matrix)
+    realizations. This is done over 100 elements of the hazard curve at a time to reduce phyisical memory usage
+    which allows for multiple calculations at once when the hazard curve is long (e.g. large disaggregations).
+
+    REFACTOR.
+    """
+
     locs = task_args.locs
     toshi_ids = task_args.toshi_ids
     source_branches = task_args.source_branches
@@ -167,32 +199,6 @@ def process_location_list(task_args):
     log.info('process_location_list took %.3f secs' % (toc_fn - tic_fn))
 
 
-class AggregationWorkerMP(multiprocessing.Process):
-    """A worker that batches and saves records to DynamoDB. ported from THS."""
-
-    def __init__(self, task_queue, result_queue):
-        multiprocessing.Process.__init__(self)
-        self.task_queue = task_queue
-        self.result_queue = result_queue
-
-    def run(self):
-        log.info("worker %s running." % self.name)
-        proc_name = self.name
-
-        while True:
-            nt = self.task_queue.get()
-            if nt is None:
-                # Poison pill means shutdown
-                self.task_queue.task_done()
-                log.info('%s: Exiting' % proc_name)
-                break
-
-            process_location_list(nt)
-            self.task_queue.task_done()
-            log.info('%s task done.' % self.name)
-            self.result_queue.put(str(nt.grid_loc))
-
-
 def process_aggregation_local_serial(
     hazard_model_id,
     toshi_ids,
@@ -204,7 +210,7 @@ def process_aggregation_local_serial(
     deagg=False,
     save_rlz=False,
 ):
-    """run task serially. This is temporoary to help debug deaggs"""
+    """Run task serially. This is only needed if running the debugger"""
 
     toshi_ids = {int(k): v for k, v in toshi_ids.items()}
     source_branches = {int(k): v for k, v in source_branches.items()}
@@ -242,10 +248,34 @@ def process_aggregation_local(
     levels,
     config,
     num_workers,
-    deagg=False,
     save_rlz=False,
 ):
-    """Run task locally using Multiprocessing. ported from THS."""
+    """Place aggregation jobs into a multiprocessing queue.
+
+    Parameters
+    ----------
+    hazard_model_id : str
+        id of toshi-hazard-store model to write to
+    tohsi_ids : List[str]
+        Toshi IDs of Openquake Hazard Solutions
+    source_branches : List[?]
+        list of source model branches
+    coded_locations : List[CodedLocation]
+        locations at which to calculate hazard
+    levels : List[float]
+        shaking levels of hazard curve
+    config : AggregationConfig
+        the config
+    num_workers : int
+        number of multiprocessing tasks to run simultaneously
+    save_rlz : bool
+        flag, save realizations to disk
+
+    Returns
+    -------
+    results : List[str]
+        locations processed
+    """
     # num_workers = 1
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
@@ -258,9 +288,6 @@ def process_aggregation_local(
     tic = time.perf_counter()
     # Enqueue jobs
     num_jobs = 0
-    deagg_poe = (
-        config.deagg_poes[0] if deagg else None
-    )  # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
 
     toshi_ids = {int(k): v for k, v in toshi_ids.items()}
     source_branches = {int(k): v for k, v in source_branches.items()}
@@ -277,8 +304,8 @@ def process_aggregation_local(
                 config.imts,
                 levels,
                 vs30,
-                deagg,
-                deagg_poe,
+                False,
+                None,
                 None,
                 save_rlz,
             )
@@ -306,16 +333,17 @@ def process_aggregation_local(
     return results
 
 
-def process_aggregation(config: AggregationConfig, deagg=False):
-    """Configure the tasks."""
+def process_aggregation(config: AggregationConfig):
+    """Gather task information and launch local aggregation processing.
+
+    Parameters
+    ----------
+    config : AggregationConfig
+        the config
+    """
     omit: List[str] = []
 
-    if deagg:
-        config.validate_deagg()
-        config.validate_deagg_file()
-        gtdata = config.deagg_solutions
-    else:
-        gtdata = config.hazard_solutions
+    gtdata = config.hazard_solutions
 
     toshi_ids = {}
     for vs30 in config.vs30s:
@@ -345,15 +373,12 @@ def process_aggregation(config: AggregationConfig, deagg=False):
 
     example_loc_code = coded_locations[0].downsample(0.001).code
 
-    if deagg:  # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
-        levels = []
-    else:
-        levels = get_levels(
-            source_branches[config.vs30s[0]], [example_loc_code], config.vs30s[0]
-        )  # TODO: get seperate levels for every IMT
-        avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0])  # TODO: equiv check for deaggs
-        for imt in config.imts:
-            assert imt in avail_imts
+    levels = get_levels(
+        source_branches[config.vs30s[0]], [example_loc_code], config.vs30s[0]
+    )  # TODO: get seperate levels for every IMT
+    avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0])  # TODO: equiv check for deaggs
+    for imt in config.imts:
+        assert imt in avail_imts
 
     process_aggregation_local(
         config.hazard_model_id,
@@ -363,7 +388,6 @@ def process_aggregation(config: AggregationConfig, deagg=False):
         levels,
         config,
         NUM_WORKERS,
-        deagg=deagg,
         save_rlz=config.save_rlz,
     )  # TODO: use source_branches dict
 

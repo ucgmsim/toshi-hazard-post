@@ -54,7 +54,7 @@ def weighted_avg_and_std(values, weights):
 
     Parameters
     ----------
-    values : numpy array_like
+    values : Iterator[float]
         array of values
     weights : Iterator[float]
         weights of values. Same length as values.
@@ -69,25 +69,6 @@ def weighted_avg_and_std(values, weights):
     # Fast and numerically precise:
     variance = np.average((values - average) ** 2, weights=weights)
     return (average, math.sqrt(variance))
-
-
-def calculate_mean(values, weight):
-    """Calculate weighted mean
-
-    Parameters
-    ----------
-    values : numpy array_like
-        array of values
-    weights : numpy array_like
-        array of weights
-
-    Returns
-    -------
-    mean : float
-        weighted mean
-    """
-
-    return np.sum(weight * values)
 
 
 def calculate_weighted_quantiles(values, weights, quantiles):
