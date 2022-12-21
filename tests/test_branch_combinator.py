@@ -7,7 +7,7 @@ from operator import mul
 from pathlib import Path
 import pytest
 
-from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT, build_rlz_table
+from toshi_hazard_post.branch_combinator import build_full_source_lt, grouped_ltbs, merge_ltbs_fromLT, build_rlz_table
 
 
 class TestCombinator(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestCombinator(unittest.TestCase):
         self._ltb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'SLT_test_cor.json')
         self._vs30 = 400
 
-    def test_build_source_branches(self):
+    def test_build_full_source_lt(self):
 
         ltb_data = json.load(open(self._ltb_file, 'r'))
 
@@ -25,7 +25,7 @@ class TestCombinator(unittest.TestCase):
         omit = []
 
         grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), self._vs30)
-        source_branches = get_weighted_branches(grouped)  # TODO: add correlations to source LT
+        source_branches = build_full_source_lt(grouped)  # TODO: add correlations to source LT
 
         # print(source_branches)
 
@@ -65,7 +65,7 @@ class TestCorrelatedCombinator(unittest.TestCase):
         self._ltb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'SLT_test_cor.json')
         self._vs30 = 400
 
-    def test_build_correlated_source_branches(self):
+    def test_build_full_source_lt_correlated(self):
 
         ltb_data = json.load(open(self._ltb_file, 'r'))
 
@@ -75,7 +75,7 @@ class TestCorrelatedCombinator(unittest.TestCase):
         omit = []
 
         grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), self._vs30)
-        source_branches = get_weighted_branches(grouped, correlations)  # TODO: add correlations to source LT
+        source_branches = build_full_source_lt(grouped, correlations)  # TODO: add correlations to source LT
 
         # test that we get the correct ids
         expected = json.load(open(self._sb_file, 'r'))
@@ -96,7 +96,7 @@ class TestGroupedLTBs(unittest.TestCase):
     def setUp(self):
         self._ltb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'SLT_test_vs30.json')
 
-    def test_build_correlated_source_branches_vs30(self):
+    def test_build_full_source_lt_correlated_vs30(self):
 
         ltb_data = json.load(open(self._ltb_file, 'r'))
         logic_tree_permutations = ltb_data['logic_tree_permutations']

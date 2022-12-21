@@ -12,6 +12,21 @@ log = logging.getLogger(__name__)
 
 
 def get_levels(source_branches, locs, vs30):
+    """Get the values of the levels (shaking levels) for the hazard curve from Toshi-Hazard-Store
+
+    Parameters
+    ----------
+    source_branches : list
+        complete logic tree with Openquake Hazard Solutions Toshi IDs
+    locs : List[str]
+        coded locations
+    vs30 : int
+        vs30
+
+    Returns
+    -------
+    levels : List[float]
+        shaking levels of hazard curve"""
 
     id = source_branches[0]['ids'][0]
 
@@ -22,6 +37,21 @@ def get_levels(source_branches, locs, vs30):
 
 
 def get_imts(source_branches, vs30):
+    """Get the intensity measure types (IMTs) for the hazard curve from Toshi-Hazard-Store
+
+    Parameters
+    ----------
+    source_branches : list
+        complete logic tree with Openquake Hazard Solutions Toshi IDs
+    locs : List[str]
+        coded locations
+    vs30 : int
+        vs30
+
+    Returns
+    -------
+    levels : List[str]
+        IMTs of hazard curve"""
 
     ids = source_branches[0]['ids']
     meta = next(get_hazard_metadata_v3(ids, [vs30]))
@@ -32,6 +62,21 @@ def get_imts(source_branches, vs30):
 
 
 def load_realization_values(toshi_ids, locs, vs30s):
+    """Load hazard curves from Toshi-Hazard-Store.
+
+    Parameters
+    ----------
+    toshi_ids : List[str]
+        Openquake Hazard Solutions Toshi IDs
+    locs : List[str]
+        coded locations
+    vs30s : List[int]
+        vs30s
+
+    Returns
+    values : dict
+        hazard curve values (probabilities) keyed by Toshi ID and gsim realization number
+    """
 
     tic = time.perf_counter()
     # unique_ids = []
@@ -50,10 +95,10 @@ def load_realization_values(toshi_ids, locs, vs30s):
             for val in res.values:
                 values[key][res.nloc_001][val.imt] = np.array(val.vals)
                 for i, v in enumerate(val.vals):
-                    if not v:
+                    if not v:  # TODO: not sure what this is for
                         log.debug(
                             '%s th value at location: %s, imt: %s, hazard key %s is %s'
-                            % (i, res.nloc_001, val.imt, key, val)
+                            % (i, res.nloc_001, val.imt, key, v)
                         )
     except Exception as err:
         logging.warning(
@@ -84,6 +129,23 @@ def load_realization_values(toshi_ids, locs, vs30s):
 
 
 def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
+    """Load deagg matricies from oq-engine csv archives. Temporoary until deaggs are stored in THS.
+
+    Parameters
+    ----------
+    toshi_ids : List[str]
+        Openquake Hazard Solutions Toshi IDs
+    locs : List[str]
+        coded locations
+    vs30s : List[int]
+        not used
+
+    Returns
+    values : dict
+        hazard curve values (probabilities) keyed by Toshi ID and gsim realization number
+    bins : dict
+        bin centers for each deagg dimension
+    """
 
     tic = time.perf_counter()
     log.info('loading %s hazard IDs ... ' % len(toshi_ids))

@@ -89,6 +89,18 @@ def stat_test_64():
 
 
 def get_locations(config):
+    """Get list of locations.
+
+    Parameters
+    ----------
+    config : AggregationConfig
+        job configuration
+
+    Returns
+    -------
+    locations : List[(float,float)]
+        list of (latitude, longitude)
+    """
 
     if type(config.locations) is list:
         locations = []

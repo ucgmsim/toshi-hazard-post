@@ -56,7 +56,7 @@ class DistributedAggregationTaskArguments:
 
 
 class AggregationWorkerMP(multiprocessing.Process):
-    """A worker that batches and saves records to DynamoDB. ported from THS."""
+    """A worker that batches aggregation processing."""
 
     def __init__(self, task_queue, result_queue):
         multiprocessing.Process.__init__(self)
@@ -141,7 +141,6 @@ def process_location_list(task_args):
             location = CodedLocation(float(lat), float(lon), resolution)
             log.debug('build_branches imt: %s, loc: %s, vs30: %s' % (imt, loc, vs30))
 
-            # TODO: make these two functions more readable
             ncols = get_len_rate(values)
             hazard = np.empty((ncols, len(aggs)))
             stride = 100  # TODO: optimise stride length for avail. physical mem., number of threads, ...?
@@ -207,16 +206,12 @@ def process_aggregation_local_serial(
     levels,
     config,
     num_workers,
-    deagg=False,
     save_rlz=False,
 ):
     """Run task serially. This is only needed if running the debugger"""
 
     toshi_ids = {int(k): v for k, v in toshi_ids.items()}
     source_branches = {int(k): v for k, v in source_branches.items()}
-    deagg_poe = (
-        config.deagg_poes[0] if deagg else None
-    )  # TODO: poes is a list, but when processing we only want one value, bit of a hack to use same entry in the config for both
 
     for coded_loc in coded_locations:
         for vs30 in config.vs30s:
@@ -230,8 +225,8 @@ def process_aggregation_local_serial(
                 config.imts,
                 levels,
                 vs30,
-                deagg,
-                deagg_poe,
+                False,
+                None,
                 None,
                 save_rlz,
             )
@@ -341,6 +336,8 @@ def process_aggregation(config: AggregationConfig):
     config : AggregationConfig
         the config
     """
+    serial = True
+
     omit: List[str] = []
 
     gtdata = config.hazard_solutions
@@ -366,8 +363,8 @@ def process_aggregation(config: AggregationConfig):
             truncate=config.source_branches_truncate,
         )
     log.info('finished building logic tree ')
-    locations = get_locations(config)
 
+    locations = get_locations(config)
     resolution = 0.001
     coded_locations = [CodedLocation(*loc, resolution) for loc in locations]
 
@@ -380,17 +377,25 @@ def process_aggregation(config: AggregationConfig):
     for imt in config.imts:
         assert imt in avail_imts
 
-    process_aggregation_local(
-        config.hazard_model_id,
-        toshi_ids,
-        source_branches,
-        coded_locations,
-        levels,
-        config,
-        NUM_WORKERS,
-        save_rlz=config.save_rlz,
-    )  # TODO: use source_branches dict
-
-    # process_aggregation_local_serial(
-    #     config.hazard_model_id, toshi_ids, source_branches, coded_locations, levels, config, NUM_WORKERS, deagg=deagg, save_rlz=config.save_rlz
-    # )  # TODO: use source_branches dict
+    if not serial:
+        process_aggregation_local(
+            config.hazard_model_id,
+            toshi_ids,
+            source_branches,
+            coded_locations,
+            levels,
+            config,
+            NUM_WORKERS,
+            save_rlz=config.save_rlz,
+        )  # TODO: use source_branches dict
+    else:
+        process_aggregation_local_serial(
+            config.hazard_model_id,
+            toshi_ids,
+            source_branches,
+            coded_locations,
+            levels,
+            config,
+            NUM_WORKERS,
+            save_rlz=config.save_rlz,
+        )  # TODO: use source_branches dict

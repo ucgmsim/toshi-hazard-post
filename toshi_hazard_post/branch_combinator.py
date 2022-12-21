@@ -19,6 +19,19 @@ def get_branches():
 
 
 def preload_meta(ids, vs30):
+    """Retreive the GMCM logic tree metadata from Toshi-Hazard-Store.
+
+    Parameters
+    ----------
+    ids : List[str]
+        Toshi IDs of Openquake Hazard Solutions
+    vs30 : int
+
+    Returns
+    -------
+    metadata : dict[toshi_id]
+        dictionary of ground motion logic tree metadata dictionaries
+    """
 
     metadata = {}
     for meta in get_hazard_metadata_v3(ids, [vs30]):
@@ -31,8 +44,27 @@ def preload_meta(ids, vs30):
 
 def build_rlz_table(branch, metadata, correlations=None):
     """
-    build the table of ground motion combinations and weights for a single source branch
-    assumes only one source per run and the same gsim weights in every run
+    Build the table of ground motion combinations and weights for a single source branch.
+    Assumes one source branch per run and the same gsim weights in every run. Can enforce correlations of ground motion models.
+
+    Parameters
+    ----------
+    branch : dict
+        single source branch definition (from build_full_source_lt() )
+    metadata : dict
+        GMCM logic tree metadata (from preload_meta() )
+    correlations : List[List[str]]
+        GMCM logic tree correlations, each inner list element contains two ground motion model strings to correlate.
+
+    Returns
+    -------
+    rlz_combs : List[List[str]]
+        combinations of Openquake Hazard Solutions Toshi IDs and realization numbers to combine to form a single GMCM logic tree branch.
+        e.g. ['TIDa:0', 'TIDb:1', 'TIDc:1', 'TIDd:1']
+    weight_combs : List[float]
+        weights of each branch
+    rlz_sets : dict
+        mapping for each tectonic-region-type of ground motion models to ToshiID:rlz_number str pairs
     """
 
     if correlations:
@@ -113,12 +145,39 @@ def build_rlz_table(branch, metadata, correlations=None):
 def build_source_branches(
     logic_tree_permutations, gtdata, src_correlations, gmm_correlations, vs30, omit, toshi_ids, truncate=None
 ):
-    """ported from THS. aggregate_rlzs_mp"""
-    # pr.enable()
+    """Build the complete logic tree including all SRM and GMCM trees.
+
+    Parameters
+    ----------
+    logic_tree_permutations : List
+        contains dict definitions of source logic trees for each fault system
+    gtdata : dict
+        result of ToshiAPI query on GT ID of oq-engine run
+    src_correlations : dict
+        defines correlations between branches of source fault system logic trees
+    gmm_correlations : List[List[str]]
+        GMCM logic tree correlations, each inner list element contains two ground motion model strings to correlate.
+    vs30 : int
+        vs30 of interest, must match what was used in oq-engine run found in gtdata
+    omit : List[str]
+        list of Openquake Hazard Solutions Toshi IDs to exculde from the aggregation calculation
+    toshi_ids : List[str]
+        list of Openquake Hazard Solutions Toshi IDs to include from the aggregation calculation
+    truncate : int
+        number of branches to include, used only to speed up calculation during debugging
+
+    Returns
+    -------
+    source_branches : Dict[int]
+        dict of source branches with the key being the vs30 for that model. Each entry is a list of source branches,
+        each of which with a full GMGM logic tree definition.
+    """
+
+    # TODO: shoudn't need both toshi_ids and omit
 
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
 
-    source_branches = get_weighted_branches(grouped, src_correlations)
+    source_branches = build_full_source_lt(grouped, src_correlations)
 
     if truncate:
         # for testing only
@@ -140,8 +199,21 @@ def build_source_branches(
     return source_branches
 
 
-def get_weighted_branches(grouped_ltbs, correlations=None):
-    """build source branches"""
+def build_full_source_lt(grouped_ltbs, correlations=None):
+    """Build full source logic tree from all combinations of source fault system tree branches, enforcing correlations.
+
+    Parameters
+    ----------
+    grouped_ltbs : dict
+        dictionary of source fault system branches
+    correlations : Dict[str]
+        source correlations
+
+    Returns
+    -------
+    source_branches : List[dict]
+        list of all source branches of complete logic tree
+    """
 
     # TODO: only handles one combined job and one permutation set
     permute = grouped_ltbs  # tree_permutations[0][0]['permute']
@@ -202,6 +274,20 @@ Member = namedtuple("Member", "group tag weight inv_id bg_id hazard_solution_id 
 
 
 def weight_and_ids(data):
+    """Parses ToshiAPI query result from Openquake Hazard GT to return weights and Toshi IDs for each branch of the
+    source logic tree.
+
+    Parameters
+    ----------
+    data : dict
+        result of ToshiAPI query on GT ID of oq-engine run
+
+    Returns
+    -------
+    branch_info : Iterator[Member]
+        namedtuples containing information on each logic tree branch in the source logic tree
+    """
+
     def get_tag(args):
         for arg in args:
             if arg['k'] == "logic_tree_permutations":
@@ -224,7 +310,18 @@ def weight_and_ids(data):
 
 
 def all_members_dict(ltbs):
-    """LTBS from ther toshi GT - NB some may be failed jobs..."""
+    """Parses source logic tree to place info in namedtuple
+
+    Parameters
+    ----------
+    ltbs : List
+        contains dict definitions of source logic trees for each fault system
+
+    Returns
+    -------
+    members : dict
+        {str(concat of source ids) : namedtuple}
+    """
     res = {}
 
     def members():
@@ -239,6 +336,25 @@ def all_members_dict(ltbs):
 
 
 def merge_ltbs(logic_tree_permutations, gtdata, omit):
+    """Same as merge_ltbs_fromLT() but includes all results from gtdata rather than restricting to matches
+    with logic_tree_permutations.
+
+    Parameters
+    ----------
+    logic_tree_permutations : List
+        contains dict definitions of source logic trees for each fault system
+    gtdata : dict
+        result of ToshiAPI query on GT ID of oq-engine run
+    omit : List[str]
+        list of Openquake Hazard Solutions Toshi IDs to exculde from the aggregation calculation
+
+    Returns
+    -------
+    branch : Iterator[namedtuple]
+        namedtuple for each (pre-combined) branch of source logic tree with Toshi Openquake Hazard Solutions mapped
+        to branches
+    """
+
     members = all_members_dict(logic_tree_permutations)
     # weights are the actual Hazard weight @ 1.0
     for toshi_ltb in weight_and_ids(gtdata):
@@ -252,7 +368,24 @@ def merge_ltbs(logic_tree_permutations, gtdata, omit):
 
 
 def merge_ltbs_fromLT(logic_tree_permutations, gtdata, omit):
-    """map source IDs in LT definition to Hazard IDs from GT"""
+    """Map source IDs in source logic tree to Toshi IDs of Openquake Hazard Solutions
+
+    Parameters
+    ----------
+    logic_tree_permutations : List
+        contains dict definitions of source logic trees for each fault system
+    gtdata : dict
+        result of ToshiAPI query on GT ID of oq-engine run
+    omit : List[str]
+        list of Openquake Hazard Solutions Toshi IDs to exculde from the aggregation calculation
+
+    Returns
+    -------
+    branch : Iterator[namedtuple]
+        namedtuple for each (pre-combined) branch of source logic tree with Toshi Openquake Hazard Solutions mapped
+        to branches
+    """
+
     members = all_members_dict(logic_tree_permutations)
     # weights are the actual Hazard weight @ 1.0
     for toshi_ltb in weight_and_ids(gtdata):
@@ -268,7 +401,21 @@ def merge_ltbs_fromLT(logic_tree_permutations, gtdata, omit):
 
 
 def grouped_ltbs(merged_ltbs, vs30):
-    """groups by trt"""
+    """groups by trt
+
+    Parameters
+    ----------
+    merged_ltbs : Iterator[namedtuple]
+        iterator of all (pre-combined) source branches with Toshi Openquake Hazard Solutions
+        mapped (from merge_ltbs_fromLT() )
+    vs30 : int
+        vs30
+
+    Returns
+    -------
+    grouped : dict
+        source branches grouped by fault system
+    """
     grouped = {}
     for ltb in merged_ltbs:
         if ltb.vs30 == vs30:
