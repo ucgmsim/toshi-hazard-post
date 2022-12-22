@@ -92,8 +92,6 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
     REFACTOR.
     """
-    breakpoint()
-    assert 0
 
     locs = task_args.locs
     toshi_ids = task_args.toshi_ids
@@ -134,7 +132,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     if not values:
         log.info('missing values: %s' % (values))
         return
-
+    
     weights = get_branch_weights(source_branches)
     for imt in imts:
         log.info('process_location_list() working on imt: %s' % imt)
