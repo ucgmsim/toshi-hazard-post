@@ -6,7 +6,7 @@ import multiprocessing
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import List
+from typing import List, Iterable, Dict, Union, Any
 
 import numpy as np
 from nzshm_common.location.code_location import CodedLocation
@@ -58,7 +58,11 @@ class DistributedAggregationTaskArguments:
 class AggregationWorkerMP(multiprocessing.Process):
     """A worker that batches aggregation processing."""
 
-    def __init__(self, task_queue, result_queue):
+    def __init__(
+        self,
+        task_queue: multiprocessing.JoinableQueue,
+        result_queue: multiprocessing.Queue
+    ):
         multiprocessing.Process.__init__(self)
         self.task_queue = task_queue
         self.result_queue = result_queue
@@ -81,13 +85,15 @@ class AggregationWorkerMP(multiprocessing.Process):
             self.result_queue.put(str(nt.grid_loc))
 
 
-def process_location_list(task_args):
+def process_location_list(task_args: AggTaskArgs) -> None:
     """For each imt and location, get the weighed aggregate statiscits of the hazard curve (or flattened disagg matrix)
     realizations. This is done over 100 elements of the hazard curve at a time to reduce phyisical memory usage
     which allows for multiple calculations at once when the hazard curve is long (e.g. large disaggregations).
 
     REFACTOR.
     """
+    breakpoint()
+    assert 0
 
     locs = task_args.locs
     toshi_ids = task_args.toshi_ids
@@ -199,15 +205,15 @@ def process_location_list(task_args):
 
 
 def process_aggregation_local_serial(
-    hazard_model_id,
-    toshi_ids,
-    source_branches,
-    coded_locations,
-    levels,
-    config,
-    num_workers,
-    save_rlz=False,
-):
+    hazard_model_id: str,
+    toshi_ids: Dict[Union[str, int], Any],
+    source_branches: Dict[Union[str, int], Any],
+    coded_locations: Iterable[CodedLocation],
+    levels: Iterable[float],
+    config: AggregationConfig,
+    num_workers: int,
+    save_rlz: bool = False,
+) -> None:
     """Run task serially. This is only needed if running the debugger"""
 
     toshi_ids = {int(k): v for k, v in toshi_ids.items()}
@@ -236,15 +242,15 @@ def process_aggregation_local_serial(
 
 
 def process_aggregation_local(
-    hazard_model_id,
-    toshi_ids,
-    source_branches,
-    coded_locations,
-    levels,
-    config,
-    num_workers,
-    save_rlz=False,
-):
+    hazard_model_id: str,
+    toshi_ids: Dict[Union[str, int], Any],
+    source_branches: Dict[Union[str, int], Any],
+    coded_locations: Iterable[CodedLocation],
+    levels: Iterable[float],
+    config: AggregationConfig,
+    num_workers: int,
+    save_rlz: bool = False,
+) -> List[str]:
     """Place aggregation jobs into a multiprocessing queue.
 
     Parameters
@@ -317,7 +323,7 @@ def process_aggregation_local(
     # Wait for all of the tasks to finish
     task_queue.join()
 
-    results = []
+    results: List[str] = []
     while num_jobs:
         result = result_queue.get()
         results.append(result)
@@ -328,7 +334,7 @@ def process_aggregation_local(
     return results
 
 
-def process_aggregation(config: AggregationConfig):
+def process_aggregation(config: AggregationConfig) -> None:
     """Gather task information and launch local aggregation processing.
 
     Parameters

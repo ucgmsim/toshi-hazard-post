@@ -1,10 +1,11 @@
 import ast
 import logging
 import time
+from typing import List, Iterable, Union, Tuple, Dict, Any, Collection
 
 import numpy as np
-import pandas as pd
-from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
+import numpy.typing as npt
+import pandas as pd 
 
 from toshi_hazard_post.calculators import calculate_weighted_quantiles, prob_to_rate, rate_to_prob, weighted_avg_and_std
 
@@ -15,25 +16,25 @@ VERBOSE = True
 log = logging.getLogger(__name__)
 
 
-def weighted_stats(values, quantiles, sample_weight=None):
+def weighted_stats(values: Iterable[float], quantiles: List[str], sample_weight: Iterable[float] = None) -> npt.NDArray:
     """Get weighted statistics for a 1D array like object.
 
     Parameters
     ----------
-    values : List[float]
+    values
         the values for which to obtain statistics
-    quantiles : List[str]
+    quantiles
         statistics of interest. Possible values are
         'mean' : weighted arithmetic mean
         'std' : weighted standard deviation
         'cov' : coefficient of varation (std/mean)
         q : quantile where q is a float or the string representation of a float between 0 and 1
-    sample_weight : List[float]
+    sample_weight
         weights for values, same length as values
 
     Returns
     -------
-    stats : List[float]
+    stats
         statistics in same order as quantiles
     """
 
@@ -64,12 +65,12 @@ def weighted_stats(values, quantiles, sample_weight=None):
             quantiles = quantiles[0:cov_ind] + quantiles[cov_ind + 1 :]
             cov = std / mean
 
-    quantiles = np.array([float(q) for q in quantiles])  # TODO this is hacky, need to tighten up API with typing
+    quants = np.array([float(q) for q in quantiles])  # TODO this is hacky, need to tighten up API with typing
     # print(f'QUANTILES: {quantiles}')
 
-    assert np.all(quantiles >= 0) and np.all(quantiles <= 1), 'quantiles should be in [0, 1]'
+    assert np.all(quants >= 0) and np.all(quants <= 1), 'quantiles should be in [0, 1]'
 
-    wq = calculate_weighted_quantiles(values, sample_weight, quantiles)
+    wq = calculate_weighted_quantiles(values, sample_weight, quants)
 
     if get_cov:
         wq = np.append(np.append(wq[0:cov_ind], np.array([cov])), wq[cov_ind:])
@@ -84,28 +85,28 @@ def weighted_stats(values, quantiles, sample_weight=None):
     return wq
 
 
-def calc_weighted_sum(rlz_combs, values, loc, imt, start_ind, end_ind):
+def calc_weighted_sum(rlz_combs: Collection[str], values: Dict[str, dict], loc: str, imt: str, start_ind: int, end_ind: int) -> npt.NDArray:
     """Calculate the weighted sum of probabilities, first converting to rate, then back to probability. Works on
     probability array in chunks to reduce memory usage.
 
     Parameters
     ----------
-    rlz_combs : List[str]
+    rlz_combs
         ToshiID:gsim_realization keys
-    values : dict
+    values
         probability values
-    loc : str
+    loc
         coded location
-    imt : str
+    imt
         intensity measure type
-    start_ind : int
+    start_ind
         start index of probability array to work on
-    end_ind : int
+    end_ind
         end index of probability array to work on
 
     Returns
     -------
-    probability : 2D numpy array
+    probability
         axis0 = realization combination
         axis1 = probability array
     """
@@ -124,26 +125,26 @@ def calc_weighted_sum(rlz_combs, values, loc, imt, start_ind, end_ind):
     return prob_table
 
 
-def calculate_aggs(branch_probs, aggs, weight_combs):
+def calculate_aggs(branch_probs: npt.NDArray, aggs: List[str], weight_combs: Collection[float]) -> npt.NDArray:
     """Gets aggregate statistics for array of probability curves.
 
     Parameters
     ----------
-    branch_probs : 2D numpy array
+    branch_probs
         probabilities
         aggregate statistics will be taken across axis 0
-    aggs : List[str]
+    aggs
         aggregate statistics of interest. Possible values are
         'mean' : weighted arithmetic mean
         'std' : weighted standard deviation
         'cov' : coefficient of varation (std/mean)
         q : quantile where q is a float or the string representation of a float between 0 and 1
-    weight_combs : List[float]
+    weight_combs
         weights for values, len(weight_combs) = branch_probs.shape[0]
 
     Returns
     -------
-    probs : 2D numpy array
+    probs
         element by element aggregate statistics
         axis 0 = probability curve (e.g. values of hazard curve)
         axis 1 = aggs
@@ -163,17 +164,17 @@ def calculate_aggs(branch_probs, aggs, weight_combs):
     return rate_to_prob(median, INV_TIME)
 
 
-def get_len_rate(values):
+def get_len_rate(values: Dict[str, dict]) -> int:
     """Get the length of the probability array
 
     Parameters
     ----------
-    values : dict
+    values
         probability values
 
     Returns
     -------
-    length : int
+    length
     """
 
     # TODO: is there a better way to do this? Maybe if values is stored as a DataFrame?
@@ -185,17 +186,17 @@ def get_len_rate(values):
     return rate_shape[0]
 
 
-def get_branch_weights(source_branches):
+def get_branch_weights(source_branches: List[dict]) -> npt.NDArray:
     """Get the weight of every realization of the full, combined source and gsim logic tree.
 
     Parameters
     ----------
-    source_branches : List[dict]
+    source_branches
         list of all source branches of complete logic tree
 
     Returns
     -------
-    weights : list
+    weights
         multiplicitive weights of all branches of full, combined logic tree
     """
 
@@ -210,31 +211,37 @@ def get_branch_weights(source_branches):
     return weights
 
 
-def build_branches(source_branches, values, imt, loc, vs30, start_ind, end_ind):
+def build_branches(
+    source_branches: List[dict],
+    values: Dict[str, dict],
+    imt: str,
+    loc: str,
+    vs30: int,
+    start_ind: int,
+    end_ind: int
+) -> npt.NDArray:
     """For each source branch, calculate the weighted sum probability.
 
     Parameters
     ----------
-    source_branches : List[dict]
+    source_branches
         list of all source branches of complete logic tree
-    values : dict
+    values
         probability values
-    imt : str
+    imt
         intensity measure type
-    loc : str
+    loc
         coded location
-    vs30: int
+    vs30
         not used
-    start_ind : int
+    start_ind
         start index of probability array to work on
-    end_ind : int
+    end_ind
         end index of probability array to work on
 
     Returns
     -------
-    Returns
-    -------
-    probability : 2D numpy array
+    probability
         axis0 = realization combination
         axis1 = probability array
     """
