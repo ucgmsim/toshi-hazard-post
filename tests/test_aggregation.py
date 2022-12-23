@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from unittest import mock
 from unittest.mock import ANY
+from pytest import approx
 
 import numpy as np
 
@@ -23,37 +24,41 @@ values = np.load(Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'values.n
 
 
 @mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.load_realization_values')
-# @mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.batch')
-# @mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.model.HazardAggregation.batch_write().save', new_callable=mock.mock_open)
-# @mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.model.HazardAggregation.batch_write().save')
-# @mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.model.HazardAggregation.save')
-@mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.model.HazardAggregation.batch_write')
+@mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.model.HazardAggregation')
+@mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.model.LevelValuePairAttribute')
 class TestAggregation(unittest.TestCase):
     def setUp(self):
         self._task_args_file = Path(Path(__file__).parent, 'fixtures/aggregation', 'task_args.json')
         self._values_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'values.npy')
+        self._lvls_file = Path(Path(__file__).parent, 'fixtures/aggregation', 'lvls_expected.npy')
+        self._vals_file = Path(Path(__file__).parent, 'fixtures/aggregation', 'vals_expected.npy')
+        self._kwargs_file = Path(Path(__file__).parent, 'fixtures/aggregation', 'hazard_agg_kwargs.json')
 
 
-    def test_process_location_list(self, mock_ths, mock_load):
-    # def test_process_location_list(self, mock_load):
+    def test_process_location_list(self, mock_lvl_val, mock_hazard_agg, mock_load):
 
         mock_load.return_value = np.load(self._values_file, allow_pickle=True)[()]
-        # mock_ths.HazardAggregation.batch_write.__enter__.return_value = batch_write
-
-     
+        lvls_expected = np.load(self._lvls_file)
+        vals_expected = np.load(self._vals_file)
+        kwargs_expected = json.load(open(self._kwargs_file))
+        n_lvl_vals_expected = len(lvls_expected) 
         task_args = AggTaskArgs(*json.load(open(self._task_args_file)))
 
         toshi_hazard_post.hazard_aggregation.aggregation.process_location_list(task_args)
 
         mock_load.assert_called()
-        breakpoint()
+        assert len(mock_lvl_val.mock_calls) == n_lvl_vals_expected 
 
-        # for agg in task_args.aggs:
-        #     requests_arguments = {
-        #         'values': ANY,
-        #         'vs30': 400,
-        #         'imt': 'PGA',
-        #         'agg': agg,
-        #         'hazard_model_id': 'TEST'
-        #     }
-        #     mock_ths.HazardAggregation.assert_any_call(**requests_arguments)
+        lvls = np.empty(n_lvl_vals_expected,)
+        vals = np.empty(n_lvl_vals_expected,)
+        for i in range(n_lvl_vals_expected):
+            lvls[i] = mock_lvl_val.mock_calls[0].kwargs['lvl']
+            vals[i] = mock_lvl_val.mock_calls[0].kwargs['val']
+
+        assert np.allclose(lvls, lvls_expected)
+        assert np.allclose(vals, vals_expected) 
+
+        kwds = ['vs30', 'imt', 'agg', 'hazard_model_id']
+        for ind, expected in kwargs_expected.items():
+            kwargs = {k:v for k,v in mock_hazard_agg.mock_calls[int(ind)].kwargs.items() if k in kwds}
+            assert kwargs == expected

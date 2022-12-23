@@ -37,7 +37,7 @@ pr = cProfile.Profile()
 
 AggTaskArgs = namedtuple(
     "AggTaskArgs",
-    "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe deagg_imtl save_rlz",
+    "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe deagg_imtl save_rlz stride",
 )
 
 
@@ -92,7 +92,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
     REFACTOR.
     """
-
+    
     locs = task_args.locs
     toshi_ids = task_args.toshi_ids
     source_branches = task_args.source_branches
@@ -102,6 +102,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     vs30 = task_args.vs30
     deagg_dimensions = task_args.deagg
     save_rlz = task_args.save_rlz
+    stride = task_args.stride
 
     if deagg_dimensions:
         poe = task_args.poe
@@ -147,7 +148,6 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
             ncols = get_len_rate(values)
             hazard = np.empty((ncols, len(aggs)))
-            stride = 100  # TODO: optimise stride length for avail. physical mem., number of threads, ...?
             for start_ind in range(0, ncols, stride):
                 end_ind = start_ind + stride
                 if end_ind > ncols:
