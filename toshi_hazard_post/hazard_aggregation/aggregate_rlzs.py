@@ -1,11 +1,11 @@
 import ast
 import logging
 import time
-from typing import List, Iterable, Union, Tuple, Dict, Any, Collection
+from typing import Any, Collection, Dict, Iterable, List, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
-import pandas as pd 
+import pandas as pd
 
 from toshi_hazard_post.calculators import calculate_weighted_quantiles, prob_to_rate, rate_to_prob, weighted_avg_and_std
 
@@ -85,7 +85,9 @@ def weighted_stats(values: Iterable[float], quantiles: List[str], sample_weight:
     return wq
 
 
-def calc_weighted_sum(rlz_combs: Collection[str], values: Dict[str, dict], loc: str, imt: str, start_ind: int, end_ind: int) -> npt.NDArray:
+def calc_weighted_sum(
+    rlz_combs: Collection[str], values: Dict[str, dict], loc: str, imt: str, start_ind: int, end_ind: int
+) -> npt.NDArray:
     """Calculate the weighted sum of probabilities, first converting to rate, then back to probability. Works on
     probability array in chunks to reduce memory usage.
 
@@ -212,13 +214,7 @@ def get_branch_weights(source_branches: List[dict]) -> npt.NDArray:
 
 
 def build_branches(
-    source_branches: List[dict],
-    values: Dict[str, dict],
-    imt: str,
-    loc: str,
-    vs30: int,
-    start_ind: int,
-    end_ind: int
+    source_branches: List[dict], values: Dict[str, dict], imt: str, loc: str, vs30: int, start_ind: int, end_ind: int
 ) -> npt.NDArray:
     """For each source branch, calculate the weighted sum probability.
 

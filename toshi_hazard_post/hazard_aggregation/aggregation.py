@@ -6,7 +6,7 @@ import multiprocessing
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import List, Iterable, Dict, Union, Any
+from typing import Any, Dict, Iterable, List, Union
 
 import numpy as np
 from nzshm_common.location.code_location import CodedLocation
@@ -58,11 +58,7 @@ class DistributedAggregationTaskArguments:
 class AggregationWorkerMP(multiprocessing.Process):
     """A worker that batches aggregation processing."""
 
-    def __init__(
-        self,
-        task_queue: multiprocessing.JoinableQueue,
-        result_queue: multiprocessing.Queue
-    ):
+    def __init__(self, task_queue: multiprocessing.JoinableQueue, result_queue: multiprocessing.Queue):
         multiprocessing.Process.__init__(self)
         self.task_queue = task_queue
         self.result_queue = result_queue
@@ -92,7 +88,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
     REFACTOR.
     """
-    
+
     locs = task_args.locs
     toshi_ids = task_args.toshi_ids
     source_branches = task_args.source_branches
@@ -133,7 +129,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     if not values:
         log.info('missing values: %s' % (values))
         return
-    
+
     weights = get_branch_weights(source_branches)
     for imt in imts:
         log.info('process_location_list() working on imt: %s' % imt)

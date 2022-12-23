@@ -6,9 +6,9 @@ import math
 from collections import namedtuple
 from functools import reduce
 from operator import mul
-from typing import Iterable, Tuple, List, Dict, Any, Iterator
+from typing import Any, Dict, Iterable, Iterator, List, Tuple
 
-from toshi_hazard_store.query_v3 import get_hazard_metadata_v3 
+from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
 
 DTOL = 1.0e-6
 
@@ -43,7 +43,9 @@ def preload_meta(ids: Iterable[str], vs30: int) -> dict:
     return metadata
 
 
-def build_rlz_table(branch: Dict[str, str], metadata: Dict[str, dict], correlations: List[List[str]] = None) -> Tuple[List[List[str]], List[float], Dict[str, Any]]:
+def build_rlz_table(
+    branch: Dict[str, str], metadata: Dict[str, dict], correlations: List[List[str]] = None
+) -> Tuple[List[List[str]], List[float], Dict[str, Any]]:
     """
     Build the table of ground motion combinations and weights for a single source branch.
     Assumes one source branch per run and the same gsim weights in every run. Can enforce correlations of ground motion models.
@@ -151,7 +153,7 @@ def build_source_branches(
     vs30: int,
     omit: List[str],
     toshi_ids: List[str],
-    truncate: int = None
+    truncate: int = None,
 ) -> List[Dict[str, Any]]:
     """Build the complete logic tree including all SRM and GMCM trees.
 
@@ -207,7 +209,9 @@ def build_source_branches(
     return source_branches
 
 
-def build_full_source_lt(grouped_ltbs: Dict[str, Any], correlations: Dict[str, List[dict]] = None) -> List[Dict[str, Any]]:
+def build_full_source_lt(
+    grouped_ltbs: Dict[str, Any], correlations: Dict[str, List[dict]] = None
+) -> List[Dict[str, Any]]:
     """Build full source logic tree from all combinations of source fault system tree branches, enforcing correlations.
 
     Parameters

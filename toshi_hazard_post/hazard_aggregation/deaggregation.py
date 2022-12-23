@@ -25,10 +25,7 @@ DeaggTaskArgs = namedtuple(
 class DeAggregationWorkerMP(multiprocessing.Process):
     """A worker that batches and saves records to DynamoDB. ported from THS."""
 
-    def __init__(self,
-        task_queue: multiprocessing.JoinableQueue,
-        result_queue: multiprocessing.Queue
-    ):
+    def __init__(self, task_queue: multiprocessing.JoinableQueue, result_queue: multiprocessing.Queue):
         multiprocessing.Process.__init__(self)
         self.task_queue = task_queue
         self.result_queue = result_queue
@@ -162,7 +159,9 @@ def process_single_deagg(task_args: DeaggTaskArgs) -> None:
     )
     log.info('finished building logic tree ')
 
-    levels: List[float] = []  # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
+    levels: List[
+        float
+    ] = []  # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
 
     t = AggTaskArgs(
         task_args.hazard_model_id,

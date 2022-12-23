@@ -2,11 +2,11 @@
 
 import logging
 import math
-
-from typing import Tuple, List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
+
 # from numba import jit
 
 log = logging.getLogger(__name__)
@@ -76,7 +76,9 @@ def weighted_avg_and_std(values: npt.NDArray, weights: npt.NDArray) -> Tuple[np.
     return (average, math.sqrt(variance))
 
 
-def calculate_weighted_quantiles(values: npt.NDArray, weights: npt.NDArray, quantiles: Union[List[float], npt.NDArray]) -> npt.NDArray:
+def calculate_weighted_quantiles(
+    values: npt.NDArray, weights: npt.NDArray, quantiles: Union[List[float], npt.NDArray]
+) -> npt.NDArray:
     """Calculate weighed quantiles of array
 
     Parameters
