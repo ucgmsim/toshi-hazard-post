@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 DeaggTaskArgs = namedtuple(
     "DeaggTaskArgs",
-    "gtid, logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id dimensions",
+    "gtid logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id dimensions stride",
 )
 
 
@@ -79,6 +79,7 @@ def process_deaggregation(config: AggregationConfig) -> List[str]:
             config.aggs[0],  # TODO: assert len(config.aggs) == 1 on load config
             config.hazard_model_id,
             config.deagg_dimensions,
+            config.stride,
         )
 
         task_queue.put(t)
@@ -120,6 +121,7 @@ def process_deaggregation_serial(config: AggregationConfig) -> List[str]:
             config.aggs[0],  # TODO: assert len(config.aggs) == 1 on load config
             config.hazard_model_id,
             config.deagg_dimensions,
+            config.stride,
         )
 
         process_single_deagg(t)
@@ -177,6 +179,7 @@ def process_single_deagg(task_args: DeaggTaskArgs) -> None:
         deagg_config.poe,
         imtl,
         False,
+        task_args.stride,
     )
 
     process_location_list(t)

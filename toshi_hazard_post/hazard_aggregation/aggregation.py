@@ -98,7 +98,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     vs30 = task_args.vs30
     deagg_dimensions = task_args.deagg
     save_rlz = task_args.save_rlz
-    stride = task_args.stride
+    stride = task_args.stride if task_args.stride else 100 
 
     if deagg_dimensions:
         poe = task_args.poe
@@ -229,6 +229,7 @@ def process_aggregation_local_serial(
                 None,
                 None,
                 save_rlz,
+                config.stride, 
             )
 
             # process_location_list(t, config.deagg_poes[0])
@@ -303,6 +304,7 @@ def process_aggregation_local(
                 None,
                 None,
                 save_rlz,
+                config.stride
             )
 
             task_queue.put(t)

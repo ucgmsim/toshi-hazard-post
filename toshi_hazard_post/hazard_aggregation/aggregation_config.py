@@ -27,6 +27,7 @@ class AggregationConfig:
         self.aggs = self.config['aggregation']['aggs']
         self.locations = self.config['aggregation']['locations']
         self.save_rlz = self.config['aggregation'].get('save_rlz')
+        self.stride = self.config['aggregation'].get('stride')
         self._load_ltf()
 
         # debug/test option defaults
