@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Union
 
 import numpy as np
+import numpy.typing as npt
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
 
@@ -26,7 +27,7 @@ from toshi_hazard_post.data_functions import (
 )
 from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.locations import get_locations
-from toshi_hazard_post.util.file_utils import save_deaggs
+from toshi_hazard_post.util.file_utils import save_deaggs, save_realizations
 
 from .aggregate_rlzs import build_branches, calculate_aggs, get_branch_weights, get_len_rate
 from .aggregation_config import AggregationConfig
@@ -81,9 +82,11 @@ class AggregationWorkerMP(multiprocessing.Process):
             self.result_queue.put(str(nt.grid_loc))
 
 
+
+
 def process_location_list(task_args: AggTaskArgs) -> None:
     """For each imt and location, get the weighed aggregate statiscits of the hazard curve (or flattened disagg matrix)
-    realizations. This is done over 100 elements of the hazard curve at a time to reduce phyisical memory usage
+    realizations. This is done over STRIDE elements (default 100) of the hazard curve at a time to reduce phyisical memory usage
     which allows for multiple calculations at once when the hazard curve is long (e.g. large disaggregations).
 
     REFACTOR.
@@ -104,7 +107,6 @@ def process_location_list(task_args: AggTaskArgs) -> None:
         poe = task_args.poe
         imtl = task_args.deagg_imtl
 
-    # print(locs)
     if deagg_dimensions:
         log.info('performing deaggregation')
     log.info('get values for %s locations and %s hazard_solutions' % (len(locs), len(toshi_ids)))
@@ -112,13 +114,6 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     log.debug('aggs: %s' % (aggs))
     log.debug('imts: %s' % (imts))
     log.debug('toshi_ids[:3]: %s' % (toshi_ids[:3]))
-
-    print('locs: %s' % (locs))
-    print('aggs: %s' % (aggs))
-    print('imts: %s' % (imts))
-    print('toshi_ids[:3]: %s' % (toshi_ids[:3]))
-
-    # log.debug('source_branches: %s' % (source_branches))
 
     tic_fn = time.perf_counter()
     if deagg_dimensions:
@@ -132,15 +127,14 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
     weights = get_branch_weights(source_branches)
     for imt in imts:
-        log.info('process_location_list() working on imt: %s' % imt)
+        log.info('working on imt: %s' % imt)
 
         tic_imt = time.perf_counter()
         for loc in locs:
-            log.info(f'process_location_list() working on loc {loc}')
+            log.info(f'working on loc {loc}')
             lat, lon = loc.split('~')
             resolution = 0.001
             location = CodedLocation(float(lat), float(lon), resolution)
-            log.debug('build_branches imt: %s, loc: %s, vs30: %s' % (imt, loc, vs30))
 
             ncols = get_len_rate(values)
             hazard = np.empty((ncols, len(aggs)))
@@ -152,50 +146,76 @@ def process_location_list(task_args: AggTaskArgs) -> None:
                 tic = time.perf_counter()
                 branch_probs = build_branches(source_branches, values, imt, loc, vs30, start_ind, end_ind)
                 hazard[start_ind:end_ind, :] = calculate_aggs(branch_probs, aggs, weights)
-                log.info(f'time to calculate hazard for one level {time.perf_counter() - tic} seconds')
+                log.info(f'time to calculate hazard for one stride {time.perf_counter() - tic} seconds')
 
-                # TODO: replace with write to THS, this only works if the len(levels) < stride
                 if save_rlz:
-                    save_dir = '/work/chrisdc/NZSHM-WORKING/PROD/branch_rlz/SRWG/'
-                    branches_filepath = save_dir + f'branches_{imt}-{loc}-{vs30}'
-                    weights_filepath = save_dir + f'weights_{imt}-{loc}-{vs30}'
-                    source_branches_filepath = save_dir + f'source_branches_{imt}-{loc}-{vs30}.json'
-                    np.save(branches_filepath, branch_probs)
-                    np.save(weights_filepath, weights)
-                    with open(source_branches_filepath, 'w') as jsonfile:
-                        json.dump(source_branches, jsonfile)
+                    save_realizations(imt, loc, vs30, branch_probs, weights, source_branches)
 
             if deagg_dimensions:
                 save_deaggs(
                     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
                 )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
             else:
-                with model.HazardAggregation.batch_write() as batch:
-                    for aggind, agg in enumerate(aggs):
-                        hazard_vals = []
-                        for j, level in enumerate(levels):
-                            hazard_vals.append((level, hazard[j, aggind]))  # tuple lvl, val
+                save_aggregation(aggs, levels, hazard, imt, vs30, task_args.hazard_model_id, location)
 
-                        if not hazard_vals:
-                            log.debug('no hazard_vals for agg %s imt %s' % (agg, imt))
-                            continue
-                        else:
-                            log.debug('hazard_vals :%s' % hazard_vals)
-
-                        hag = model.HazardAggregation(
-                            values=[model.LevelValuePairAttribute(lvl=lvl, val=val) for lvl, val in hazard_vals],
-                            vs30=vs30,
-                            imt=imt,
-                            agg=agg,
-                            hazard_model_id=task_args.hazard_model_id,
-                        ).set_location(location)
-                        batch.save(hag)
 
         toc_imt = time.perf_counter()
         log.info('imt: %s took %.3f secs' % (imt, (toc_imt - tic_imt)))
 
     toc_fn = time.perf_counter()
     log.info('process_location_list took %.3f secs' % (toc_fn - tic_fn))
+
+
+def save_aggregation(
+    aggs: List[str],
+    levels: Iterable[float],
+    hazard: npt.NDArray,
+    imt: str,
+    vs30: int,
+    hazard_model_id: str,
+    location: str
+) -> None:
+    """Save aggregated curves to THS.
+    
+    Parameters
+    ----------
+    aggs
+        list of aggregation statistics
+    levels
+        hazard (shaking) levels
+    hazard
+        hazard curves (probabilities)
+    imt
+        intensity measure type
+    vs30
+        site condition
+    hazard_model_id
+        THS ID
+    location
+        location code
+    """
+
+    with model.HazardAggregation.batch_write() as batch:
+        for aggind, agg in enumerate(aggs):
+            hazard_vals = []
+            for j, level in enumerate(levels):
+                hazard_vals.append((level, hazard[j, aggind]))  # tuple lvl, val
+
+            if not hazard_vals:
+                log.debug('no hazard_vals for agg %s imt %s' % (agg, imt))
+                continue
+            else:
+                log.debug('hazard_vals :%s' % hazard_vals)
+
+            hag = model.HazardAggregation(
+                values=[model.LevelValuePairAttribute(lvl=lvl, val=val) for lvl, val in hazard_vals],
+                vs30=vs30,
+                imt=imt,
+                agg=agg,
+                hazard_model_id=hazard_model_id,
+            ).set_location(location)
+            batch.save(hag)
+
 
 
 def process_aggregation_local_serial(

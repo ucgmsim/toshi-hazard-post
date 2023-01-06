@@ -2,6 +2,7 @@ import csv
 import io
 import logging
 import os
+import json
 from collections import namedtuple
 from enum import Enum
 from functools import reduce
@@ -11,6 +12,10 @@ from zipfile import ZipFile
 
 import numpy as np
 import pandas as pd
+
+import numpy.typing as npt
+from typing import List
+
 from nzshm_common.location.code_location import CodedLocation
 
 log = logging.getLogger(__name__)
@@ -190,3 +195,39 @@ def save_deaggs(deagg_data, bins, loc, imt, imtl, poe, vs30, model_id, deagg_dim
     np.save(deagg_filepath, deagg_data)
     np.save(bins_filepath, bins_array)
     log.info(f'saved deagg results to {deagg_filename}')
+
+
+def save_realizations(
+    imt: str,
+    loc: str,
+    vs30: int,
+    branch_probs: npt.NDArray,
+    weights: npt.NDArray,
+    source_branches: List[dict]
+) -> None:
+    """Save realization arrays to disk. Should be replaced with write to THS when THS supports saving full realizations.
+
+    Parameters
+    ----------
+    imt
+        intensity measure type
+    loc
+        location code string
+    vs30
+        site condition
+    branch_probs
+        2D array of probabilities (realizations)
+    weights
+        array of weights
+    source_branches
+        logic tree definition
+    """
+
+    save_dir = '/work/chrisdc/NZSHM-WORKING/PROD/branch_rlz/SRWG/'
+    branches_filepath = save_dir + f'branches_{imt}-{loc}-{vs30}'
+    weights_filepath = save_dir + f'weights_{imt}-{loc}-{vs30}'
+    source_branches_filepath = save_dir + f'source_branches_{imt}-{loc}-{vs30}.json'
+    np.save(branches_filepath, branch_probs)
+    np.save(weights_filepath, weights)
+    with open(source_branches_filepath, 'w') as jsonfile:
+        json.dump(source_branches, jsonfile)
