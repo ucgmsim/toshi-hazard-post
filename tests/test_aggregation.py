@@ -2,8 +2,6 @@ import unittest
 import json
 from pathlib import Path
 from unittest import mock
-from unittest.mock import ANY
-from pytest import approx
 
 import numpy as np
 

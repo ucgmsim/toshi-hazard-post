@@ -18,7 +18,8 @@ log = logging.getLogger(__name__)
 
 DeaggTaskArgs = namedtuple(
     "DeaggTaskArgs",
-    "gtid logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id dimensions stride",
+    """gtid logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id
+    dimensions stride""",
 )
 
 

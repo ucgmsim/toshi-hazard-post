@@ -1,7 +1,5 @@
 import json
 import unittest
-from functools import reduce
-from operator import mul
 from pathlib import Path
 import pytest
 import numpy as np

@@ -1,21 +1,19 @@
 import csv
 import io
+import json
 import logging
 import os
-import json
 from collections import namedtuple
 from enum import Enum
 from functools import reduce
 from operator import mul
 from pathlib import Path
+from typing import List
 from zipfile import ZipFile
 
 import numpy as np
-import pandas as pd
-
 import numpy.typing as npt
-from typing import List
-
+import pandas as pd
 from nzshm_common.location.code_location import CodedLocation
 
 log = logging.getLogger(__name__)
@@ -198,12 +196,7 @@ def save_deaggs(deagg_data, bins, loc, imt, imtl, poe, vs30, model_id, deagg_dim
 
 
 def save_realizations(
-    imt: str,
-    loc: str,
-    vs30: int,
-    branch_probs: npt.NDArray,
-    weights: npt.NDArray,
-    source_branches: List[dict]
+    imt: str, loc: str, vs30: int, branch_probs: npt.NDArray, weights: npt.NDArray, source_branches: List[dict]
 ) -> None:
     """Save realization arrays to disk. Should be replaced with write to THS when THS supports saving full realizations.
 

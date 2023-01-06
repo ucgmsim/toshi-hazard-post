@@ -3,7 +3,6 @@
 import logging
 import os
 import sys
-import warnings
 
 import click
 from toshi_hazard_store.model import migrate_v3 as migrate
@@ -63,7 +62,7 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
         else:
             process_aggregation(agconf)
         return
-    if 'AWS_BATCH' in mode: #TODO: multiple vs30s
+    if 'AWS_BATCH' in mode:  # TODO: multiple vs30s
         if deagg:
             raise Exception(f'deaggregation not supported in {mode} mode')
         if migrate_tables:

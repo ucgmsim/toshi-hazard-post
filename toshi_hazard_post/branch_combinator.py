@@ -48,7 +48,8 @@ def build_rlz_table(
 ) -> Tuple[List[List[str]], List[float], Dict[str, Any]]:
     """
     Build the table of ground motion combinations and weights for a single source branch.
-    Assumes one source branch per run and the same gsim weights in every run. Can enforce correlations of ground motion models.
+    Assumes one source branch per run and the same gsim weights in every run. Can enforce correlations of ground
+    motion models.
 
     Parameters
     ----------
@@ -62,8 +63,8 @@ def build_rlz_table(
     Returns
     -------
     rlz_combs
-        combinations of Openquake Hazard Solutions Toshi IDs and realization numbers to combine to form a single GMCM logic tree branch.
-        e.g. ['TIDa:0', 'TIDb:1', 'TIDc:1', 'TIDd:1']
+        combinations of Openquake Hazard Solutions Toshi IDs and realization numbers to combine to form a single GMCM
+        logic tree branch. e.g. ['TIDa:0', 'TIDb:1', 'TIDc:1', 'TIDd:1']
     weight_combs
         weights of each branch
     rlz_sets

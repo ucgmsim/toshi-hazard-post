@@ -1,6 +1,5 @@
 """Hazard aggregation task dispatch."""
 import cProfile
-import json
 import logging
 import multiprocessing
 import time
@@ -38,7 +37,8 @@ pr = cProfile.Profile()
 
 AggTaskArgs = namedtuple(
     "AggTaskArgs",
-    "hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe deagg_imtl save_rlz stride",
+    """hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe deagg_imtl save_rlz
+    stride""",
 )
 
 
@@ -82,12 +82,11 @@ class AggregationWorkerMP(multiprocessing.Process):
             self.result_queue.put(str(nt.grid_loc))
 
 
-
-
 def process_location_list(task_args: AggTaskArgs) -> None:
     """For each imt and location, get the weighed aggregate statiscits of the hazard curve (or flattened disagg matrix)
-    realizations. This is done over STRIDE elements (default 100) of the hazard curve at a time to reduce phyisical memory usage
-    which allows for multiple calculations at once when the hazard curve is long (e.g. large disaggregations).
+    realizations. This is done over STRIDE elements (default 100) of the hazard curve at a time to reduce phyisical
+    memory usage which allows for multiple calculations at once when the hazard curve is long (e.g. large
+    disaggregations).
 
     REFACTOR.
     """
@@ -101,7 +100,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     vs30 = task_args.vs30
     deagg_dimensions = task_args.deagg
     save_rlz = task_args.save_rlz
-    stride = task_args.stride if task_args.stride else 100 
+    stride = task_args.stride if task_args.stride else 100
 
     if deagg_dimensions:
         poe = task_args.poe
@@ -158,7 +157,6 @@ def process_location_list(task_args: AggTaskArgs) -> None:
             else:
                 save_aggregation(aggs, levels, hazard, imt, vs30, task_args.hazard_model_id, location)
 
-
         toc_imt = time.perf_counter()
         log.info('imt: %s took %.3f secs' % (imt, (toc_imt - tic_imt)))
 
@@ -173,10 +171,10 @@ def save_aggregation(
     imt: str,
     vs30: int,
     hazard_model_id: str,
-    location: str
+    location: str,
 ) -> None:
     """Save aggregated curves to THS.
-    
+
     Parameters
     ----------
     aggs
@@ -217,7 +215,6 @@ def save_aggregation(
             batch.save(hag)
 
 
-
 def process_aggregation_local_serial(
     hazard_model_id: str,
     toshi_ids: Dict[Union[str, int], Any],
@@ -249,7 +246,7 @@ def process_aggregation_local_serial(
                 None,
                 None,
                 save_rlz,
-                config.stride, 
+                config.stride,
             )
 
             # process_location_list(t, config.deagg_poes[0])
@@ -324,7 +321,7 @@ def process_aggregation_local(
                 None,
                 None,
                 save_rlz,
-                config.stride
+                config.stride,
             )
 
             task_queue.put(t)
