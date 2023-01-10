@@ -80,6 +80,7 @@ class TestBranchFuns(unittest.TestCase):
     def test_build_branches(self):
 
         args = json.load(open(self._weighted_sum_args_file))
+        breakpoint()
         branch_probs = build_branches(
             self._source_branches,
             self._values,

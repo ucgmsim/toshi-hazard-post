@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import Any, List
 
 import numpy as np
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
@@ -7,11 +8,13 @@ from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v
 from toshi_hazard_post.util.file_utils import get_disagg
 from toshi_hazard_post.util.toshi_client import download_csv
 
+from toshi_hazard_post.branch_combinator import SourceBranchGroup
+
 DOWNLOAD_DIR = '/work/chrisdc/NZSHM-WORKING/PROD/'
 log = logging.getLogger(__name__)
 
 
-def get_levels(source_branches, locs, vs30):
+def get_levels(source_branches: SourceBranchGroup, locs: List[str], vs30: int) -> Any:
     """Get the values of the levels (shaking levels) for the hazard curve from Toshi-Hazard-Store
 
     Parameters
@@ -28,7 +31,7 @@ def get_levels(source_branches, locs, vs30):
     levels : List[float]
         shaking levels of hazard curve"""
 
-    id = source_branches[0]['ids'][0]
+    id = source_branches[0].toshi_hazard_ids[0]
 
     log.info(f"get_levels locs[0]: {locs[0]} vs30: {vs30}, id {id}")
     hazard = next(get_rlz_curves_v3([locs[0]], [vs30], None, [id], None))
@@ -36,7 +39,7 @@ def get_levels(source_branches, locs, vs30):
     return hazard.values[0].lvls
 
 
-def get_imts(source_branches, vs30):
+def get_imts(source_branches: SourceBranchGroup, vs30: int) -> list:
     """Get the intensity measure types (IMTs) for the hazard curve from Toshi-Hazard-Store
 
     Parameters
@@ -53,7 +56,7 @@ def get_imts(source_branches, vs30):
     levels : List[str]
         IMTs of hazard curve"""
 
-    ids = source_branches[0]['ids']
+    ids = source_branches[0].toshi_hazard_ids
     meta = next(get_hazard_metadata_v3(ids, [vs30]))
     imts = list(meta.imts)
     imts.sort()

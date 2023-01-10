@@ -3,7 +3,10 @@ import itertools
 import json
 import logging
 import math
+from functools import lru_cache
+from dataclasses import dataclass, field
 from collections import namedtuple
+from collections.abc import MutableSequence
 from functools import reduce
 from operator import mul
 from typing import Any, Dict, Iterable, Iterator, List, Tuple
@@ -15,8 +18,59 @@ DTOL = 1.0e-6
 log = logging.getLogger(__name__)
 
 
-def get_branches():
-    assert 0
+@dataclass
+class GMCMBranch:
+    # gmms: List[str]
+    realizations: List[str] # [int] or [str]?
+    weight: float
+
+
+# TODO: the caching of properties is dangerous if the user were to alter the gmcm_branches. There isn't a good
+# reason to after building the LT, but it could happen. Might be better not to have the gmcm_branches as seperate class
+# so that we don't need to take the time doing list comprehension every time we need all gmcm branch data
+@dataclass
+class SourceBranch:
+    name: str
+    toshi_hazard_ids: List[str]
+    weight: float
+    tags: List[str]
+    gmcm_branches: List[GMCMBranch] = field(default_factory=lambda: [])
+
+    @property # type: ignore
+    @lru_cache(maxsize=None)
+    def gmcm_branch_weights(self) -> List[float]:
+        return [branch.weight for branch in self.gmcm_branches]
+
+    @property # type: ignore
+    @lru_cache(maxsize=None)
+    def n_gncm_branches(self) -> int:
+        return len(self.gmcm_branches)
+
+    @property # type: ignore
+    @lru_cache(maxsize=None)
+    def gmcm_realizations(self) -> List[List[str]]:
+        return [branch.realizations for branch in self.gmcm_branches]
+
+
+
+@dataclass
+class SourceBranchGroup(MutableSequence):
+    _branches: List[SourceBranch] = field(default_factory=lambda: []) 
+
+    def __getitem__(self, i):
+        return self._branches[i]
+
+    def __setitem__(self, i, item):
+        self._branches[i] = item
+    
+    def __delitem__(self, i):
+        del self._branches[i]
+    
+    def __len__(self):
+        return len(self._branches)
+        
+    def insert(self, i, item):
+        self._branches.insert(i, item)
 
 
 def preload_meta(ids: Iterable[str], vs30: int) -> dict:
@@ -44,8 +98,8 @@ def preload_meta(ids: Iterable[str], vs30: int) -> dict:
 
 
 def build_rlz_table(
-    branch: Dict[str, str], metadata: Dict[str, dict], correlations: List[List[str]] = None
-) -> Tuple[List[List[str]], List[float], Dict[str, Any]]:
+    branch: SourceBranch, metadata: Dict[str, dict], correlations: List[List[str]] = None
+) -> List[GMCMBranch]:
     """
     Build the table of ground motion combinations and weights for a single source branch.
     Assumes one source branch per run and the same gsim weights in every run. Can enforce correlations of ground
@@ -82,7 +136,7 @@ def build_rlz_table(
     weight_sets: Dict[str, Any] = {}
     # trts = set()
 
-    for hazard_id in branch['ids']:
+    for hazard_id in branch.toshi_hazard_ids:
         gsim_lt = metadata[hazard_id]
         trts = set(gsim_lt['trt'].values())
         for trt in trts:
@@ -143,7 +197,15 @@ def build_rlz_table(
         print(sum_weight)
         raise Exception('weights do not sum to 1')
 
-    return rlz_combs, weight_combs, rlz_sets
+    gmcm_branches = []
+    for rlz_comb, weight in zip(rlz_combs, weight_combs):
+        gmcm_branches.append(GMCMBranch(
+            # [rlz.split(':')[-1] for rlz in rlz_comb],
+            rlz_comb,
+            weight
+        ))
+    # TODO: record mapping between rlz number and gmm name
+    return gmcm_branches
 
 
 def build_source_branches(
@@ -155,7 +217,7 @@ def build_source_branches(
     omit: List[str],
     toshi_ids: List[str],
     truncate: int = None,
-) -> List[Dict[str, Any]]:
+) -> SourceBranchGroup:
     """Build the complete logic tree including all SRM and GMCM trees.
 
     Parameters
@@ -180,8 +242,7 @@ def build_source_branches(
     Returns
     -------
     source_branches
-        dict of source branches with the key being the vs30 for that model. Each entry is a list of source branches,
-        each of which with a full GMGM logic tree definition.
+        all composite source branches built from combinations of the logic tree
     """
 
     # TODO: shoudn't need both toshi_ids and omit
@@ -197,22 +258,14 @@ def build_source_branches(
     metadata = preload_meta(toshi_ids, vs30)
 
     for i in range(len(source_branches)):
-        rlz_combs, weight_combs, rlz_sets = build_rlz_table(
-            source_branches[i], metadata, gmm_correlations
-        )  # TODO: add correlations to GMCM LT
-        source_branches[i]['rlz_combs'] = rlz_combs
-        source_branches[i]['weight_combs'] = weight_combs
-        source_branches[i]['rlz_sets'] = rlz_sets
-
-    # pr.disable()
-    # pr.print_stats(sort='time')
+        source_branches[i].gmcm_branches = build_rlz_table(source_branches[i], metadata, gmm_correlations)
 
     return source_branches
 
 
 def build_full_source_lt(
     grouped_ltbs: Dict[str, Any], correlations: Dict[str, List[dict]] = None
-) -> List[Dict[str, Any]]:
+) -> SourceBranchGroup:
     """Build full source logic tree from all combinations of source fault system tree branches, enforcing correlations.
 
     Parameters
@@ -259,7 +312,7 @@ def build_full_source_lt(
         id_groups.append(id_group)
 
     branches = itertools.product(*id_groups)
-    source_branches: List[dict] = []
+    source_branches = SourceBranchGroup()
     for i, branch in enumerate(branches):
         name = str(i)
         ids = [leaf['id'] for leaf in branch]
@@ -271,14 +324,12 @@ def build_full_source_lt(
                 if all(cor in group_and_tags for cor in correlation):
                     weights = [leaf['weight'] for leaf in branch if leaf['group'] != correlations['dropped_group']]
                     weight = math.prod(weights)
-                    branch_dict = dict(name=name, ids=ids, weight=weight, tags=tags)
-                    source_branches.append(branch_dict)
+                    source_branches.append(SourceBranch(name, ids, weight, tags))
                     break
         else:
             weights = [leaf['weight'] for leaf in branch]
             weight = math.prod(weights)
-            branch_dict = dict(name=name, ids=ids, weight=weight, tags=tags)
-            source_branches.append(branch_dict)
+            source_branches.append(SourceBranch(name, ids, weight, tags))
 
     return source_branches
 
@@ -429,6 +480,7 @@ def grouped_ltbs(merged_ltbs: Iterable[Member], vs30: int) -> Dict[str, list]:
     grouped
         source branches grouped by fault system
     """
+
     grouped: Dict[str, list] = {}
     for ltb in merged_ltbs:
         if ltb.vs30 == vs30:

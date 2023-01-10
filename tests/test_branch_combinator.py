@@ -7,7 +7,43 @@ from operator import mul
 from pathlib import Path
 import pytest
 
-from toshi_hazard_post.branch_combinator import build_full_source_lt, grouped_ltbs, merge_ltbs_fromLT, build_rlz_table
+from toshi_hazard_post.branch_combinator import build_full_source_lt, grouped_ltbs, merge_ltbs_fromLT, build_rlz_table, SourceBranch, GMCMBranch, SourceBranchGroup
+
+
+def load_gmcm_branches(filepath):
+    with open(filepath) as json_file:
+        gmcm_branches_asdict = json.load(json_file)
+    
+    gmcm_branches = []
+    for branch_dict in gmcm_branches_asdict:
+        gmcm_branches.append(GMCMBranch(**branch_dict))
+    return gmcm_branches
+
+def convert_source_branches(source_branches_old):
+
+    source_branches = SourceBranchGroup() 
+    for branch in source_branches_old:
+        source_branches.append(SourceBranch(
+            branch['name'],
+            branch['ids'],
+            branch['weight'],
+            branch['tags'],
+            [],
+        )) 
+    return source_branches
+
+def convert_gmcm_branches(rlz_combs, weight_combs):
+
+    gmcm_branches = []
+    for rlz_comb, weight in zip(rlz_combs, weight_combs):
+        gmcm_branches.append(GMCMBranch(
+            # [],
+            # [rlz.split(':')[-1] for rlz in rlz_comb],
+            rlz_comb,
+            weight,
+        ))
+    
+    return gmcm_branches
 
 
 class TestCombinator(unittest.TestCase):
@@ -30,7 +66,7 @@ class TestCombinator(unittest.TestCase):
         # print(source_branches)
 
         # test function output against precanned result
-        expected = json.load(open(self._sb_file, 'r'))
+        expected = convert_source_branches(json.load(open(self._sb_file, 'r')))
         assert expected == source_branches
 
         # now test some specifics
@@ -43,7 +79,7 @@ class TestCombinator(unittest.TestCase):
         assert len(source_branches) == reduce(mul, perms, 1)
 
         # weights sum to 1
-        total_weight = sum([branch['weight'] for branch in source_branches])
+        total_weight = sum([branch.weight for branch in source_branches])
         assert total_weight == pytest.approx(1.0)
 
     def test_merge_ltbs_fromLT(self):
@@ -78,17 +114,17 @@ class TestCorrelatedCombinator(unittest.TestCase):
         source_branches = build_full_source_lt(grouped, correlations)  # TODO: add correlations to source LT
 
         # test that we get the correct ids
-        expected = json.load(open(self._sb_file, 'r'))
-        expected_ids = [set(exp['ids']) for exp in expected]
-        received_ids = [set(sb['ids']) for sb in source_branches]
+        expected = convert_source_branches(json.load(open(self._sb_file, 'r')))
+        expected_ids = [set(exp.toshi_hazard_ids) for exp in expected]
+        received_ids = [set(sb.toshi_hazard_ids) for sb in source_branches]
         assert expected_ids == received_ids
 
         # test individual weights
         for i, branch in enumerate(source_branches):
-            assert branch['weight'] == pytest.approx(expected[i]['weight'])
+            assert branch.weight == pytest.approx(expected[i].weight)
 
         # weights sum to 1
-        total_weight = sum([branch['weight'] for branch in source_branches])
+        total_weight = sum([branch.weight for branch in source_branches])
         assert total_weight == pytest.approx(1.0)
 
 
@@ -115,34 +151,30 @@ class TestGroupedLTBs(unittest.TestCase):
 class TestBuldRealizationTable(unittest.TestCase):
     def setUp(self):
         self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
-        self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'rlz_combs.json')
-        self._weight_combs_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'weight_combs.json')
         self._metadata_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'metadata.json')
+        self._gmcm_branches_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'gmcm_branches.json')
+
 
     def test_build_rlz_table(self):
 
         metadata = json.load(open(self._metadata_filepath, 'r'))
-        source_branches = json.load(open(self._sb_file, 'r'))
-        rlz_combs, weight_combs, rlz_sets = build_rlz_table(source_branches[0], metadata)
+        source_branches = convert_source_branches(json.load(open(self._sb_file, 'r')))
+        gmcm_branches = build_rlz_table(source_branches[0], metadata)
 
-        rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
-        weight_combs_expected = json.load(open(self._weight_combs_filepath, 'r'))
+        gmcm_branches_expected = load_gmcm_branches(self._gmcm_branches_filepath)
 
-        rlz_combs_expected = [set(rce) for rce in rlz_combs_expected]
-        rlz_combs = [set(rc) for rc in rlz_combs]
+        assert len(gmcm_branches) == len(gmcm_branches_expected)
+        assert sum([branch.weight for branch in gmcm_branches]) == pytest.approx(1.0)
 
-        for wce, rce in zip(weight_combs_expected, rlz_combs_expected):
-            assert rce in rlz_combs
-            assert weight_combs[rlz_combs.index(rce)] == pytest.approx(wce)
-
-        assert sum(weight_combs) == pytest.approx(1.0)
+        for branch_expected in gmcm_branches_expected:
+            assert branch_expected in gmcm_branches
 
 
 class TestCorrelatiedRealizationTable(unittest.TestCase):
     def setUp(self):
         self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
-        self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'rlz_combs_corr.json')
         self._metadata_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'metadata.json')
+        self._gmcm_branches_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'gmcm_branches_correlated.json')
 
     def test_build_correlated_rlz_table(self):
 
@@ -170,17 +202,14 @@ class TestCorrelatiedRealizationTable(unittest.TestCase):
         ]
 
         metadata = json.load(open(self._metadata_filepath, 'r'))
-        source_branches = json.load(open(self._sb_file, 'r'))
-        rlz_combs, weight_combs, rlz_sets = build_rlz_table(source_branches[0], metadata, correlations)
+        source_branches = convert_source_branches(json.load(open(self._sb_file, 'r')))
+        gmcm_branches = build_rlz_table(source_branches[0], metadata, correlations)
 
-        rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
+        gmcm_branches_expected = load_gmcm_branches(self._gmcm_branches_filepath)
 
-        rlz_combs_expected = [set(rce) for rce in rlz_combs_expected]
-        rlz_combs = [set(rc) for rc in rlz_combs]
+        assert sum([branch.weight for branch in gmcm_branches]) == pytest.approx(1.0)
+        assert len(gmcm_branches) == len(gmcm_branches_expected)
 
-        for rce in rlz_combs_expected:
-            assert rce in rlz_combs
+        for branch_expected in gmcm_branches_expected:
+            assert branch_expected in gmcm_branches
 
-        assert sum(weight_combs) == pytest.approx(1.0)
-
-        assert len(weight_combs) == len(rlz_combs)

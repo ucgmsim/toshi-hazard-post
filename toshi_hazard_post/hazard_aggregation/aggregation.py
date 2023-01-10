@@ -17,7 +17,7 @@ from toshi_hazard_store import model
 #     grouped_ltbs,
 #     merge_ltbs_fromLT,
 # )
-from toshi_hazard_post.branch_combinator import build_source_branches, merge_ltbs_fromLT
+from toshi_hazard_post.branch_combinator import build_source_branches, merge_ltbs_fromLT, SourceBranchGroup
 from toshi_hazard_post.data_functions import (
     get_imts,
     get_levels,
@@ -217,8 +217,8 @@ def save_aggregation(
 
 def process_aggregation_local_serial(
     hazard_model_id: str,
-    toshi_ids: Dict[Union[str, int], Any],
-    source_branches: Dict[Union[str, int], Any],
+    toshi_ids: Dict[int, Any],
+    source_branches: Dict[int, SourceBranchGroup],
     coded_locations: Iterable[CodedLocation],
     levels: Iterable[float],
     config: AggregationConfig,
@@ -227,8 +227,8 @@ def process_aggregation_local_serial(
 ) -> None:
     """Run task serially. This is only needed if running the debugger"""
 
-    toshi_ids = {int(k): v for k, v in toshi_ids.items()}
-    source_branches = {int(k): v for k, v in source_branches.items()}
+    # toshi_ids = {int(k): v for k, v in toshi_ids.items()}
+    # source_branches = {int(k): v for k, v in source_branches.items()}
 
     for coded_loc in coded_locations:
         for vs30 in config.vs30s:
@@ -255,8 +255,8 @@ def process_aggregation_local_serial(
 
 def process_aggregation_local(
     hazard_model_id: str,
-    toshi_ids: Dict[Union[str, int], Any],
-    source_branches: Dict[Union[str, int], Any],
+    toshi_ids: Dict[int, Any],
+    source_branches: Dict[int, SourceBranchGroup],
     coded_locations: Iterable[CodedLocation],
     levels: Iterable[float],
     config: AggregationConfig,
@@ -302,8 +302,6 @@ def process_aggregation_local(
     # Enqueue jobs
     num_jobs = 0
 
-    toshi_ids = {int(k): v for k, v in toshi_ids.items()}
-    source_branches = {int(k): v for k, v in source_branches.items()}
 
     for coded_loc in coded_locations:
         for vs30 in config.vs30s:

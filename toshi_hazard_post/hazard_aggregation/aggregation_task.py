@@ -10,6 +10,7 @@ import time
 from typing import Dict
 from zipfile import ZipFile
 
+from dacite import from_dict
 import requests
 import yaml
 from nshm_toshi_client.toshi_file import ToshiFile
@@ -17,6 +18,7 @@ from nzshm_common.location.code_location import CodedLocation
 
 from toshi_hazard_post.local_config import API_KEY, API_URL, LOGGING_CFG, NUM_WORKERS, S3_URL
 from toshi_hazard_post.util import decompress_config
+from toshi_hazard_post.branch_combinator import SourceBranchGroup
 
 from .aggregation import DistributedAggregationTaskArguments, process_aggregation_local
 
@@ -43,6 +45,7 @@ else:
 
 def fetch_source_branches(source_branches_id: str) -> Dict:
     """Fetch and unpack the source_branches from toshi."""
+
     headers = {"x-api-key": API_KEY}
     toshi_api = ToshiFile(API_URL, S3_URL, None, with_schema_validation=True, headers=headers)
     filenode = toshi_api.get_download_url(source_branches_id)
@@ -52,7 +55,9 @@ def fetch_source_branches(source_branches_id: str) -> Dict:
         fcontent = zcontent.open('source_branches.json')
     else:
         raise Exception(r.status_code)
-    return json.load(fcontent)
+
+    source_branches_dict = json.load(fcontent)
+    return {int(k): from_dict(data_class=SourceBranchGroup, data=v) for k, v in source_branches_dict.items()}
 
 
 def process_args(args):

@@ -6,6 +6,7 @@ import numpy as np
 import numpy.typing as npt
 
 from toshi_hazard_post.calculators import calculate_weighted_quantiles, prob_to_rate, rate_to_prob, weighted_avg_and_std
+from toshi_hazard_post.branch_combinator import SourceBranchGroup
 
 DTOL = 1.0e-6
 INV_TIME = 1.0
@@ -186,13 +187,13 @@ def get_len_rate(values: Dict[str, dict]) -> int:
     return rate_shape[0]
 
 
-def get_branch_weights(source_branches: List[dict]) -> npt.NDArray:
+def get_branch_weights(source_branches: SourceBranchGroup) -> npt.NDArray:
     """Get the weight of every realization of the full, combined source and gsim logic tree.
 
     Parameters
     ----------
     source_branches
-        list of all source branches of complete logic tree
+        all source branches of complete logic tree
 
     Returns
     -------
@@ -201,25 +202,24 @@ def get_branch_weights(source_branches: List[dict]) -> npt.NDArray:
     """
 
     nbranches = len(source_branches)
-    nrows = len(source_branches[0]['rlz_combs']) * nbranches
+    nrows = source_branches[0].n_gncm_branches * nbranches
     weights = np.empty((nrows,))
     for i, branch in enumerate(source_branches):
-        weight_combs = branch['weight_combs']
-        w = np.array(weight_combs) * branch['weight']
+        w = np.array(branch.gmcm_branch_weights) * branch.weight
         weights[i * len(w) : (i + 1) * len(w)] = w
 
     return weights
 
 
 def build_branches(
-    source_branches: List[dict], values: Dict[str, dict], imt: str, loc: str, vs30: int, start_ind: int, end_ind: int
+    source_branches: SourceBranchGroup, values: Dict[str, dict], imt: str, loc: str, vs30: int, start_ind: int, end_ind: int
 ) -> npt.NDArray:
     """For each source branch, calculate the weighted sum probability.
 
     Parameters
     ----------
     source_branches
-        list of all source branches of complete logic tree
+        all source branches of complete logic tree
     values
         probability values
     imt
@@ -241,7 +241,7 @@ def build_branches(
     """
 
     nbranches = len(source_branches)
-    ncombs = len(source_branches[0]['rlz_combs'])
+    ncombs = source_branches[0].n_gncm_branches
     nrows = ncombs * nbranches
     # ncols = get_len_rate(values)
     ncols = end_ind - start_ind
@@ -250,7 +250,7 @@ def build_branches(
     tic = time.process_time()
     for i, branch in enumerate(source_branches):  # ~320 source branches
         # rlz_combs, weight_combs = build_rlz_table(branch, vs30)
-        rlz_combs = branch['rlz_combs']
+        rlz_combs = branch.gmcm_realizations
 
         # set of realization probabilties for a single complete source branch
         # these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve

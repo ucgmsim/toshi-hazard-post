@@ -1,4 +1,5 @@
 import csv
+import dataclasses
 import io
 import json
 import logging
@@ -10,11 +11,14 @@ from operator import mul
 from pathlib import Path
 from typing import List
 from zipfile import ZipFile
+from dataclasses import asdict
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from nzshm_common.location.code_location import CodedLocation
+
+from toshi_hazard_post.branch_combinator import SourceBranchGroup
 
 log = logging.getLogger(__name__)
 
@@ -196,7 +200,7 @@ def save_deaggs(deagg_data, bins, loc, imt, imtl, poe, vs30, model_id, deagg_dim
 
 
 def save_realizations(
-    imt: str, loc: str, vs30: int, branch_probs: npt.NDArray, weights: npt.NDArray, source_branches: List[dict]
+    imt: str, loc: str, vs30: int, branch_probs: npt.NDArray, weights: npt.NDArray, source_branches: SourceBranchGroup
 ) -> None:
     """Save realization arrays to disk. Should be replaced with write to THS when THS supports saving full realizations.
 
@@ -223,4 +227,4 @@ def save_realizations(
     np.save(branches_filepath, branch_probs)
     np.save(weights_filepath, weights)
     with open(source_branches_filepath, 'w') as jsonfile:
-        json.dump(source_branches, jsonfile)
+        json.dump(asdict(source_branches), jsonfile)

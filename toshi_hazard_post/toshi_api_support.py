@@ -15,7 +15,7 @@ from toshi_hazard_post.util import archive
 log = logging.getLogger(__name__)
 
 
-def create_archive(filename: str, working_path: Union[str, PurePath]) -> str:
+def create_archive(filename: Union[str, Path], working_path: Union[str, PurePath]) -> str:
     """Verify source and if OK return the path to the zipped contents."""
     log.info(f"create_archive {filename}.zip in working_path={working_path}")
     if Path(filename).exists():
@@ -23,7 +23,7 @@ def create_archive(filename: str, working_path: Union[str, PurePath]) -> str:
     raise Exception("file does not exist.")
 
 
-def save_sources_to_toshi(filepath: str, tag: str = None) -> str:
+def save_sources_to_toshi(filepath: Union[str, Path], tag: str = None) -> str:
     """Archive and upload one file."""
     log.info(f"Processing */{Path(filepath).name} :: {tag}")
 
