@@ -4,7 +4,7 @@ import json
 import logging
 import math
 from functools import lru_cache
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from collections import namedtuple
 from collections.abc import MutableSequence
 from functools import reduce
@@ -24,6 +24,9 @@ class GMCMBranch:
     realizations: List[str] # [int] or [str]?
     weight: float
 
+    def __hash__(self):
+        return hash((tuple(self.realizations), self.weight))
+
 
 # TODO: the caching of properties is dangerous if the user were to alter the gmcm_branches. There isn't a good
 # reason to after building the LT, but it could happen. Might be better not to have the gmcm_branches as seperate class
@@ -36,6 +39,9 @@ class SourceBranch:
     tags: List[str]
     gmcm_branches: List[GMCMBranch] = field(default_factory=lambda: [])
 
+    def __hash__(self):
+        return hash((self.name, tuple(self.toshi_hazard_ids), self.weight, tuple(self.tags), tuple(self.gmcm_branches)))
+
     @property # type: ignore
     @lru_cache(maxsize=None)
     def gmcm_branch_weights(self) -> List[float]:
@@ -43,7 +49,7 @@ class SourceBranch:
 
     @property # type: ignore
     @lru_cache(maxsize=None)
-    def n_gncm_branches(self) -> int:
+    def n_gmcm_branches(self) -> int:
         return len(self.gmcm_branches)
 
     @property # type: ignore

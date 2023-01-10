@@ -5,6 +5,8 @@ import unittest
 from pathlib import Path
 import numpy as np
 
+from .test_branch_combinator import convert_gmcm_branches, convert_source_branches
+
 from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import (
     weighted_stats,
     calc_weighted_sum,
@@ -60,8 +62,13 @@ class TestBranchFuns(unittest.TestCase):
         self._branch_probs_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'branch_probs.npy')
         self._agg_probs_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'aggregate_probs.npy')
 
-        self._source_branches = json.load(open(self._source_branches_file))
+        source_branches_old = json.load(open(self._source_branches_file))
         self._values = np.load(self._values_file, allow_pickle=True)[()]
+
+        self._source_branches = convert_source_branches(source_branches_old)
+        for i, sb in enumerate(source_branches_old):
+            self._source_branches[i].gmcm_branches = convert_gmcm_branches(sb['rlz_combs'], sb['weight_combs'])
+
 
     def test_get_branch_weights(self):
 
@@ -80,7 +87,7 @@ class TestBranchFuns(unittest.TestCase):
     def test_build_branches(self):
 
         args = json.load(open(self._weighted_sum_args_file))
-        breakpoint()
+        
         branch_probs = build_branches(
             self._source_branches,
             self._values,

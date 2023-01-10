@@ -202,7 +202,7 @@ def get_branch_weights(source_branches: SourceBranchGroup) -> npt.NDArray:
     """
 
     nbranches = len(source_branches)
-    nrows = source_branches[0].n_gncm_branches * nbranches
+    nrows = source_branches[0].n_gmcm_branches * nbranches
     weights = np.empty((nrows,))
     for i, branch in enumerate(source_branches):
         w = np.array(branch.gmcm_branch_weights) * branch.weight
@@ -241,7 +241,7 @@ def build_branches(
     """
 
     nbranches = len(source_branches)
-    ncombs = source_branches[0].n_gncm_branches
+    ncombs = source_branches[0].n_gmcm_branches
     nrows = ncombs * nbranches
     # ncols = get_len_rate(values)
     ncols = end_ind - start_ind
