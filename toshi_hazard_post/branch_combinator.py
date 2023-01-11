@@ -24,13 +24,6 @@ class GMCMBranch:
     realizations: List[str] # [int] or [str]?
     weight: float
 
-    def __hash__(self):
-        return hash((tuple(self.realizations), self.weight))
-
-
-# TODO: the caching of properties is dangerous if the user were to alter the gmcm_branches. There isn't a good
-# reason to after building the LT, but it could happen. Might be better not to have the gmcm_branches as seperate class
-# so that we don't need to take the time doing list comprehension every time we need all gmcm branch data
 @dataclass
 class SourceBranch:
     name: str
@@ -39,21 +32,16 @@ class SourceBranch:
     tags: List[str]
     gmcm_branches: List[GMCMBranch] = field(default_factory=lambda: [])
 
-    def __hash__(self):
-        return hash((self.name, tuple(self.toshi_hazard_ids), self.weight, tuple(self.tags), tuple(self.gmcm_branches)))
 
     @property # type: ignore
-    @lru_cache(maxsize=None)
     def gmcm_branch_weights(self) -> List[float]:
         return [branch.weight for branch in self.gmcm_branches]
 
     @property # type: ignore
-    @lru_cache(maxsize=None)
     def n_gmcm_branches(self) -> int:
         return len(self.gmcm_branches)
 
     @property # type: ignore
-    @lru_cache(maxsize=None)
     def gmcm_realizations(self) -> List[List[str]]:
         return [branch.realizations for branch in self.gmcm_branches]
 
