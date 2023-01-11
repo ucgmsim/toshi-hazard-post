@@ -5,13 +5,13 @@ import json
 import logging
 import os
 from collections import namedtuple
+from dataclasses import asdict
 from enum import Enum
 from functools import reduce
 from operator import mul
 from pathlib import Path
 from typing import List
 from zipfile import ZipFile
-from dataclasses import asdict
 
 import numpy as np
 import numpy.typing as npt

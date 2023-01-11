@@ -69,7 +69,6 @@ class TestBranchFuns(unittest.TestCase):
         for i, sb in enumerate(source_branches_old):
             self._source_branches[i].gmcm_branches = convert_gmcm_branches(sb['rlz_combs'], sb['weight_combs'])
 
-
     def test_get_branch_weights(self):
 
         weights = get_branch_weights(self._source_branches)
@@ -87,7 +86,7 @@ class TestBranchFuns(unittest.TestCase):
     def test_build_branches(self):
 
         args = json.load(open(self._weighted_sum_args_file))
-        
+
         branch_probs = build_branches(
             self._source_branches,
             self._values,

@@ -5,10 +5,9 @@ from typing import Any, List
 import numpy as np
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
 
+from toshi_hazard_post.branch_combinator import SourceBranchGroup
 from toshi_hazard_post.util.file_utils import get_disagg
 from toshi_hazard_post.util.toshi_client import download_csv
-
-from toshi_hazard_post.branch_combinator import SourceBranchGroup
 
 DOWNLOAD_DIR = '/work/chrisdc/NZSHM-WORKING/PROD/'
 log = logging.getLogger(__name__)
@@ -97,12 +96,12 @@ def load_realization_values(toshi_ids, locs, vs30s):
             values[key][res.nloc_001] = {}
             for val in res.values:
                 values[key][res.nloc_001][val.imt] = np.array(val.vals)
-                for i, v in enumerate(val.vals):
-                    if not v:  # TODO: not sure what this is for
-                        log.debug(
-                            '%s th value at location: %s, imt: %s, hazard key %s is %s'
-                            % (i, res.nloc_001, val.imt, key, v)
-                        )
+                # for i, v in enumerate(val.vals):
+                #     if not v:  # TODO: not sure what this is for
+                #         log.debug(
+                #             '%s th value at location: %s, imt: %s, hazard key %s is %s'
+                #             % (i, res.nloc_001, val.imt, key, v)
+                #         )
     except Exception as err:
         logging.warning(
             'load_realization_values() got exception %s with toshi_ids: %s , locs: %s vs30s: %s'

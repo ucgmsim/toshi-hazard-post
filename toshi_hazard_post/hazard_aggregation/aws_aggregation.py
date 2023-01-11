@@ -12,7 +12,7 @@ import toshi_hazard_post.hazard_aggregation.aggregation_task
 
 # from toshi_hazard_store.aggregate_rlzs_mp import build_source_branches
 # from toshi_hazard_store.branch_combinator.branch_combinator import merge_ltbs_fromLT
-from toshi_hazard_post.branch_combinator import build_source_branches, merge_ltbs_fromLT, SourceBranchGroup
+from toshi_hazard_post.branch_combinator import SourceBranchGroup, build_source_branches, merge_ltbs_fromLT
 from toshi_hazard_post.data_functions import get_imts, get_levels
 from toshi_hazard_post.local_config import API_URL, NUM_WORKERS, S3_URL, SNS_AGG_TASK_TOPIC, WORK_PATH
 from toshi_hazard_post.locations import get_locations, locations_by_chunk
@@ -67,7 +67,7 @@ def push_test_message():
 def save_source_branches(source_branches: Dict[int, SourceBranchGroup]):
     """Save the source_branches.json required by every aggregation task."""
 
-    source_branches_dict = {k: asdict(v) for k,v in source_branches.items()}
+    source_branches_dict = {k: asdict(v) for k, v in source_branches.items()}
     filepath = Path(WORK_PATH, 'source_branches.json')
     with open(filepath, 'w') as sbf:
         sbf.write(json.dumps(source_branches_dict, indent=2))

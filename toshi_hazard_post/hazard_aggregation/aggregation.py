@@ -17,7 +17,7 @@ from toshi_hazard_store import model
 #     grouped_ltbs,
 #     merge_ltbs_fromLT,
 # )
-from toshi_hazard_post.branch_combinator import build_source_branches, merge_ltbs_fromLT, SourceBranchGroup
+from toshi_hazard_post.branch_combinator import SourceBranchGroup, build_source_branches, merge_ltbs_fromLT
 from toshi_hazard_post.data_functions import (
     get_imts,
     get_levels,
@@ -301,7 +301,6 @@ def process_aggregation_local(
     tic = time.perf_counter()
     # Enqueue jobs
     num_jobs = 0
-
 
     for coded_loc in coded_locations:
         for vs30 in config.vs30s:

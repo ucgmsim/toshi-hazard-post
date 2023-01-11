@@ -6,13 +6,12 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
-
-# from numba import jit
+from numba import jit
 
 log = logging.getLogger(__name__)
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def prob_to_rate(prob: npt.NDArray, inv_time: float) -> npt.NDArray:
     """Convert probability of exceedance to rate assuming Poisson distribution.
 
@@ -32,7 +31,7 @@ def prob_to_rate(prob: npt.NDArray, inv_time: float) -> npt.NDArray:
     return -np.log(1.0 - prob) / inv_time
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def rate_to_prob(rate: npt.NDArray, inv_time: float) -> npt.NDArray:
     """Convert rate to probabiility of exceedance assuming Poisson distribution.
 

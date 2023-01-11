@@ -7,42 +7,56 @@ from operator import mul
 from pathlib import Path
 import pytest
 
-from toshi_hazard_post.branch_combinator import build_full_source_lt, grouped_ltbs, merge_ltbs_fromLT, build_rlz_table, SourceBranch, GMCMBranch, SourceBranchGroup
+from toshi_hazard_post.branch_combinator import (
+    build_full_source_lt,
+    grouped_ltbs,
+    merge_ltbs_fromLT,
+    build_rlz_table,
+    SourceBranch,
+    GMCMBranch,
+    SourceBranchGroup,
+)
 
 
 def load_gmcm_branches(filepath):
     with open(filepath) as json_file:
         gmcm_branches_asdict = json.load(json_file)
-    
+
     gmcm_branches = []
     for branch_dict in gmcm_branches_asdict:
         gmcm_branches.append(GMCMBranch(**branch_dict))
     return gmcm_branches
 
+
 def convert_source_branches(source_branches_old):
 
-    source_branches = SourceBranchGroup() 
+    source_branches = SourceBranchGroup()
     for branch in source_branches_old:
-        source_branches.append(SourceBranch(
-            branch['name'],
-            branch['ids'],
-            branch['weight'],
-            branch['tags'],
-            [],
-        )) 
+        source_branches.append(
+            SourceBranch(
+                branch['name'],
+                branch['ids'],
+                branch['weight'],
+                branch['tags'],
+                [],
+            )
+        )
     return source_branches
+
 
 def convert_gmcm_branches(rlz_combs, weight_combs):
 
     gmcm_branches = []
     for rlz_comb, weight in zip(rlz_combs, weight_combs):
-        gmcm_branches.append(GMCMBranch(
-            # [],
-            # [rlz.split(':')[-1] for rlz in rlz_comb],
-            rlz_comb,
-            weight,
-        ))
-    
+        gmcm_branches.append(
+            GMCMBranch(
+                # [],
+                # [rlz.split(':')[-1] for rlz in rlz_comb],
+                rlz_comb,
+                weight,
+            )
+        )
+
     return gmcm_branches
 
 
@@ -154,7 +168,6 @@ class TestBuldRealizationTable(unittest.TestCase):
         self._metadata_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'metadata.json')
         self._gmcm_branches_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'gmcm_branches.json')
 
-
     def test_build_rlz_table(self):
 
         metadata = json.load(open(self._metadata_filepath, 'r'))
@@ -174,7 +187,9 @@ class TestCorrelatiedRealizationTable(unittest.TestCase):
     def setUp(self):
         self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
         self._metadata_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'metadata.json')
-        self._gmcm_branches_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'gmcm_branches_correlated.json')
+        self._gmcm_branches_filepath = Path(
+            Path(__file__).parent, 'fixtures/branch_combinator', 'gmcm_branches_correlated.json'
+        )
 
     def test_build_correlated_rlz_table(self):
 
@@ -212,4 +227,3 @@ class TestCorrelatiedRealizationTable(unittest.TestCase):
 
         for branch_expected in gmcm_branches_expected:
             assert branch_expected in gmcm_branches
-

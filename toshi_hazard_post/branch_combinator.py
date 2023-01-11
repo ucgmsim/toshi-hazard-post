@@ -3,11 +3,10 @@ import itertools
 import json
 import logging
 import math
-from functools import lru_cache
-from dataclasses import dataclass, field, asdict
 from collections import namedtuple
 from collections.abc import MutableSequence
-from functools import reduce
+from dataclasses import asdict, dataclass, field
+from functools import lru_cache, reduce
 from operator import mul
 from typing import Any, Dict, Iterable, Iterator, List, Tuple
 
@@ -21,8 +20,9 @@ log = logging.getLogger(__name__)
 @dataclass
 class GMCMBranch:
     # gmms: List[str]
-    realizations: List[str] # [int] or [str]?
+    realizations: List[str]  # [int] or [str]?
     weight: float
+
 
 @dataclass
 class SourceBranch:
@@ -32,37 +32,35 @@ class SourceBranch:
     tags: List[str]
     gmcm_branches: List[GMCMBranch] = field(default_factory=lambda: [])
 
-
-    @property # type: ignore
+    @property  # type: ignore
     def gmcm_branch_weights(self) -> List[float]:
         return [branch.weight for branch in self.gmcm_branches]
 
-    @property # type: ignore
+    @property  # type: ignore
     def n_gmcm_branches(self) -> int:
         return len(self.gmcm_branches)
 
-    @property # type: ignore
-    def gmcm_realizations(self) -> List[List[str]]:
+    @property  # type: ignore
+    def gmcm_branch_realizations(self) -> List[List[str]]:
         return [branch.realizations for branch in self.gmcm_branches]
-
 
 
 @dataclass
 class SourceBranchGroup(MutableSequence):
-    _branches: List[SourceBranch] = field(default_factory=lambda: []) 
+    _branches: List[SourceBranch] = field(default_factory=lambda: [])
 
     def __getitem__(self, i):
         return self._branches[i]
 
     def __setitem__(self, i, item):
         self._branches[i] = item
-    
+
     def __delitem__(self, i):
         del self._branches[i]
-    
+
     def __len__(self):
         return len(self._branches)
-        
+
     def insert(self, i, item):
         self._branches.insert(i, item)
 
@@ -193,11 +191,13 @@ def build_rlz_table(
 
     gmcm_branches = []
     for rlz_comb, weight in zip(rlz_combs, weight_combs):
-        gmcm_branches.append(GMCMBranch(
-            # [rlz.split(':')[-1] for rlz in rlz_comb],
-            rlz_comb,
-            weight
-        ))
+        gmcm_branches.append(
+            GMCMBranch(
+                # [rlz.split(':')[-1] for rlz in rlz_comb],
+                rlz_comb,
+                weight,
+            )
+        )
     # TODO: record mapping between rlz number and gmm name
     return gmcm_branches
 
@@ -257,9 +257,7 @@ def build_source_branches(
     return source_branches
 
 
-def build_full_source_lt(
-    grouped_ltbs: Dict[str, Any], correlations: Dict[str, List[dict]] = None
-) -> SourceBranchGroup:
+def build_full_source_lt(grouped_ltbs: Dict[str, Any], correlations: Dict[str, List[dict]] = None) -> SourceBranchGroup:
     """Build full source logic tree from all combinations of source fault system tree branches, enforcing correlations.
 
     Parameters

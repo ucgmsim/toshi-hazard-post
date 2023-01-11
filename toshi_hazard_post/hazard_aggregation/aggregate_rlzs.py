@@ -5,8 +5,8 @@ from typing import Collection, Dict, Iterable, List
 import numpy as np
 import numpy.typing as npt
 
-from toshi_hazard_post.calculators import calculate_weighted_quantiles, prob_to_rate, rate_to_prob, weighted_avg_and_std
 from toshi_hazard_post.branch_combinator import SourceBranchGroup
+from toshi_hazard_post.calculators import calculate_weighted_quantiles, prob_to_rate, rate_to_prob, weighted_avg_and_std
 
 DTOL = 1.0e-6
 INV_TIME = 1.0
@@ -212,7 +212,13 @@ def get_branch_weights(source_branches: SourceBranchGroup) -> npt.NDArray:
 
 
 def build_branches(
-    source_branches: SourceBranchGroup, values: Dict[str, dict], imt: str, loc: str, vs30: int, start_ind: int, end_ind: int
+    source_branches: SourceBranchGroup,
+    values: Dict[str, dict],
+    imt: str,
+    loc: str,
+    vs30: int,
+    start_ind: int,
+    end_ind: int,
 ) -> npt.NDArray:
     """For each source branch, calculate the weighted sum probability.
 
@@ -250,7 +256,7 @@ def build_branches(
     tic = time.process_time()
     for i, branch in enumerate(source_branches):  # ~320 source branches
         # rlz_combs, weight_combs = build_rlz_table(branch, vs30)
-        rlz_combs = branch.gmcm_realizations
+        rlz_combs = branch.gmcm_branch_realizations
 
         # set of realization probabilties for a single complete source branch
         # these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve

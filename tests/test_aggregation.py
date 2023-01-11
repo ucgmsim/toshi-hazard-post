@@ -22,6 +22,7 @@ values = np.load(Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'values.n
 
 # TODO: re-save source_branches, etc objects as new data type so they don't have to be converted in every test
 
+
 @mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.load_realization_values')
 @mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.model.HazardAggregation')
 @mock.patch('toshi_hazard_post.hazard_aggregation.aggregation.model.LevelValuePairAttribute')
@@ -41,7 +42,7 @@ class TestAggregation(unittest.TestCase):
         kwargs_expected = json.load(open(self._kwargs_file))
         n_lvl_vals_expected = len(lvls_expected)
         task_args = AggTaskArgs(*json.load(open(self._task_args_file)))
-        
+
         source_branches_old = task_args.source_branches
         source_branches = convert_source_branches(source_branches_old)
         for i, sb in enumerate(source_branches_old):
@@ -60,7 +61,7 @@ class TestAggregation(unittest.TestCase):
             task_args.poe,
             task_args.deagg_imtl,
             task_args.save_rlz,
-            task_args.stride
+            task_args.stride,
         )
 
         toshi_hazard_post.hazard_aggregation.aggregation.process_location_list(task_args)
