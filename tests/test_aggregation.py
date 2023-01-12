@@ -8,6 +8,7 @@ import numpy as np
 import toshi_hazard_post.hazard_aggregation.aggregation
 from toshi_hazard_post.hazard_aggregation.aggregation import AggTaskArgs
 from .test_branch_combinator import convert_gmcm_branches, convert_source_branches
+from .test_aggregate_rlzs import convert_values
 
 
 def batch_write():
@@ -17,8 +18,6 @@ def batch_write():
 
     return Saver()
 
-
-values = np.load(Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'values.npy'), allow_pickle=True)[()]
 
 # TODO: re-save source_branches, etc objects as new data type so they don't have to be converted in every test
 
@@ -36,7 +35,7 @@ class TestAggregation(unittest.TestCase):
 
     def test_process_location_list(self, mock_lvl_val, mock_hazard_agg, mock_load):
 
-        mock_load.return_value = np.load(self._values_file, allow_pickle=True)[()]
+        mock_load.return_value = convert_values(np.load(self._values_file, allow_pickle=True)[()])
         lvls_expected = np.load(self._lvls_file)
         vals_expected = np.load(self._vals_file)
         kwargs_expected = json.load(open(self._kwargs_file))

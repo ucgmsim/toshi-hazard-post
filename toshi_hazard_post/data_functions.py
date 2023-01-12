@@ -1,8 +1,10 @@
 import logging
 import time
-from typing import Any, List
+from collections import namedtuple
+from typing import Any, Dict, List, Set
 
 import numpy as np
+import numpy.typing as npt
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
 
 from toshi_hazard_post.branch_combinator import SourceBranchGroup
@@ -11,6 +13,41 @@ from toshi_hazard_post.util.toshi_client import download_csv
 
 DOWNLOAD_DIR = '/work/chrisdc/NZSHM-WORKING/PROD/'
 log = logging.getLogger(__name__)
+
+# TODO: split rlz number from id rather than joining in key, could keep interface the same and then transition to
+# no longer using id:rlz keys later
+class ValueStore:
+    """storage class for individual oq data from THS. This results in ~15-20% performance hit when calculating
+    aggregations on a 44 element array, but the interface is far superior to 3x nested dicts"""
+
+    DictKey = namedtuple("DictKey", "key loc imt")
+
+    def __init__(self) -> None:
+        self._values: Dict[ValueStore.DictKey, npt.NDArray] = {}
+
+    def set_values(self, *, value: npt.NDArray, key: str, loc: str, imt: str) -> None:
+        self._values[ValueStore.DictKey(key=key, loc=loc, imt=imt)] = value
+
+    def values(self, *, key: str, loc: str, imt: str) -> npt.NDArray:
+        return self._values[ValueStore.DictKey(key=key, loc=loc, imt=imt)]
+
+    @property
+    def len_rate(self) -> int:
+        return len(next(iter(self._values.values())))
+
+    @property
+    def toshi_hazard_ids(self) -> Set[str]:
+        ids = []
+        for k in self._values.keys():
+            ids.append(k.key.split(':')[0])
+        return set(ids)
+
+    def locs(self, toshi_hazard_id: str) -> Set[str]:
+        lcs = []
+        for k in self._values.keys():
+            if k.key.split(':')[0] == toshi_hazard_id:
+                lcs.append(k.loc)
+        return set(lcs)
 
 
 def get_levels(source_branches: SourceBranchGroup, locs: List[str], vs30: int) -> Any:
@@ -63,39 +100,55 @@ def get_imts(source_branches: SourceBranchGroup, vs30: int) -> list:
     return imts
 
 
-def load_realization_values(toshi_ids, locs, vs30s):
+def check_values(values: ValueStore, toshi_hazard_ids: List[str], locs: List[str]) -> None:
+    """check that the correct number of ids and locations are stored in values
+
+    Parameters
+    ----------
+    values
+        keys to be checked
+    toshi_hazard_ids
+        ids that should be present
+    locs
+        locations that should be present
+    """
+
+    diff_ids = set(toshi_hazard_ids) - values.toshi_hazard_ids
+    if diff_ids:
+        log.warn('missing ids: %s' % diff_ids)
+
+    for id in toshi_hazard_ids:
+        diff_locs = set(locs) - values.locs(id)
+        if diff_locs:
+            log.warn('missing locations: %s for id %s' % (diff_locs, id))
+
+
+def load_realization_values(toshi_ids: List[str], locs: List[str], vs30s: List[int]) -> ValueStore:
     """Load hazard curves from Toshi-Hazard-Store.
 
     Parameters
     ----------
-    toshi_ids : List[str]
+    toshi_ids
         Openquake Hazard Solutions Toshi IDs
-    locs : List[str]
+    locs
         coded locations
-    vs30s : List[int]
+    vs30s
         vs30s
 
     Returns
-    values : dict
+    values
         hazard curve values (probabilities) keyed by Toshi ID and gsim realization number
     """
 
     tic = time.perf_counter()
-    # unique_ids = []
-    # for branch in source_branches:
-    #     unique_ids += branch['ids']
-    # unique_ids = list(set(unique_ids))
     log.info('loading %s hazard IDs ... ' % len(toshi_ids))
 
-    values = {}
+    values = ValueStore()
     try:
         for res in get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
             key = ':'.join((res.hazard_solution_id, str(res.rlz)))
-            if key not in values:
-                values[key] = {}
-            values[key][res.nloc_001] = {}
             for val in res.values:
-                values[key][res.nloc_001][val.imt] = np.array(val.vals)
+                values.set_values(value=np.array(val.vals), key=key, loc=res.nloc_001, imt=val.imt)
                 # for i, v in enumerate(val.vals):
                 #     if not v:  # TODO: not sure what this is for
                 #         log.debug(
@@ -110,19 +163,7 @@ def load_realization_values(toshi_ids, locs, vs30s):
         raise
 
     # check that the correct number of records came back
-    ids_ret = []
-    for k1, v1 in values.items():
-        nlocs_ret = len(v1.keys())
-        if not nlocs_ret == len(locs):
-            log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
-        ids_ret += [k1.split(':')[0]]
-    ids_ret = set(ids_ret)
-    if len(ids_ret) != len(toshi_ids):
-        log.warn('Missing %s toshi IDs' % (len(toshi_ids) - len(ids_ret)))
-        # log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
-        # log.warn('missing %s locations.' % (len(locs) - nlocs_ret))
-        toshi_ids = set(toshi_ids)
-        log.warn('Missing ids: %s' % (toshi_ids - ids_ret))
+    check_values(values, toshi_ids, locs)
 
     toc = time.perf_counter()
     print(f'time to load realizations: {toc-tic:.1f} seconds')
@@ -152,7 +193,7 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
     tic = time.perf_counter()
     log.info('loading %s hazard IDs ... ' % len(toshi_ids))
 
-    values = {}
+    values = ValueStore
 
     # download csv archives
     downloads = download_csv(toshi_ids, DOWNLOAD_DIR)
@@ -164,24 +205,10 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
         log.info(f'finished loading data from csv archive {i+1} of {len(downloads)}')
         for rlz in disaggs.keys():
             key = ':'.join((hazard_solution_id, rlz))
-            if key not in values:
-                values[key] = {}
-            values[key][location] = {}
-            values[key][location][imt] = np.array(disaggs[rlz])
+            values.set_values(value=np.array(disaggs[rlz]), key=key, loc=location, imt=imt)
 
     # check that the correct number of records came back
-    ids_ret = []
-    for k1, v1 in values.items():
-        nlocs_ret = len(v1.keys())
-        if not nlocs_ret == len(locs):
-            log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
-        ids_ret += [k1.split(':')[0]]
-    ids_ret = set(ids_ret)
-    if len(ids_ret) != len(toshi_ids):
-        log.warn('Missing %s toshi IDs' % (len(toshi_ids) - len(ids_ret)))
-        log.warn('location %s missing %s locations.' % (k1, len(locs) - nlocs_ret))
-        toshi_ids = set(toshi_ids)
-        print('Missing ids: %s' % (toshi_ids - ids_ret))
+    check_values(values, toshi_ids, locs)
 
     toc = time.perf_counter()
     print(f'time to load realizations: {toc-tic:.1f} seconds')

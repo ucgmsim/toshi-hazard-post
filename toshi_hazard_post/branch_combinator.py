@@ -5,10 +5,10 @@ import logging
 import math
 from collections import namedtuple
 from collections.abc import MutableSequence
-from dataclasses import asdict, dataclass, field
-from functools import lru_cache, reduce
+from dataclasses import dataclass, field
+from functools import reduce
 from operator import mul
-from typing import Any, Dict, Iterable, Iterator, List, Tuple
+from typing import Any, Dict, Iterable, Iterator, List
 
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
 

@@ -1,5 +1,4 @@
 import csv
-import dataclasses
 import io
 import json
 import logging
@@ -10,7 +9,6 @@ from enum import Enum
 from functools import reduce
 from operator import mul
 from pathlib import Path
-from typing import List
 from zipfile import ZipFile
 
 import numpy as np

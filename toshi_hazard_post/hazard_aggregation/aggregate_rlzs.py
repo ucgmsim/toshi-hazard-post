@@ -7,6 +7,7 @@ import numpy.typing as npt
 
 from toshi_hazard_post.branch_combinator import SourceBranchGroup
 from toshi_hazard_post.calculators import calculate_weighted_quantiles, prob_to_rate, rate_to_prob, weighted_avg_and_std
+from toshi_hazard_post.data_functions import ValueStore
 
 DTOL = 1.0e-6
 INV_TIME = 1.0
@@ -85,7 +86,7 @@ def weighted_stats(values: Iterable[float], quantiles: List[str], sample_weight:
 
 
 def calc_weighted_sum(
-    rlz_combs: Collection[str], values: Dict[str, dict], loc: str, imt: str, start_ind: int, end_ind: int
+    rlz_combs: Collection[str], values: ValueStore, loc: str, imt: str, start_ind: int, end_ind: int
 ) -> npt.NDArray:
     """Calculate the weighted sum of probabilities, first converting to rate, then back to probability. Works on
     probability array in chunks to reduce memory usage.
@@ -119,7 +120,7 @@ def calc_weighted_sum(
     for i, rlz_comb in enumerate(rlz_combs):
         rate = np.zeros((ncols,))
         for rlz in rlz_comb:
-            rate += prob_to_rate(values[rlz][loc][imt][start_ind:end_ind], INV_TIME)
+            rate += prob_to_rate(values.values(key=rlz, loc=loc, imt=imt)[start_ind:end_ind], INV_TIME)
         prob = rate_to_prob(rate, INV_TIME)
         prob_table[i, :] = prob
 
@@ -166,7 +167,8 @@ def calculate_aggs(branch_probs: npt.NDArray, aggs: List[str], weight_combs: Col
 
 
 def get_len_rate(values: Dict[str, dict]) -> int:
-    """Get the length of the probability array
+    """Get the length of the probability array.
+    Depricated
 
     Parameters
     ----------
@@ -213,7 +215,7 @@ def get_branch_weights(source_branches: SourceBranchGroup) -> npt.NDArray:
 
 def build_branches(
     source_branches: SourceBranchGroup,
-    values: Dict[str, dict],
+    values: ValueStore,
     imt: str,
     loc: str,
     vs30: int,

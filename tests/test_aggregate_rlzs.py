@@ -7,6 +7,7 @@ import numpy as np
 
 from .test_branch_combinator import convert_gmcm_branches, convert_source_branches
 
+from toshi_hazard_post.data_functions import ValueStore
 from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import (
     weighted_stats,
     calc_weighted_sum,
@@ -15,6 +16,15 @@ from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import (
     build_branches,
     calculate_aggs,
 )
+
+
+def convert_values(values_dict):
+    values = ValueStore()
+    for key, vd1 in values_dict.items():
+        for loc, vd2 in vd1.items():
+            for imt, vals in vd2.items():
+                values.set_values(value=vals, key=key, loc=loc, imt=imt)
+    return values
 
 
 class TestAggStats(unittest.TestCase):
@@ -42,7 +52,7 @@ class TestProb(unittest.TestCase):
     def test_calc_weighted_sum(self):
 
         rlz_combs = json.load(open(self._rlz_combs_file))
-        values = np.load(self._values_file, allow_pickle=True)[()]
+        values = convert_values(np.load(self._values_file, allow_pickle=True)[()])
         args = json.load(open(self._weighted_sum_args_file))
         prob_sum = calc_weighted_sum(rlz_combs, values, args['loc'], args['imt'], args['start_ind'], args['end_ind'])
 
@@ -63,7 +73,7 @@ class TestBranchFuns(unittest.TestCase):
         self._agg_probs_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'aggregate_probs.npy')
 
         source_branches_old = json.load(open(self._source_branches_file))
-        self._values = np.load(self._values_file, allow_pickle=True)[()]
+        self._values = convert_values(np.load(self._values_file, allow_pickle=True)[()])
 
         self._source_branches = convert_source_branches(source_branches_old)
         for i, sb in enumerate(source_branches_old):
@@ -79,9 +89,7 @@ class TestBranchFuns(unittest.TestCase):
 
     def test_get_len_rate(self):
 
-        ncols = get_len_rate(self._values)
-
-        assert ncols == 44
+        assert self._values.len_rate == 44
 
     def test_build_branches(self):
 

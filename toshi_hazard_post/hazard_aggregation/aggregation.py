@@ -5,7 +5,7 @@ import multiprocessing
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Union
+from typing import Any, Dict, Iterable, List
 
 import numpy as np
 import numpy.typing as npt
@@ -28,7 +28,7 @@ from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.locations import get_locations
 from toshi_hazard_post.util.file_utils import save_deaggs, save_realizations
 
-from .aggregate_rlzs import build_branches, calculate_aggs, get_branch_weights, get_len_rate
+from .aggregate_rlzs import build_branches, calculate_aggs, get_branch_weights
 from .aggregation_config import AggregationConfig
 
 log = logging.getLogger(__name__)
@@ -135,7 +135,8 @@ def process_location_list(task_args: AggTaskArgs) -> None:
             resolution = 0.001
             location = CodedLocation(float(lat), float(lon), resolution)
 
-            ncols = get_len_rate(values)
+            # ncols = get_len_rate(values)
+            ncols = values.len_rate
             hazard = np.empty((ncols, len(aggs)))
             for start_ind in range(0, ncols, stride):
                 end_ind = start_ind + stride
