@@ -4,9 +4,11 @@ import unittest
 from collections import namedtuple
 from unittest import mock
 from pathlib import Path
+from dacite import from_dict
 
 import toshi_hazard_post.hazard_aggregation.aws_aggregation
 import toshi_hazard_post.hazard_aggregation.aggregation_task
+from toshi_hazard_post.branch_combinator import SourceBranchGroup
 from .test_branch_combinator import convert_source_branches, load_gmcm_branches
 
 MockRequests = namedtuple('MockRequests', 'ok content')
@@ -36,7 +38,8 @@ class TestSourceBranches(unittest.TestCase):
     def test_save_and_fetch(self, mock_zipfile, mock_save_sources, io, ToshiFile, requests):
 
         gmcm_branches = load_gmcm_branches(self._gmcm_branches_filepath)
-        source_branches = {400: convert_source_branches(json.load(open(self._sb_file, 'r')))}
+        # source_branches = {400: convert_source_branches(json.load(open(self._sb_file, 'r')))}
+        source_branches = {400: from_dict(data_class=SourceBranchGroup, data=json.load(open(self._sb_file, 'r')))}
         for i in range(len(source_branches)):
             source_branches[400][i].gmcm_branches = gmcm_branches
 

@@ -27,9 +27,11 @@ class GMCMBranch:
 @dataclass
 class SourceBranch:
     name: str
-    toshi_hazard_ids: List[str]
-    weight: float
     tags: List[str]
+    weight: float
+    toshi_hazard_ids: List[str]
+    inv_ids: List[str] = field(default_factory=lambda: [])
+    bg_ids: List[str] = field(default_factory=lambda: [])
     gmcm_branches: List[GMCMBranch] = field(default_factory=lambda: [])
 
     @property  # type: ignore
@@ -244,6 +246,7 @@ def build_source_branches(
     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
 
     source_branches = build_full_source_lt(grouped, src_correlations)
+    breakpoint()
 
     if truncate:
         # for testing only
@@ -299,7 +302,14 @@ def build_full_source_lt(grouped_ltbs: Dict[str, Any], correlations: Dict[str, L
         id_group = []
         for member in group:
             id_group.append(
-                {'id': member.hazard_solution_id, 'weight': member.weight, 'tag': member.tag, 'group': member.group}
+                {
+                    'id': member.hazard_solution_id,
+                    'weight': member.weight,
+                    'tag': member.tag,
+                    'group': member.group,
+                    'inv_id': member.inv_id,
+                    'bg_id': member.bg_id,
+                }
             )
         id_groups.append(id_group)
 
@@ -310,18 +320,20 @@ def build_full_source_lt(grouped_ltbs: Dict[str, Any], correlations: Dict[str, L
         ids = [leaf['id'] for leaf in branch]
         group_and_tags = [{'group': leaf['group'], 'tag': leaf['tag']} for leaf in branch]
         tags = [leaf['tag'] for leaf in branch]
+        inv_ids = [leaf['inv_id'] for leaf in branch]
+        bg_ids = [leaf['bg_id'] for leaf in branch]
 
         if correlations:
             for correlation in correlations['correlations']:
                 if all(cor in group_and_tags for cor in correlation):
                     weights = [leaf['weight'] for leaf in branch if leaf['group'] != correlations['dropped_group']]
                     weight = math.prod(weights)
-                    source_branches.append(SourceBranch(name, ids, weight, tags))
+                    source_branches.append(SourceBranch(name, tags, weight, ids, inv_ids, bg_ids))
                     break
         else:
             weights = [leaf['weight'] for leaf in branch]
             weight = math.prod(weights)
-            source_branches.append(SourceBranch(name, ids, weight, tags))
+            source_branches.append(SourceBranch(name, tags, weight, ids, inv_ids, bg_ids))
 
     return source_branches
 

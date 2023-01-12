@@ -6,6 +6,7 @@ from functools import reduce
 from operator import mul
 from pathlib import Path
 import pytest
+from dacite import from_dict
 
 from toshi_hazard_post.branch_combinator import (
     build_full_source_lt,
@@ -35,10 +36,9 @@ def convert_source_branches(source_branches_old):
         source_branches.append(
             SourceBranch(
                 branch['name'],
-                branch['ids'],
-                branch['weight'],
                 branch['tags'],
-                [],
+                branch['weight'],
+                branch['ids'],
             )
         )
     return source_branches
@@ -80,7 +80,8 @@ class TestCombinator(unittest.TestCase):
         # print(source_branches)
 
         # test function output against precanned result
-        expected = convert_source_branches(json.load(open(self._sb_file, 'r')))
+        # expected = convert_source_branches(json.load(open(self._sb_file, 'r')))
+        expected = from_dict(data_class=SourceBranchGroup, data=json.load(open(self._sb_file, 'r')))
         assert expected == source_branches
 
         # now test some specifics
@@ -128,7 +129,10 @@ class TestCorrelatedCombinator(unittest.TestCase):
         source_branches = build_full_source_lt(grouped, correlations)  # TODO: add correlations to source LT
 
         # test that we get the correct ids
-        expected = convert_source_branches(json.load(open(self._sb_file, 'r')))
+        expected = from_dict(data_class=SourceBranchGroup, data=json.load(open(self._sb_file, 'r')))
+
+        assert expected == source_branches
+
         expected_ids = [set(exp.toshi_hazard_ids) for exp in expected]
         received_ids = [set(sb.toshi_hazard_ids) for sb in source_branches]
         assert expected_ids == received_ids
@@ -171,7 +175,9 @@ class TestBuldRealizationTable(unittest.TestCase):
     def test_build_rlz_table(self):
 
         metadata = json.load(open(self._metadata_filepath, 'r'))
-        source_branches = convert_source_branches(json.load(open(self._sb_file, 'r')))
+        # source_branches = convert_source_branches(json.load(open(self._sb_file, 'r')))
+        source_branches = from_dict(data_class=SourceBranchGroup, data=json.load(open(self._sb_file, 'r')))
+
         gmcm_branches = build_rlz_table(source_branches[0], metadata)
 
         gmcm_branches_expected = load_gmcm_branches(self._gmcm_branches_filepath)
@@ -217,7 +223,8 @@ class TestCorrelatiedRealizationTable(unittest.TestCase):
         ]
 
         metadata = json.load(open(self._metadata_filepath, 'r'))
-        source_branches = convert_source_branches(json.load(open(self._sb_file, 'r')))
+        # source_branches = convert_source_branches(json.load(open(self._sb_file, 'r')))
+        source_branches = from_dict(data_class=SourceBranchGroup, data=json.load(open(self._sb_file, 'r')))
         gmcm_branches = build_rlz_table(source_branches[0], metadata, correlations)
 
         gmcm_branches_expected = load_gmcm_branches(self._gmcm_branches_filepath)
