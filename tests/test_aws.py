@@ -8,7 +8,7 @@ from dacite import from_dict
 
 import toshi_hazard_post.hazard_aggregation.aws_aggregation
 import toshi_hazard_post.hazard_aggregation.aggregation_task
-from toshi_hazard_post.branch_combinator import SourceBranchGroup
+from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
 from .test_branch_combinator import convert_source_branches, load_gmcm_branches
 
 MockRequests = namedtuple('MockRequests', 'ok content')

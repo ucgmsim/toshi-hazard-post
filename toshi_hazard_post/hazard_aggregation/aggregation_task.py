@@ -16,7 +16,7 @@ from dacite import from_dict
 from nshm_toshi_client.toshi_file import ToshiFile
 from nzshm_common.location.code_location import CodedLocation
 
-from toshi_hazard_post.branch_combinator import SourceBranchGroup
+from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
 from toshi_hazard_post.local_config import API_KEY, API_URL, LOGGING_CFG, NUM_WORKERS, S3_URL
 from toshi_hazard_post.util import decompress_config
 

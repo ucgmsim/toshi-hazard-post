@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
 
-from toshi_hazard_post.branch_combinator import SourceBranchGroup
+from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
 from toshi_hazard_post.util.file_utils import get_disagg
 from toshi_hazard_post.util.toshi_client import download_csv
 

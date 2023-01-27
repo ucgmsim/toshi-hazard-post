@@ -4,7 +4,7 @@ import json
 import logging
 from collections import namedtuple
 from pathlib import Path, PurePath
-from typing import Union
+from typing import Union, List, Dict, Any
 
 from nshm_toshi_client.toshi_client_base import ToshiClientBase
 from nshm_toshi_client.toshi_file import ToshiFile
@@ -114,3 +114,73 @@ def get_imtl(gtdata):
     for arg in gtdata['data']['node1']['children']['edges'][0]['node']['child']['arguments']:
         if arg['k'] == 'disagg_config':
             return json.loads(arg['v'].replace("'", '"'))['level']
+
+
+
+
+class SourceSolutionMap:
+    """A mapping between nrml ids and hazard solution ids"""
+
+    def __init__(self, hazard_jobs: List[dict] = []) -> None:
+        self._dict: Dict[str, str] = {}
+        if hazard_jobs:
+            for job in hazard_jobs:
+                for arg in job['node']['child']['arguments']:
+                    if arg['k'] == 'logic_tree_permutations':
+                        branch_info = json.loads(arg['v'].replace("'", '"'))[0]['permute'][0]['members'][0]
+                        onfault_nrml_id = branch_info['inv_id']
+                        distributed_nrml_id = branch_info['bg_id']
+                hazard_solution = job['node']['child']['hazard_solution']
+                self._dict[self.__key(onfault_nrml_id, distributed_nrml_id)] = hazard_solution['id']
+
+    def append(self, other: Dict[str, str]):
+        self._dict.update(other._dict)
+
+    def get_solution_id(self, *, onfault_nrml_id: str, distributed_nrml_id: str) -> str:
+        return self._dict.get(self.__key(onfault_nrml_id, distributed_nrml_id))
+
+    @staticmethod
+    def __key(onfault_nrml_id: str, distributed_nrml_id: str) -> str:
+        return ':'.join((str(onfault_nrml_id), str(distributed_nrml_id)))
+
+
+
+def get_hazard_gt(self, id: str) -> Dict[Any, Any]:
+
+    headers = {"x-api-key": API_KEY}
+    toshi_api = ToshiClientBase(API_URL, None, with_schema_validation=False, headers=headers)
+
+    qry = ''' 
+    query hazard_gt ($general_task_id:ID!) {
+        node1: node(id: $general_task_id) {
+            id
+            ... on GeneralTask {
+                children {
+                    total_count
+                    edges {
+                        node {
+                            child {
+                                ... on OpenquakeHazardTask {
+                                    arguments {
+                                        k v
+                                    }
+                                    result
+                                    hazard_solution {
+                                        id
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    '''
+
+    input_variables = dict(general_task_id=id)
+    executed = toshi_api.run_query(qry, input_variables)
+    if executed.get('node1'):
+        return SourceSolutionMap(executed['node1']['children']['edges'])
+    else:
+        return SourceSolutionMap()

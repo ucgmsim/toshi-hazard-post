@@ -16,7 +16,7 @@ import numpy.typing as npt
 import pandas as pd
 from nzshm_common.location.code_location import CodedLocation
 
-from toshi_hazard_post.branch_combinator import SourceBranchGroup
+from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
 
 log = logging.getLogger(__name__)
 

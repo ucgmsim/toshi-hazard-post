@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from dacite import from_dict
 
-from toshi_hazard_post.branch_combinator import (
+from toshi_hazard_post.logic_tree.branch_combinator import (
     build_full_source_lt,
     grouped_ltbs,
     merge_ltbs_fromLT,

@@ -17,7 +17,7 @@ from toshi_hazard_store import model
 #     grouped_ltbs,
 #     merge_ltbs_fromLT,
 # )
-from toshi_hazard_post.branch_combinator import SourceBranchGroup, build_source_branches, merge_ltbs_fromLT
+from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup, build_source_branches, merge_ltbs_fromLT
 from toshi_hazard_post.data_functions import (
     get_imts,
     get_levels,
