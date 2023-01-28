@@ -5,7 +5,8 @@ from typing import Collection, Dict, Iterable, List
 import numpy as np
 import numpy.typing as npt
 
-from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
+# from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
+from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
 from toshi_hazard_post.calculators import calculate_weighted_quantiles, prob_to_rate, rate_to_prob, weighted_avg_and_std
 from toshi_hazard_post.data_functions import ValueStore
 
@@ -189,7 +190,7 @@ def get_len_rate(values: Dict[str, dict]) -> int:
     return rate_shape[0]
 
 
-def get_branch_weights(source_branches: SourceBranchGroup) -> npt.NDArray:
+def get_branch_weights(logic_tree: HazardLogicTree) -> npt.NDArray:
     """Get the weight of every realization of the full, combined source and gsim logic tree.
 
     Parameters
@@ -203,10 +204,10 @@ def get_branch_weights(source_branches: SourceBranchGroup) -> npt.NDArray:
         multiplicitive weights of all branches of full, combined logic tree
     """
 
-    nbranches = len(source_branches)
-    nrows = source_branches[0].n_gmcm_branches * nbranches
+    nbranches = len(logic_tree.branches)  # TODO: should these be properties?
+    nrows = len(logic_tree.branches[0].gmcm_branches) * nbranches
     weights = np.empty((nrows,))
-    for i, branch in enumerate(source_branches):
+    for i, branch in enumerate(logic_tree.branches):
         w = np.array(branch.gmcm_branch_weights) * branch.weight
         weights[i * len(w) : (i + 1) * len(w)] = w
 
@@ -214,7 +215,7 @@ def get_branch_weights(source_branches: SourceBranchGroup) -> npt.NDArray:
 
 
 def build_branches(
-    source_branches: SourceBranchGroup,
+    logic_tree: HazardLogicTree,
     values: ValueStore,
     imt: str,
     loc: str,
@@ -248,15 +249,15 @@ def build_branches(
         axis1 = probability array
     """
 
-    nbranches = len(source_branches)
-    ncombs = source_branches[0].n_gmcm_branches
+    nbranches = len(logic_tree.branches)
+    ncombs = len(logic_tree.branches[0].gmcm_branches)
     nrows = ncombs * nbranches
     # ncols = get_len_rate(values)
     ncols = end_ind - start_ind
     branch_probs = np.empty((nrows, ncols))
 
     tic = time.process_time()
-    for i, branch in enumerate(source_branches):  # ~320 source branches
+    for i, branch in enumerate(logic_tree):  # ~320 source branches
         # rlz_combs, weight_combs = build_rlz_table(branch, vs30)
         rlz_combs = branch.gmcm_branch_realizations
 

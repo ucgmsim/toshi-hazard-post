@@ -747,6 +747,28 @@ python-versions = ">=3.8,<4.0.0"
 geometry = ["Shapely[geometry] (>=1.8.3,<2.0.0)", "geopandas[geometry] (>=0.11.1,<0.12.0)"]
 
 [[package]]
+name = "nzshm-model"
+version = "0.1.1"
+description = "The logic tree definitions, final configurations, and versioning of the New Zealand | Aotearoa National Seismic Hazard Model"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+develop = true
+
+[package.dependencies]
+dacite = "^1.6.0"
+
+[package.extras]
+dev = []
+scripts = ["click[scripts] (>=8.1.3,<9.0.0)"]
+test = []
+toshi = ["boto3[toshi] (>=1.26.28,<2.0.0)", "nshm-toshi-client[toshi] (>=1.0.0)"]
+
+[package.source]
+type = "directory"
+url = "../../nzshm-model"
+
+[[package]]
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
@@ -1371,7 +1393,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "793bbc5574a44d11088b94ab558bf69b48c4a66d2cadf00a6c6bc5f2487e1709"
+content-hash = "ecd54c2655238d7103cd56bf29914399b2c2b12fa52f8281744fa7ef8187da25"
 
 [metadata.files]
 aiohttp = [
@@ -2084,6 +2106,7 @@ nzshm-common = [
     {file = "nzshm-common-0.4.0.tar.gz", hash = "sha256:f0f7d303548c70be0f12c7894b75fcf59a7019f068e9ab71f9c950b9ec63740b"},
     {file = "nzshm_common-0.4.0-py3-none-any.whl", hash = "sha256:78572dde972362ee3b0c3b5e2633950cf9befcc7ada03a382ad5084e5c148ef1"},
 ]
+nzshm-model = []
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},

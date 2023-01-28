@@ -3,71 +3,28 @@ import itertools
 import json
 import logging
 import math
+from pathlib import Path
 from collections import namedtuple
 from collections.abc import MutableSequence
 from dataclasses import dataclass, field
 from functools import reduce
 from operator import mul
-from typing import Any, Dict, Iterable, Iterator, List
+from typing import Any, Dict, Iterable, Iterator, List, Union
 
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
+
+
+from nzshm_model.source_logic_tree.slt_config import from_config
+from nzshm_model.source_logic_tree.logic_tree import FlattenedSourceLogicTree
+
+from .logic_tree import HazardLogicTree, GMCMBranch
 
 DTOL = 1.0e-6
 
 log = logging.getLogger(__name__)
 
 
-@dataclass
-class GMCMBranch:
-    # gmms: List[str]
-    realizations: List[str]  # [int] or [str]?
-    weight: float
-
-
-@dataclass
-class SourceBranch:
-    name: str
-    tags: List[str]
-    weight: float
-    toshi_hazard_ids: List[str]
-    inv_ids: List[str] = field(default_factory=lambda: [])
-    bg_ids: List[str] = field(default_factory=lambda: [])
-    gmcm_branches: List[GMCMBranch] = field(default_factory=lambda: [])
-
-    @property  # type: ignore
-    def gmcm_branch_weights(self) -> List[float]:
-        return [branch.weight for branch in self.gmcm_branches]
-
-    @property  # type: ignore
-    def n_gmcm_branches(self) -> int:
-        return len(self.gmcm_branches)
-
-    @property  # type: ignore
-    def gmcm_branch_realizations(self) -> List[List[str]]:
-        return [branch.realizations for branch in self.gmcm_branches]
-
-
-@dataclass
-class SourceBranchGroup(MutableSequence):
-    _branches: List[SourceBranch] = field(default_factory=lambda: [])
-
-    def __getitem__(self, i):
-        return self._branches[i]
-
-    def __setitem__(self, i, item):
-        self._branches[i] = item
-
-    def __delitem__(self, i):
-        del self._branches[i]
-
-    def __len__(self):
-        return len(self._branches)
-
-    def insert(self, i, item):
-        self._branches.insert(i, item)
-
-
-def preload_meta(ids: Iterable[str], vs30: int) -> dict:
+def preload_meta(ids: Iterable[str], vs30: int) -> Dict[str, dict]:
     """Retreive the GMCM logic tree metadata from Toshi-Hazard-Store.
 
     Parameters
@@ -91,251 +48,274 @@ def preload_meta(ids: Iterable[str], vs30: int) -> dict:
     return metadata
 
 
-def build_rlz_table(
-    branch: SourceBranch, metadata: Dict[str, dict], correlations: List[List[str]] = None
-) -> List[GMCMBranch]:
-    """
-    Build the table of ground motion combinations and weights for a single source branch.
-    Assumes one source branch per run and the same gsim weights in every run. Can enforce correlations of ground
-    motion models.
+# def build_rlz_table(
+#     branch: SourceBranch, metadata: Dict[str, dict], correlations: List[List[str]] = None
+# ) -> List[GMCMBranch]:
+#     """
+#     Build the table of ground motion combinations and weights for a single source branch.
+#     Assumes one source branch per run and the same gsim weights in every run. Can enforce correlations of ground
+#     motion models.
 
-    Parameters
-    ----------
-    branch
-        single source branch definition (from build_full_source_lt() )
-    metadata
-        GMCM logic tree metadata (from preload_meta() )
-    correlations
-        GMCM logic tree correlations, each inner list element contains two ground motion model strings to correlate.
+#     Parameters
+#     ----------
+#     branch
+#         single source branch definition (from build_full_source_lt() )
+#     metadata
+#         GMCM logic tree metadata (from preload_meta() )
+#     correlations
+#         GMCM logic tree correlations, each inner list element contains two ground motion model strings to correlate.
 
-    Returns
-    -------
-    rlz_combs
-        combinations of Openquake Hazard Solutions Toshi IDs and realization numbers to combine to form a single GMCM
-        logic tree branch. e.g. ['TIDa:0', 'TIDb:1', 'TIDc:1', 'TIDd:1']
-    weight_combs
-        weights of each branch
-    rlz_sets
-        mapping for each tectonic-region-type of ground motion models to ToshiID:rlz_number str pairs
-    """
+#     Returns
+#     -------
+#     rlz_combs
+#         combinations of Openquake Hazard Solutions Toshi IDs and realization numbers to combine to form a single GMCM
+#         logic tree branch. e.g. ['TIDa:0', 'TIDb:1', 'TIDc:1', 'TIDd:1']
+#     weight_combs
+#         weights of each branch
+#     rlz_sets
+#         mapping for each tectonic-region-type of ground motion models to ToshiID:rlz_number str pairs
+#     """
 
-    if correlations:
-        correlation_master = [corr[0] for corr in correlations]
-        correlation_puppet = [corr[1] for corr in correlations]
-    else:
-        correlation_master = []
-        correlation_puppet = []
+#     if correlations:
+#         correlation_master = [corr[0] for corr in correlations]
+#         correlation_puppet = [corr[1] for corr in correlations]
+#     else:
+#         correlation_master = []
+#         correlation_puppet = []
 
-    rlz_sets: Dict[str, Any] = {}
-    weight_sets: Dict[str, Any] = {}
-    # trts = set()
+#     rlz_sets: Dict[str, Any] = {}
+#     weight_sets: Dict[str, Any] = {}
+#     # trts = set()
 
-    for hazard_id in branch.toshi_hazard_ids:
-        gsim_lt = metadata[hazard_id]
-        trts = set(gsim_lt['trt'].values())
-        for trt in trts:
-            if not rlz_sets.get(trt):
-                rlz_sets[trt] = {}
-                weight_sets[trt] = {}
-            for rlz, gsim in gsim_lt['uncertainty'].items():
-                rlz_key = ':'.join((hazard_id, rlz))
-                if not rlz_sets[trt].get(gsim):
-                    rlz_sets[trt][gsim] = []
-                rlz_sets[trt][gsim].append(rlz_key)
-                weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
+#     for hazard_id in branch.toshi_hazard_ids:
+#         gsim_lt = metadata[hazard_id]
+#         trts = set(gsim_lt['trt'].values())
+#         for trt in trts:
+#             if not rlz_sets.get(trt):
+#                 rlz_sets[trt] = {}
+#                 weight_sets[trt] = {}
+#             for rlz, gsim in gsim_lt['uncertainty'].items():
+#                 rlz_key = ':'.join((hazard_id, rlz))
+#                 if not rlz_sets[trt].get(gsim):
+#                     rlz_sets[trt][gsim] = []
+#                 rlz_sets[trt][gsim].append(rlz_key)
+#                 weight_sets[trt][gsim] = 1 if gsim in correlation_puppet else gsim_lt['weight'][rlz]
 
-    # find correlated gsims and mappings between gsim name and rlz_key
+#     # find correlated gsims and mappings between gsim name and rlz_key
 
-    if correlations:
-        all_rlz = [(gsim, rlz) for rlz_set in rlz_sets.values() for gsim, rlz in rlz_set.items()]
-        correlation_list = []
-        all_rlz_copy = all_rlz.copy()
-        for rlzm in all_rlz:
-            for i, cm in enumerate(correlation_master):
-                if cm == rlzm[0]:
-                    correlation_list.append(rlzm[1].copy())
-                    for rlzp in all_rlz_copy:
-                        if correlation_puppet[i] == rlzp[0]:
-                            correlation_list[-1] += rlzp[1]
+#     if correlations:
+#         all_rlz = [(gsim, rlz) for rlz_set in rlz_sets.values() for gsim, rlz in rlz_set.items()]
+#         correlation_list = []
+#         all_rlz_copy = all_rlz.copy()
+#         for rlzm in all_rlz:
+#             for i, cm in enumerate(correlation_master):
+#                 if cm == rlzm[0]:
+#                     correlation_list.append(rlzm[1].copy())
+#                     for rlzp in all_rlz_copy:
+#                         if correlation_puppet[i] == rlzp[0]:
+#                             correlation_list[-1] += rlzp[1]
 
-    rlz_sets_tmp = rlz_sets.copy()
-    weight_sets_tmp = weight_sets.copy()
-    for k, v in rlz_sets.items():
-        rlz_sets_tmp[k] = []
-        weight_sets_tmp[k] = []
-        for gsim in v.keys():
-            rlz_sets_tmp[k].append(v[gsim])
-            weight_sets_tmp[k].append(weight_sets[k][gsim])
+#     rlz_sets_tmp = rlz_sets.copy()
+#     weight_sets_tmp = weight_sets.copy()
+#     for k, v in rlz_sets.items():
+#         rlz_sets_tmp[k] = []
+#         weight_sets_tmp[k] = []
+#         for gsim in v.keys():
+#             rlz_sets_tmp[k].append(v[gsim])
+#             weight_sets_tmp[k].append(weight_sets[k][gsim])
 
-    rlz_lists = list(rlz_sets_tmp.values())
-    weight_lists = list(weight_sets_tmp.values())
+#     rlz_lists = list(rlz_sets_tmp.values())
+#     weight_lists = list(weight_sets_tmp.values())
 
-    # TODO: fix rlz from the same ID grouped together
-    rlz_iter = itertools.product(*rlz_lists)
-    weight_iter = itertools.product(*weight_lists)
-    rlz_combs = []
-    weight_combs = []
+#     # TODO: fix rlz from the same ID grouped together
+#     rlz_iter = itertools.product(*rlz_lists)
+#     weight_iter = itertools.product(*weight_lists)
+#     rlz_combs = []
+#     weight_combs = []
 
-    for src_group, weight_group in zip(rlz_iter, weight_iter):
-        if correlations:
-            foo = [s for src in src_group for s in src]
-            if any([len(set(foo).intersection(set(cl))) == len(cl) for cl in correlation_list]):
-                rlz_combs.append(foo)
-                weight_combs.append(reduce(mul, weight_group, 1.0))
-        else:
-            rlz_combs.append([s for src in src_group for s in src])
-            weight_combs.append(reduce(mul, weight_group, 1.0))
+#     for src_group, weight_group in zip(rlz_iter, weight_iter):
+#         if correlations:
+#             foo = [s for src in src_group for s in src]
+#             if any([len(set(foo).intersection(set(cl))) == len(cl) for cl in correlation_list]):
+#                 rlz_combs.append(foo)
+#                 weight_combs.append(reduce(mul, weight_group, 1.0))
+#         else:
+#             rlz_combs.append([s for src in src_group for s in src])
+#             weight_combs.append(reduce(mul, weight_group, 1.0))
 
-    sum_weight = sum(weight_combs)
-    if not ((sum_weight > 1.0 - DTOL) & (sum_weight < 1.0 + DTOL)):
-        print(sum_weight)
-        raise Exception('weights do not sum to 1')
+#     sum_weight = sum(weight_combs)
+#     if not ((sum_weight > 1.0 - DTOL) & (sum_weight < 1.0 + DTOL)):
+#         print(sum_weight)
+#         raise Exception('weights do not sum to 1')
 
-    gmcm_branches = []
-    for rlz_comb, weight in zip(rlz_combs, weight_combs):
-        gmcm_branches.append(
-            GMCMBranch(
-                # [rlz.split(':')[-1] for rlz in rlz_comb],
-                rlz_comb,
-                weight,
-            )
-        )
-    # TODO: record mapping between rlz number and gmm name
-    return gmcm_branches
+#     gmcm_branches = []
+#     for rlz_comb, weight in zip(rlz_combs, weight_combs):
+#         gmcm_branches.append(
+#             GMCMBranch(
+#                 # [rlz.split(':')[-1] for rlz in rlz_comb],
+#                 rlz_comb,
+#                 weight,
+#             )
+#         )
+#     # TODO: record mapping between rlz number and gmm name
+#     return gmcm_branches
 
 
-def build_source_branches(
-    logic_tree_permutations: List[Any],
-    gtdata: Dict[Any, Any],
-    src_correlations: Dict[Any, Any],
-    gmm_correlations: List[List[str]],
+def get_logic_tree(
+    lt_config_filepath: Union[str, Path],
+    hazard_gts: List[str],
     vs30: int,
-    omit: List[str],
-    toshi_ids: List[str],
+    gmm_correlations: List[List[str]],
     truncate: int = None,
-) -> SourceBranchGroup:
-    """Build the complete logic tree including all SRM and GMCM trees.
+ ) -> HazardLogicTree:
 
-    Parameters
-    ----------
-    logic_tree_permutations
-        contains dict definitions of source logic trees for each fault system
-    gtdata
-        result of ToshiAPI query on GT ID of oq-engine run
-    src_correlations
-        defines correlations between branches of source fault system logic trees
-    gmm_correlation
-        GMCM logic tree correlations, each inner list element contains two ground motion model strings to correlate.
-    vs30
-        vs30 of interest, must match what was used in oq-engine run found in gtdata
-    omit
-        list of Openquake Hazard Solutions Toshi IDs to exculde from the aggregation calculation
-    toshi_ids
-        list of Openquake Hazard Solutions Toshi IDs to include from the aggregation calculation
-    truncate
-        number of branches to include, used only to speed up calculation during debugging
-
-    Returns
-    -------
-    source_branches
-        all composite source branches built from combinations of the logic tree
-    """
-
-    # TODO: shoudn't need both toshi_ids and omit
-
-    grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
-
-    source_branches = build_full_source_lt(grouped, src_correlations)
-    breakpoint()
-
+    fslt = FlattenedSourceLogicTree.from_source_logic_tree(from_config(lt_config_filepath))
     if truncate:
-        # for testing only
-        source_branches = source_branches[:truncate]
+        # for testing
+        fslt.branches = fslt.branches[:truncate]
+    logic_tree = HazardLogicTree.from_flattened_slt(fslt, hazard_gts)
 
-    metadata = preload_meta(toshi_ids, vs30)
+    metadata = preload_meta(logic_tree.hazard_ids, vs30)
 
-    for i in range(len(source_branches)):
-        source_branches[i].gmcm_branches = build_rlz_table(source_branches[i], metadata, gmm_correlations)
+    for branch in logic_tree.branches:
+        branch.set_gmcm_branches(metadata, gmm_correlations)
 
-    return source_branches
+    return logic_tree
 
 
-def build_full_source_lt(grouped_ltbs: Dict[str, Any], correlations: Dict[str, List[dict]] = None) -> SourceBranchGroup:
-    """Build full source logic tree from all combinations of source fault system tree branches, enforcing correlations.
 
-    Parameters
-    ----------
-    grouped_ltbs
-        dictionary of source fault system branches
-    correlations
-        source correlations
+# def build_source_branches(
+#     logic_tree_permutations: List[Any],
+#     gtdata: Dict[Any, Any],
+#     src_correlations: Dict[Any, Any],
+#     gmm_correlations: List[List[str]],
+#     vs30: int,
+#     omit: List[str],
+#     toshi_ids: List[str],
+#     truncate: int = None,
+# ) -> SourceBranchGroup:
+#     """Build the complete logic tree including all SRM and GMCM trees.
 
-    Returns
-    -------
-    source_branches
-        list of all source branches of complete logic tree
-    """
+#     Parameters
+#     ----------
+#     logic_tree_permutations
+#         contains dict definitions of source logic trees for each fault system
+#     gtdata
+#         result of ToshiAPI query on GT ID of oq-engine run
+#     src_correlations
+#         defines correlations between branches of source fault system logic trees
+#     gmm_correlation
+#         GMCM logic tree correlations, each inner list element contains two ground motion model strings to correlate.
+#     vs30
+#         vs30 of interest, must match what was used in oq-engine run found in gtdata
+#     omit
+#         list of Openquake Hazard Solutions Toshi IDs to exculde from the aggregation calculation
+#     toshi_ids
+#         list of Openquake Hazard Solutions Toshi IDs to include from the aggregation calculation
+#     truncate
+#         number of branches to include, used only to speed up calculation during debugging
 
-    # TODO: only handles one combined job and one permutation set
-    permute = grouped_ltbs  # tree_permutations[0][0]['permute']
+#     Returns
+#     -------
+#     source_branches
+#         all composite source branches built from combinations of the logic tree
+#     """
 
-    # turn off correlations if there is a missing group
-    if correlations:
-        group1 = set([cr[0]['group'] for cr in correlations['correlations']])
-        group2 = set([cr[1]['group'] for cr in correlations['correlations']])
-        if not all([gr in grouped_ltbs.keys() for gr in group1.union(group2)]):
-            correlations = None
+#     # TODO: shoudn't need both toshi_ids and omit
 
-    # check that each permute group weights sum to 1.0
-    for key, group in permute.items():
-        group_weight = 0
-        for member in group:
-            group_weight += member.weight
-        if (group_weight < 1.0 - DTOL) | (group_weight > 1.0 + DTOL):
-            log.error('Group: %s has items: %s and weight: %s' % (key, len(group), group_weight))
-            log.error('group: %s' % (group))
-            raise Exception(f'group {key} weight does not sum to 1.0 ({group_weight}')
+#     grouped = grouped_ltbs(merge_ltbs_fromLT(logic_tree_permutations, gtdata=gtdata, omit=omit), vs30)
 
-    # do the thing
-    id_groups = []
-    for key, group in permute.items():
-        id_group = []
-        for member in group:
-            id_group.append(
-                {
-                    'id': member.hazard_solution_id,
-                    'weight': member.weight,
-                    'tag': member.tag,
-                    'group': member.group,
-                    'inv_id': member.inv_id,
-                    'bg_id': member.bg_id,
-                }
-            )
-        id_groups.append(id_group)
+#     source_branches = build_full_source_lt(grouped, src_correlations)
+#     breakpoint()
 
-    branches = itertools.product(*id_groups)
-    source_branches = SourceBranchGroup()
-    for i, branch in enumerate(branches):
-        name = str(i)
-        ids = [leaf['id'] for leaf in branch]
-        group_and_tags = [{'group': leaf['group'], 'tag': leaf['tag']} for leaf in branch]
-        tags = [leaf['tag'] for leaf in branch]
-        inv_ids = [leaf['inv_id'] for leaf in branch]
-        bg_ids = [leaf['bg_id'] for leaf in branch]
+#     if truncate:
+#         # for testing only
+#         source_branches = source_branches[:truncate]
 
-        if correlations:
-            for correlation in correlations['correlations']:
-                if all(cor in group_and_tags for cor in correlation):
-                    weights = [leaf['weight'] for leaf in branch if leaf['group'] != correlations['dropped_group']]
-                    weight = math.prod(weights)
-                    source_branches.append(SourceBranch(name, tags, weight, ids, inv_ids, bg_ids))
-                    break
-        else:
-            weights = [leaf['weight'] for leaf in branch]
-            weight = math.prod(weights)
-            source_branches.append(SourceBranch(name, tags, weight, ids, inv_ids, bg_ids))
+#     metadata = preload_meta(toshi_ids, vs30)
 
-    return source_branches
+#     for i in range(len(source_branches)):
+#         source_branches[i].gmcm_branches = build_rlz_table(source_branches[i], metadata, gmm_correlations)
+
+#     return source_branches
+
+
+# def build_full_source_lt(grouped_ltbs: Dict[str, Any], correlations: Dict[str, List[dict]] = None) -> SourceBranchGroup:
+#     """Build full source logic tree from all combinations of source fault system tree branches, enforcing correlations.
+
+#     Parameters
+#     ----------
+#     grouped_ltbs
+#         dictionary of source fault system branches
+#     correlations
+#         source correlations
+
+#     Returns
+#     -------
+#     source_branches
+#         list of all source branches of complete logic tree
+#     """
+
+#     # TODO: only handles one combined job and one permutation set
+#     permute = grouped_ltbs  # tree_permutations[0][0]['permute']
+
+#     # turn off correlations if there is a missing group
+#     if correlations:
+#         group1 = set([cr[0]['group'] for cr in correlations['correlations']])
+#         group2 = set([cr[1]['group'] for cr in correlations['correlations']])
+#         if not all([gr in grouped_ltbs.keys() for gr in group1.union(group2)]):
+#             correlations = None
+
+#     # check that each permute group weights sum to 1.0
+#     for key, group in permute.items():
+#         group_weight = 0
+#         for member in group:
+#             group_weight += member.weight
+#         if (group_weight < 1.0 - DTOL) | (group_weight > 1.0 + DTOL):
+#             log.error('Group: %s has items: %s and weight: %s' % (key, len(group), group_weight))
+#             log.error('group: %s' % (group))
+#             raise Exception(f'group {key} weight does not sum to 1.0 ({group_weight}')
+
+#     # do the thing
+#     id_groups = []
+#     for key, group in permute.items():
+#         id_group = []
+#         for member in group:
+#             id_group.append(
+#                 {
+#                     'id': member.hazard_solution_id,
+#                     'weight': member.weight,
+#                     'tag': member.tag,
+#                     'group': member.group,
+#                     'inv_id': member.inv_id,
+#                     'bg_id': member.bg_id,
+#                 }
+#             )
+#         id_groups.append(id_group)
+
+#     branches = itertools.product(*id_groups)
+#     source_branches = SourceBranchGroup()
+#     for i, branch in enumerate(branches):
+#         name = str(i)
+#         ids = [leaf['id'] for leaf in branch]
+#         group_and_tags = [{'group': leaf['group'], 'tag': leaf['tag']} for leaf in branch]
+#         tags = [leaf['tag'] for leaf in branch]
+#         inv_ids = [leaf['inv_id'] for leaf in branch]
+#         bg_ids = [leaf['bg_id'] for leaf in branch]
+
+#         if correlations:
+#             for correlation in correlations['correlations']:
+#                 if all(cor in group_and_tags for cor in correlation):
+#                     weights = [leaf['weight'] for leaf in branch if leaf['group'] != correlations['dropped_group']]
+#                     weight = math.prod(weights)
+#                     source_branches.append(SourceBranch(name, tags, weight, ids, inv_ids, bg_ids))
+#                     break
+#         else:
+#             weights = [leaf['weight'] for leaf in branch]
+#             weight = math.prod(weights)
+#             source_branches.append(SourceBranch(name, tags, weight, ids, inv_ids, bg_ids))
+
+#     return source_branches
 
 
 Member = namedtuple("Member", "group tag weight inv_id bg_id hazard_solution_id vs30")

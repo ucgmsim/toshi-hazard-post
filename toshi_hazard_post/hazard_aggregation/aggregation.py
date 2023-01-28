@@ -12,12 +12,13 @@ import numpy.typing as npt
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
 
+from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
 # from toshi_hazard_store.branch_combinator.branch_combinator import (
 #     get_weighted_branches,
 #     grouped_ltbs,
 #     merge_ltbs_fromLT,
 # )
-from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup, build_source_branches, merge_ltbs_fromLT
+from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup, build_source_branches, merge_ltbs_fromLT, get_logic_tree
 from toshi_hazard_post.data_functions import (
     get_imts,
     get_levels,
@@ -37,7 +38,7 @@ pr = cProfile.Profile()
 
 AggTaskArgs = namedtuple(
     "AggTaskArgs",
-    """hazard_model_id grid_loc locs toshi_ids source_branches aggs imts levels vs30 deagg poe deagg_imtl save_rlz
+    """hazard_model_id grid_loc locs logic_tree aggs imts levels vs30 deagg poe deagg_imtl save_rlz
     stride""",
 )
 
@@ -92,8 +93,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     """
 
     locs = task_args.locs
-    toshi_ids = task_args.toshi_ids
-    source_branches = task_args.source_branches
+    logic_tree = task_args.logic_tree
     aggs = task_args.aggs
     imts = task_args.imts
     levels = task_args.levels
@@ -101,6 +101,8 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     deagg_dimensions = task_args.deagg
     save_rlz = task_args.save_rlz
     stride = task_args.stride if task_args.stride else 100
+
+    toshi_ids = logic_tree.hazard_ids
 
     if deagg_dimensions:
         poe = task_args.poe
@@ -124,7 +126,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
         log.info('missing values: %s' % (values))
         return
 
-    weights = get_branch_weights(source_branches)
+    weights = get_branch_weights(logic_tree)
     for imt in imts:
         log.info('working on imt: %s' % imt)
 
@@ -144,12 +146,12 @@ def process_location_list(task_args: AggTaskArgs) -> None:
                     end_ind = ncols
 
                 tic = time.perf_counter()
-                branch_probs = build_branches(source_branches, values, imt, loc, vs30, start_ind, end_ind)
+                branch_probs = build_branches(logic_tree, values, imt, loc, vs30, start_ind, end_ind)
                 hazard[start_ind:end_ind, :] = calculate_aggs(branch_probs, aggs, weights)
                 log.info(f'time to calculate hazard for one stride {time.perf_counter() - tic} seconds')
 
                 if save_rlz:
-                    save_realizations(imt, loc, vs30, branch_probs, weights, source_branches)
+                    save_realizations(imt, loc, vs30, branch_probs, weights, logic_tree)
 
             if deagg_dimensions:
                 save_deaggs(
@@ -218,8 +220,7 @@ def save_aggregation(
 
 def process_aggregation_local_serial(
     hazard_model_id: str,
-    toshi_ids: Dict[int, Any],
-    source_branches: Dict[int, SourceBranchGroup],
+    logic_trees: Dict[int, HazardLogicTree],
     coded_locations: Iterable[CodedLocation],
     levels: Iterable[float],
     config: AggregationConfig,
@@ -237,8 +238,7 @@ def process_aggregation_local_serial(
                 hazard_model_id,
                 coded_loc.downsample(0.1).code,
                 [coded_loc.downsample(0.001).code],
-                toshi_ids[vs30],
-                source_branches[vs30],
+                logic_trees[vs30],
                 config.aggs,
                 config.imts,
                 levels,
@@ -256,8 +256,7 @@ def process_aggregation_local_serial(
 
 def process_aggregation_local(
     hazard_model_id: str,
-    toshi_ids: Dict[int, Any],
-    source_branches: Dict[int, SourceBranchGroup],
+    logic_trees: Dict[int, HazardLogicTree],
     coded_locations: Iterable[CodedLocation],
     levels: Iterable[float],
     config: AggregationConfig,
@@ -272,8 +271,8 @@ def process_aggregation_local(
         id of toshi-hazard-store model to write to
     tohsi_ids : List[str]
         Toshi IDs of Openquake Hazard Solutions
-    source_branches : List[?]
-        list of source model branches
+    logic_trees 
+        dict of HazardLogicTree
     coded_locations : List[CodedLocation]
         locations at which to calculate hazard
     levels : List[float]
@@ -309,8 +308,7 @@ def process_aggregation_local(
                 hazard_model_id,
                 coded_loc.downsample(0.1).code,
                 [coded_loc.downsample(0.001).code],
-                toshi_ids[vs30],
-                source_branches[vs30],
+                logic_trees[vs30],
                 config.aggs,
                 config.imts,
                 levels,
@@ -355,31 +353,16 @@ def process_aggregation(config: AggregationConfig) -> None:
     """
     serial = True
 
-    omit: List[str] = []
-
-    gtdata = config.hazard_solutions
-
-    toshi_ids = {}
+    logic_trees = {} 
     for vs30 in config.vs30s:
-        toshi_ids[vs30] = [
-            b.hazard_solution_id
-            for b in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=gtdata, omit=omit)
-            if b.vs30 == vs30
-        ]
-
-    source_branches = {}
-    for vs30 in config.vs30s:
-        source_branches[vs30] = build_source_branches(
-            config.logic_tree_permutations,
-            gtdata,
-            config.src_correlations,
-            config.gmm_correlations,
+        logic_trees[vs30] = get_logic_tree(
+            config.lt_config,
+            config.hazard_gts,
             vs30,
-            omit,
-            toshi_ids[vs30],
-            truncate=config.source_branches_truncate,
+            gmm_correlations=[],  # TODO: for now no gmm correlations, need a good method for specifying in the config
+            truncate=config.source_branches_truncate
         )
-    log.info('finished building logic tree ')
+    log.info('finished building logic trees')
 
     locations = get_locations(config)
     resolution = 0.001
@@ -388,17 +371,16 @@ def process_aggregation(config: AggregationConfig) -> None:
     example_loc_code = coded_locations[0].downsample(0.001).code
 
     levels = get_levels(
-        source_branches[config.vs30s[0]], [example_loc_code], config.vs30s[0]
+        logic_trees[config.vs30s[0]], [example_loc_code], config.vs30s[0]
     )  # TODO: get seperate levels for every IMT
-    avail_imts = get_imts(source_branches[config.vs30s[0]], config.vs30s[0])  # TODO: equiv check for deaggs
+    avail_imts = get_imts(logic_trees[config.vs30s[0]], config.vs30s[0])  # TODO: equiv check for deaggs
     for imt in config.imts:
         assert imt in avail_imts
 
     if not serial:
         process_aggregation_local(
             config.hazard_model_id,
-            toshi_ids,
-            source_branches,
+            logic_trees,
             coded_locations,
             levels,
             config,
@@ -408,8 +390,7 @@ def process_aggregation(config: AggregationConfig) -> None:
     else:
         process_aggregation_local_serial(
             config.hazard_model_id,
-            toshi_ids,
-            source_branches,
+            logic_trees,
             coded_locations,
             levels,
             config,

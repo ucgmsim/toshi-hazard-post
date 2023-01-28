@@ -16,7 +16,8 @@ import numpy.typing as npt
 import pandas as pd
 from nzshm_common.location.code_location import CodedLocation
 
-from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
+# from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
+from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
 
 log = logging.getLogger(__name__)
 
@@ -198,7 +199,7 @@ def save_deaggs(deagg_data, bins, loc, imt, imtl, poe, vs30, model_id, deagg_dim
 
 
 def save_realizations(
-    imt: str, loc: str, vs30: int, branch_probs: npt.NDArray, weights: npt.NDArray, source_branches: SourceBranchGroup
+    imt: str, loc: str, vs30: int, branch_probs: npt.NDArray, weights: npt.NDArray, logic_tree: HazardLogicTree
 ) -> None:
     """Save realization arrays to disk. Should be replaced with write to THS when THS supports saving full realizations.
 
@@ -221,8 +222,9 @@ def save_realizations(
     save_dir = '/work/chrisdc/NZSHM-WORKING/PROD/branch_rlz/SRWG/'
     branches_filepath = save_dir + f'branches_{imt}-{loc}-{vs30}'
     weights_filepath = save_dir + f'weights_{imt}-{loc}-{vs30}'
-    source_branches_filepath = save_dir + f'source_branches_{imt}-{loc}-{vs30}.json'
+    logic_tree_filepath = save_dir + f'source_branches_{imt}-{loc}-{vs30}.json'
     np.save(branches_filepath, branch_probs)
     np.save(weights_filepath, weights)
-    with open(source_branches_filepath, 'w') as jsonfile:
-        json.dump(asdict(source_branches), jsonfile)
+    # TODO: this should not be done every time, the logic_tree is the same
+    with open(logic_tree_filepath, 'w') as jsonfile:
+        json.dump(asdict(logic_tree), jsonfile)

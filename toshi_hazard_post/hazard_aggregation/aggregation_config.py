@@ -23,12 +23,15 @@ class AggregationConfig:
         self.hazard_model_id = self.config['aggregation']['hazard_model_id']
         self.stage = self.config['aggregation']['stage']
         self.imts = self.config['aggregation']['imts']
-        self.vs30s = self.config['aggregation']['vs30s']
+        self.vs30s = self.config['aggregation']['vs30s']  # TODO: can we remove vs30s and just assume we're processing one at a time? Get vs30 (needed for THS) from ToshiAPI?
         self.aggs = self.config['aggregation']['aggs']
         self.locations = self.config['aggregation']['locations']
         self.save_rlz = self.config['aggregation'].get('save_rlz')
         self.stride = self.config['aggregation'].get('stride')
-        self._load_ltf()
+        # self._load_ltf()
+        self.hazard_gts = self.config['aggregation']['hazard_gts']
+        self.lt_config = Path(self.config['aggregation']['logic_tree_file'])  # TODO: offer alternatives to loading a file (e.g. get model by version or a serialized SourceLogicTree)
+        assert self.lt_config.exists()
 
         # debug/test option defaults
         self.location_limit = 0
@@ -54,13 +57,13 @@ class AggregationConfig:
     # assert ltf.exists()
     # self.deagg_solutions = json.load(ltf.open('r'))['deagg_solutions']
 
-    def _load_ltf(self):
-        ltf = Path(Path(self._config_file).parent, self.config['aggregation']['logic_tree_file'])
-        assert ltf.exists()
-        self.logic_tree_permutations = json.load(ltf.open('r'))['logic_tree_permutations']
-        self.hazard_solutions = json.load(ltf.open('r'))['hazard_solutions']
-        self.src_correlations = json.load(ltf.open('r')).get('src_correlations')
-        self.gmm_correlations = json.load(ltf.open('r')).get('gmm_correlations')
+    # def _load_ltf(self):
+    #     ltf = Path(Path(self._config_file).parent, self.config['aggregation']['logic_tree_file'])
+    #     assert ltf.exists()
+    #     self.logic_tree_permutations = json.load(ltf.open('r'))['logic_tree_permutations']
+    #     self.hazard_solutions = json.load(ltf.open('r'))['hazard_solutions']
+    #     self.src_correlations = json.load(ltf.open('r')).get('src_correlations')
+    #     self.gmm_correlations = json.load(ltf.open('r')).get('gmm_correlations')
 
     def validate(self):
         """Check the configuration is valid."""

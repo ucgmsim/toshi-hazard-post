@@ -1,10 +1,12 @@
 """ToshiAPI interface utility & helpers."""
 
+# TODO: refactor to single ToshiApi class (if possible)
+
 import json
 import logging
 from collections import namedtuple
 from pathlib import Path, PurePath
-from typing import Union, List, Dict, Any
+from typing import Union, List, Dict, Any, Optional
 
 from nshm_toshi_client.toshi_client_base import ToshiClientBase
 from nshm_toshi_client.toshi_file import ToshiFile
@@ -133,10 +135,10 @@ class SourceSolutionMap:
                 hazard_solution = job['node']['child']['hazard_solution']
                 self._dict[self.__key(onfault_nrml_id, distributed_nrml_id)] = hazard_solution['id']
 
-    def append(self, other: Dict[str, str]):
+    def append(self, other: 'SourceSolutionMap'):
         self._dict.update(other._dict)
 
-    def get_solution_id(self, *, onfault_nrml_id: str, distributed_nrml_id: str) -> str:
+    def get_solution_id(self, *, onfault_nrml_id: str, distributed_nrml_id: str) -> Optional[str]:
         return self._dict.get(self.__key(onfault_nrml_id, distributed_nrml_id))
 
     @staticmethod
@@ -145,7 +147,7 @@ class SourceSolutionMap:
 
 
 
-def get_hazard_gt(self, id: str) -> Dict[Any, Any]:
+def get_hazard_gt(id: str) -> SourceSolutionMap:
 
     headers = {"x-api-key": API_KEY}
     toshi_api = ToshiClientBase(API_URL, None, with_schema_validation=False, headers=headers)

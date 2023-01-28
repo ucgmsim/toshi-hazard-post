@@ -43,6 +43,7 @@ toshi-hazard-store = "0.5.5"
 pandas = "^1.4.3"
 numba = "^0.56.0"
 dacite = "^1.7.0"
+nzshm-model = {path = "/home/chrisdc/NSHM/nzshm-model", develop = true}
 
 
 [tool.poetry.dev-dependencies]
