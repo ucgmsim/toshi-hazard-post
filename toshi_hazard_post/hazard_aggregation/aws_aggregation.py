@@ -19,7 +19,7 @@ from toshi_hazard_post.locations import get_locations, locations_by_chunk
 from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 from toshi_hazard_post.util.sns import publish_message
 
-from ..toshi_api_support import save_sources_to_toshi
+from ..toshi_api_support import toshi_api
 from .aggregation import DistributedAggregationTaskArguments
 
 # from toshi_hazard_post.util.util import compress_config
@@ -72,7 +72,7 @@ def save_source_branches(source_branches: Dict[int, SourceBranchGroup]):
     with open(filepath, 'w') as sbf:
         sbf.write(json.dumps(source_branches_dict, indent=2))
 
-    source_branches_id = save_sources_to_toshi(filepath, tag=None)
+    source_branches_id = toshi_api.save_sources_to_toshi(filepath, tag=None)
     log.debug("Produced source_branches id : %s from file %s" % (source_branches_id, filepath))
     return source_branches_id
 

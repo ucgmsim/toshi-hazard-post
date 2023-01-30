@@ -38,7 +38,6 @@ def preload_meta(ids: Iterable[str], vs30: int) -> Dict[str, dict]:
     metadata
         dictionary of ground motion logic tree metadata dictionaries
     """
-
     metadata = {}
     for meta in get_hazard_metadata_v3(ids, [vs30]):
         hazard_id = meta.hazard_solution_id
@@ -174,7 +173,6 @@ def get_logic_tree(
         # for testing
         fslt.branches = fslt.branches[:truncate]
     logic_tree = HazardLogicTree.from_flattened_slt(fslt, hazard_gts)
-
     metadata = preload_meta(logic_tree.hazard_ids, vs30)
 
     for branch in logic_tree.branches:

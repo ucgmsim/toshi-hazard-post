@@ -18,7 +18,7 @@ from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
 #     grouped_ltbs,
 #     merge_ltbs_fromLT,
 # )
-from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup, build_source_branches, merge_ltbs_fromLT, get_logic_tree
+from toshi_hazard_post.logic_tree.branch_combinator import get_logic_tree
 from toshi_hazard_post.data_functions import (
     get_imts,
     get_levels,

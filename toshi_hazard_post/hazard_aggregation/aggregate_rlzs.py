@@ -6,7 +6,7 @@ import numpy as np
 import numpy.typing as npt
 
 # from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
-from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
+from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree, GMCMBranch
 from toshi_hazard_post.calculators import calculate_weighted_quantiles, prob_to_rate, rate_to_prob, weighted_avg_and_std
 from toshi_hazard_post.data_functions import ValueStore
 
@@ -87,7 +87,7 @@ def weighted_stats(values: Iterable[float], quantiles: List[str], sample_weight:
 
 
 def calc_weighted_sum(
-    rlz_combs: Collection[str], values: ValueStore, loc: str, imt: str, start_ind: int, end_ind: int
+    gmcm_branches: List[GMCMBranch], values: ValueStore, loc: str, imt: str, start_ind: int, end_ind: int
 ) -> npt.NDArray:
     """Calculate the weighted sum of probabilities, first converting to rate, then back to probability. Works on
     probability array in chunks to reduce memory usage.
@@ -114,13 +114,13 @@ def calc_weighted_sum(
         axis1 = probability array
     """
 
-    nrows = len(rlz_combs)
+    nrows = len(gmcm_branches)
     ncols = end_ind - start_ind
     prob_table = np.empty((nrows, ncols))
 
-    for i, rlz_comb in enumerate(rlz_combs):
+    for i, gmcm_branch in enumerate(gmcm_branches):
         rate = np.zeros((ncols,))
-        for rlz in rlz_comb:
+        for rlz in gmcm_branch.realizations:
             rate += prob_to_rate(values.values(key=rlz, loc=loc, imt=imt)[start_ind:end_ind], INV_TIME)
         prob = rate_to_prob(rate, INV_TIME)
         prob_table[i, :] = prob
@@ -257,14 +257,13 @@ def build_branches(
     branch_probs = np.empty((nrows, ncols))
 
     tic = time.process_time()
-    for i, branch in enumerate(logic_tree):  # ~320 source branches
+    for i, branch in enumerate(logic_tree.branches):  # ~320 source branches
         # rlz_combs, weight_combs = build_rlz_table(branch, vs30)
-        rlz_combs = branch.gmcm_branch_realizations
 
         # set of realization probabilties for a single complete source branch
         # these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve
         branch_probs[i * ncombs : (i + 1) * ncombs, :] = calc_weighted_sum(
-            rlz_combs, values, loc, imt, start_ind, end_ind
+            branch.gmcm_branches, values, loc, imt, start_ind, end_ind
         )
 
         log.debug(f'built branch {i+1} of {nbranches}')

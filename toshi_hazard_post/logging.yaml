@@ -13,6 +13,11 @@ handlers:
 
 loggers:
 
+  toshi_hazard_post.logic_tree.branch_combinator:
+    level: INFO
+    handlers: [console]
+    propagate: no
+
   toshi_hazard_post.hazard_aggregation:
     level: INFO
     handlers: [console]

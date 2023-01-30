@@ -9,7 +9,7 @@ from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_post.logic_tree.branch_combinator import build_source_branches, merge_ltbs_fromLT
 from toshi_hazard_post.hazard_aggregation.aggregation import AggTaskArgs, process_location_list
 from toshi_hazard_post.local_config import NUM_WORKERS
-from toshi_hazard_post.toshi_api_support import get_deagg_config, get_gtdata, get_imtl
+from toshi_hazard_post.toshi_api_support import get_deagg_config, toshi_api, get_imtl
 
 from .aggregation_config import AggregationConfig
 
@@ -133,7 +133,7 @@ def process_deaggregation_serial(config: AggregationConfig) -> List[str]:
 
 def process_single_deagg(task_args: DeaggTaskArgs) -> None:
 
-    gtdata = get_gtdata(task_args.gtid)
+    gtdata = tohsi_api.get_gtdata(task_args.gtid)
     imtl = get_imtl(gtdata)
     deagg_config = get_deagg_config(gtdata)
 
