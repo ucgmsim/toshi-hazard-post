@@ -97,7 +97,7 @@ class ToshiApi(ToshiFile):
         return archive_file_id
     
 
-    def get_gtdata(self, general_task_id):
+    def get_gtdata(self, general_task_id: str) -> Dict[str, Any]:
         qry = '''
         query disagg_gt ($general_task_id:ID!) {
             node1: node(id: $general_task_id) {

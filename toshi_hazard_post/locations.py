@@ -4,8 +4,9 @@ from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
 from nzshm_common.location.location import LOCATIONS_BY_ID
 
+from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig
 
-def stat_test_missing():
+def stat_test_missing() -> List[Tuple[float, float]]:
 
     locations = [
         # (-38.100, 176.800),
@@ -16,7 +17,7 @@ def stat_test_missing():
     return [(round(loc[0], 1), round(loc[1], 1)) for loc in locations]
 
 
-def stat_test_64():
+def stat_test_64() -> List[Tuple[float, float]]:
 
     locations = [
         (-42.117, 171.86),
@@ -88,7 +89,7 @@ def stat_test_64():
     return [(round(loc[0], 1), round(loc[1], 1)) for loc in locations]
 
 
-def get_locations(config):
+def get_locations(config: AggregationConfig) -> List[Tuple[float, float]]:
     """Get list of locations.
 
     Parameters
@@ -103,10 +104,10 @@ def get_locations(config):
     """
 
     if type(config.locations) is list:
-        locations = []
+        locations: List[Tuple[float, float]] = []
         for loc in config.locations:
             if '~' in loc:
-                locations.append(tuple(map(float, loc.split('~'))))
+                locations.append(tuple(map(float, loc.split('~'))))  # type: ignore
             else:
                 locations.append((LOCATIONS_BY_ID[loc]['latitude'], LOCATIONS_BY_ID[loc]['longitude']))
     elif config.locations == "NZ_34":
@@ -164,7 +165,7 @@ def locations_by_chunk(
     return chunked
 
 
-def locations_nzpt2_and_nz34_binned(grid_res=1.0, point_res=0.001):
+def locations_nzpt2_and_nz34_binned(grid_res: float = 1.0, point_res: float = 0.001) -> Dict[str, List[CodedLocation]]:
 
     # wlg_grid_0_01 = load_grid("WLG_0_01_nb_1_1")
     nz_0_2 = load_grid("NZ_0_2_NB_1_1")
@@ -174,7 +175,9 @@ def locations_nzpt2_and_nz34_binned(grid_res=1.0, point_res=0.001):
     return locations_by_degree(grid_points, grid_res, point_res)
 
 
-def locations_nzpt2_chunked(grid_res=1.0, point_res=0.001, range=None):
+def locations_nzpt2_chunked(
+        grid_res: float = 1.0, point_res: float = 0.001, range: List[int] = []
+) -> Dict[int, List[CodedLocation]]:
 
     chunk_size = 25
     grid_points = load_grid("NZ_0_2_NB_1_1")
@@ -188,7 +191,7 @@ def locations_nzpt2_chunked(grid_res=1.0, point_res=0.001, range=None):
     return lbc
 
 
-def locations_nzpt2_and_nz34_chunked(grid_res=1.0, point_res=0.001):
+def locations_nzpt2_and_nz34_chunked(grid_res: float = 1.0, point_res: float = 0.001) -> Dict[int, List[CodedLocation]]:
 
     chunk_size = 25
     # wlg_grid_0_01 = load_grid("WLG_0_01_nb_1_1")
@@ -198,7 +201,7 @@ def locations_nzpt2_and_nz34_chunked(grid_res=1.0, point_res=0.001):
     return locations_by_chunk(grid_points, point_res, chunk_size)
 
 
-def locations_nz34_chunked(grid_res=1.0, point_res=0.001):
+def locations_nz34_chunked(grid_res: float = 1.0, point_res: float = 0.001) -> Dict[int, List[CodedLocation]]:
 
     chunk_size = 2
     # wlg_grid_0_01 = load_grid("WLG_0_01_nb_1_1")
@@ -207,7 +210,7 @@ def locations_nz34_chunked(grid_res=1.0, point_res=0.001):
     return locations_by_chunk(grid_points, point_res, chunk_size)
 
 
-def locations_nz2_chunked(grid_res=1.0, point_res=0.001):
+def locations_nz2_chunked(grid_res: float = 1.0, point_res: float  = 0.001) -> Dict[int, List[CodedLocation]]:
     '''used for testing'''
 
     chunk_size = 1
@@ -224,5 +227,5 @@ if __name__ == "__main__":
     # For NZ 0_2: binning 0.5 => 202 bins max 9 pts
 
     # Settings for the THS rlz_query
-    for key, locs in locations_nzpt2_and_nz34_binned(grid_res=1.0, point_res=0.001):
+    for key, locs in locations_nzpt2_and_nz34_binned(grid_res=1.0, point_res=0.001).items():
         print(f"{key} => {locs}")
