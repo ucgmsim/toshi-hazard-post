@@ -27,6 +27,7 @@ class AggregationConfig:
         self.aggs = self.config['aggregation']['aggs']
         self.locations = self.config['aggregation']['locations']
         self.save_rlz = self.config['aggregation'].get('save_rlz')
+        self.gtids = self.config['aggregation']['gtids']
         self._load_ltf()
 
         # debug/test option defaults
@@ -57,7 +58,7 @@ class AggregationConfig:
         ltf = Path(Path(self._config_file).parent, self.config['aggregation']['logic_tree_file'])
         assert ltf.exists()
         self.logic_tree_permutations = json.load(ltf.open('r'))['logic_tree_permutations']
-        self.hazard_solutions = json.load(ltf.open('r'))['hazard_solutions']
+        # self.hazard_solutions = json.load(ltf.open('r'))['hazard_solutions']
         self.src_correlations = json.load(ltf.open('r')).get('src_correlations')
         self.gmm_correlations = json.load(ltf.open('r')).get('gmm_correlations')
 

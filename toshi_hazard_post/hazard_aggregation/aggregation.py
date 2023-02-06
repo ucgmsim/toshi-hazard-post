@@ -22,7 +22,7 @@ from toshi_hazard_store import model
 # )
 from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs_fromLT
 from toshi_hazard_post.hazard_aggregation.locations import get_locations
-from toshi_hazard_post.hazard_aggregation.toshi_api_support import get_deagg_config, get_gtdata, get_imtl
+from toshi_hazard_post.hazard_aggregation.toshi_api_support import get_deagg_config, get_gtdata, get_imtl, get_multi_gtdata
 from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.util.file_utils import save_deaggs
 
@@ -387,7 +387,9 @@ def process_aggregation(config: AggregationConfig, deagg=False):
         config.validate_deagg_file()
         gtdata = config.deagg_solutions
     else:
-        gtdata = config.hazard_solutions
+        # gtdata = config.hazard_solutions
+        gtdata = get_multi_gtdata(config.gtids)
+
 
     toshi_ids = {}
     for vs30 in config.vs30s:

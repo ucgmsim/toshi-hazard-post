@@ -4,7 +4,7 @@ import json
 import logging
 from collections import namedtuple
 from pathlib import Path, PurePath
-from typing import Union
+from typing import Union, List, Dict, Any
 
 from nshm_toshi_client.toshi_client_base import ToshiClientBase
 from nshm_toshi_client.toshi_file import ToshiFile
@@ -44,7 +44,7 @@ def save_sources_to_toshi(filepath: str, tag: str = None) -> str:
     return archive_file_id
 
 
-class DisaggDetails(ToshiClientBase):
+class ToshiClient(ToshiClientBase):
     def __init__(self, url, s3_url, auth_token, with_schema_validation=False, headers=None):
         super().__init__(url, auth_token, with_schema_validation, headers)
         self._s3_url = s3_url
@@ -84,6 +84,8 @@ class DisaggDetails(ToshiClientBase):
         executed = self.run_query(qry, input_variables)
         return executed
 
+        
+
 
 def get_deagg_config(data):
 
@@ -105,8 +107,20 @@ def get_deagg_config(data):
 def get_gtdata(gtid):
 
     headers = {"x-api-key": API_KEY}
-    disagg_api = DisaggDetails(API_URL, None, None, with_schema_validation=False, headers=headers)
+    disagg_api = ToshiClient(API_URL, None, None, with_schema_validation=False, headers=headers)
     return {'data': disagg_api.get_dissag_detail(gtid)}
+
+
+def get_multi_gtdata(ids: List[str]) -> Dict[str, Any]:
+
+    for i, id in enumerate(ids):
+        if i==0:
+            gtdata = get_gtdata(id)
+        else:
+            gtdata['data']['node1']['children']['edges'] += \
+            get_gtdata(id)['data']['node1']['children']['edges']
+
+    return gtdata
 
 
 def get_imtl(gtdata):

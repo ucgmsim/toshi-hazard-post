@@ -24,7 +24,7 @@ from .aggregation import DistributedAggregationTaskArguments, build_source_branc
 # from toshi_hazard_post.util.util import compress_config
 from .aggregation_config import AggregationConfig
 from .aggregation_task import fetch_source_branches
-from .toshi_api_support import save_sources_to_toshi
+from .toshi_api_support import save_sources_to_toshi, get_multi_gtdata
 
 log = logging.getLogger(__name__)
 
@@ -79,11 +79,13 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
     """Configure the tasks using toshi to store the configuration."""
     omit: List[str] = []
 
+    gtdata = get_multi_gtdata(config.gtids)
+
     toshi_ids = {}
     for vs30 in config.vs30s:
         toshi_ids[vs30] = [
             branch.hazard_solution_id
-            for branch in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=config.hazard_solutions, omit=[])
+            for branch in merge_ltbs_fromLT(config.logic_tree_permutations, gtdata=gtdata, omit=[])
             if branch.vs30 == vs30
         ]
     log.debug("toshi_ids: %s" % toshi_ids)
@@ -101,7 +103,7 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str):
         for vs30 in config.vs30s:
             source_branches[vs30] = build_source_branches(
                 config.logic_tree_permutations,
-                config.hazard_solutions,
+                gtdata,
                 config.src_correlations,
                 config.gmm_correlations,
                 vs30,
