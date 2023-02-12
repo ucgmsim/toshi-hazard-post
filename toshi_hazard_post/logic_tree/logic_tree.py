@@ -203,8 +203,6 @@ class HazardLogicTree:
 
     @classmethod
     def from_flattened_slt(cls, flat_slt: FlattenedSourceLogicTree, gt_ids: List[str]):
-        # headers = {"x-api-key": API_KEY}
-        # toshi_api = ToshiApi(API_URL, None, with_schema_validation=False, headers=headers) #TODO: refactor or create ToshiApi class
         source_solution_map = SourceSolutionMap()
         for id in gt_ids:
             source_solution_map.append(toshi_api.get_hazard_gt(id))
