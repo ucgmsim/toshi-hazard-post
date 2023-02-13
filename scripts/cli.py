@@ -53,7 +53,7 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
     # log.info("Doit")
 
     if push_sns_test:
-        push_test_message()
+        # push_test_message()
         return
 
     if mode == 'LOCAL':
@@ -68,7 +68,8 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
         if migrate_tables:
             click.echo("Ensuring that dynamodb tables are available in target region & stage.")
             migrate()
-        distribute_aggregation(agconf, mode)
+        # distribute_aggregation(agconf, mode)
+        raise Exception(f'AWS batch mode not yet supported')
         return
 
 

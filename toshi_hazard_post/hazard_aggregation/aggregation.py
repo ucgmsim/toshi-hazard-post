@@ -235,19 +235,19 @@ def process_aggregation_local_serial(
     for coded_loc in coded_locations:
         for vs30 in config.vs30s:
             t = AggTaskArgs(
-                hazard_model_id,
-                coded_loc.downsample(0.1).code,
-                [coded_loc.downsample(0.001).code],
-                logic_trees[vs30],
-                config.aggs,
-                config.imts,
-                levels,
-                vs30,
-                False,
-                None,
-                None,
-                save_rlz,
-                config.stride,
+                hazard_model_id=hazard_model_id,
+                grid_loc=coded_loc.downsample(0.1).code,
+                locs=[coded_loc.downsample(0.001).code],
+                logic_tree=logic_trees[vs30],
+                aggs=config.aggs,
+                imts=config.imts,
+                levels=levels,
+                vs30=vs30,
+                deagg=False,
+                poe=None,
+                deagg_imtl=None,
+                save_rlz=save_rlz,
+                stride=config.stride,
             )
 
             # process_location_list(t, config.deagg_poes[0])
@@ -305,19 +305,19 @@ def process_aggregation_local(
     for coded_loc in coded_locations:
         for vs30 in config.vs30s:
             t = AggTaskArgs(
-                hazard_model_id,
-                coded_loc.downsample(0.1).code,
-                [coded_loc.downsample(0.001).code],
-                logic_trees[vs30],
-                config.aggs,
-                config.imts,
-                levels,
-                vs30,
-                False,
-                None,
-                None,
-                save_rlz,
-                config.stride,
+                hazard_model_id=hazard_model_id,
+                grid_loc=coded_loc.downsample(0.1).code,
+                locs=[coded_loc.downsample(0.001).code],
+                logic_tree=logic_trees[vs30],
+                aggs=config.aggs,
+                imts=config.imts,
+                levels=levels,
+                vs30=vs30,
+                deagg=False,
+                poe=None,
+                deagg_imtl=None,
+                save_rlz=save_rlz,
+                stride=config.stride,
             )
 
             task_queue.put(t)

@@ -188,7 +188,7 @@ def save_deaggs(deagg_data, bins, loc, imt, imtl, poe, vs30, model_id, deagg_dim
     dim = '-'.join(deagg_dimensions)
     deagg_filename = f'deagg_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}_{dim}.npy'
     bins_filename = f'bins_{model_id}_{loc}_{vs30}_{imt}_{int(poe*100)}_{dim}.npy'
-    deagg_dir = Path(working_dir, 'deaggs')
+    deagg_dir = Path(working_dir, 'deaggs-test')
     if not deagg_dir.exists():
         deagg_dir.mkdir()
     deagg_filepath = Path(deagg_dir, deagg_filename)

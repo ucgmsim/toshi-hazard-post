@@ -64,7 +64,8 @@ class SourceSolutionMap:
                         onfault_nrml_id = branch_info['inv_id']
                         distributed_nrml_id = branch_info['bg_id']
                 hazard_solution = job['node']['child']['hazard_solution']
-                self._dict[self.__key(onfault_nrml_id, distributed_nrml_id)] = hazard_solution['id']
+                if hazard_solution:
+                    self._dict[self.__key(onfault_nrml_id, distributed_nrml_id)] = hazard_solution['id']
 
     def append(self, other: 'SourceSolutionMap'):
         self._dict.update(other._dict)
@@ -97,7 +98,7 @@ class ToshiApi(ToshiFile):
         return archive_file_id
     
 
-    def get_gtdata(self, general_task_id: str) -> Dict[str, Any]:
+    def get_disagg_gt(self, general_task_id: str) -> Dict[str, Any]:
         qry = '''
         query disagg_gt ($general_task_id:ID!) {
             node1: node(id: $general_task_id) {

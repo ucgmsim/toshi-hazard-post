@@ -6,7 +6,7 @@ from typing import List
 
 from nzshm_common.location.code_location import CodedLocation
 
-from toshi_hazard_post.logic_tree.branch_combinator import build_source_branches, merge_ltbs_fromLT
+from toshi_hazard_post.logic_tree.branch_combinator import get_logic_tree
 from toshi_hazard_post.hazard_aggregation.aggregation import AggTaskArgs, process_location_list
 from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.toshi_api_support import get_deagg_config, toshi_api, get_imtl
@@ -15,12 +15,8 @@ from .aggregation_config import AggregationConfig
 
 log = logging.getLogger(__name__)
 
-
-DeaggTaskArgs = namedtuple(
-    "DeaggTaskArgs",
-    """gtid logic_tree_permutations src_correlations gmm_correlations source_branches_truncate agg hazard_model_id
-    dimensions stride""",
-)
+# TODO: remove if not needed
+DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtid config")
 
 
 class DeAggregationWorkerMP(multiprocessing.Process):
@@ -43,7 +39,7 @@ class DeAggregationWorkerMP(multiprocessing.Process):
                 log.info('%s: Exiting' % proc_name)
                 break
 
-            process_single_deagg(nt)
+            process_single_deagg(nt.gtid, nt.config)
             self.task_queue.task_done()
             log.info('%s task done.' % self.name)
             self.result_queue.put(str(nt.gtid))
@@ -52,7 +48,7 @@ class DeAggregationWorkerMP(multiprocessing.Process):
 def process_deaggregation(config: AggregationConfig) -> List[str]:
     """Aggregate the Deaggregations in parallel."""
 
-    serial = False  # for easier debugging
+    serial = True  # for easier debugging
     if serial:
         results = process_deaggregation_serial(config)
         return results
@@ -70,18 +66,8 @@ def process_deaggregation(config: AggregationConfig) -> List[str]:
     # Enqueue jobs
     num_jobs = 0
 
-    for gtid in config.deagg_gtids:
-        t = DeaggTaskArgs(
-            gtid,
-            config.logic_tree_permutations,
-            config.src_correlations,
-            config.gmm_correlations,
-            config.source_branches_truncate,
-            config.aggs[0],  # TODO: assert len(config.aggs) == 1 on load config
-            config.hazard_model_id,
-            config.deagg_dimensions,
-            config.stride,
-        )
+    for gtid in config.hazard_gts:
+        t = DeaggTaskArgs(gtid, config)
 
         task_queue.put(t)
         sleep_time = 10
@@ -112,28 +98,17 @@ def process_deaggregation_serial(config: AggregationConfig) -> List[str]:
     """Aggregate the Deaggregations in serail. For debugging."""
 
     results = []
-    for gtid in config.deagg_gtids:
-        t = DeaggTaskArgs(
-            gtid,
-            config.logic_tree_permutations,
-            config.src_correlations,
-            config.gmm_correlations,
-            config.source_branches_truncate,
-            config.aggs[0],  # TODO: assert len(config.aggs) == 1 on load config
-            config.hazard_model_id,
-            config.deagg_dimensions,
-            config.stride,
-        )
-
-        process_single_deagg(t)
-        results.append(t.gtid)
+    for gtid in config.hazard_gts:
+        process_single_deagg(gtid, config)
+        results.append(gtid)
 
     return results
 
 
-def process_single_deagg(task_args: DeaggTaskArgs) -> None:
+def process_single_deagg(gtid: str, config: AggregationConfig) -> None:
 
-    gtdata = tohsi_api.get_gtdata(task_args.gtid)
+    # TODO: running 2 toshiAPI quieries on each GT ID, could we remove the redundancy?
+    gtdata = toshi_api.get_disagg_gt(gtid)
     imtl = get_imtl(gtdata)
     deagg_config = get_deagg_config(gtdata)
 
@@ -144,43 +119,33 @@ def process_single_deagg(task_args: DeaggTaskArgs) -> None:
 
     omit: List[str] = []
 
-    toshi_ids = [
-        b.hazard_solution_id
-        for b in merge_ltbs_fromLT(task_args.logic_tree_permutations, gtdata=gtdata, omit=omit)
-        if b.vs30 == deagg_config.vs30
-    ]
-
-    source_branches = build_source_branches(
-        task_args.logic_tree_permutations,
-        gtdata,
-        task_args.src_correlations,
-        task_args.gmm_correlations,
+    # TODO: check that we get the correct logic tree when some tasks are missing
+    logic_tree = get_logic_tree(
+        config.lt_config,
+        [gtid],
         deagg_config.vs30,
-        omit,
-        toshi_ids,
-        truncate=task_args.source_branches_truncate,
+        gmm_correlations=[],
+        truncate=config.source_branches_truncate,
     )
     log.info('finished building logic tree ')
 
-    levels: List[
-        float
-    ] = []  # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
+    # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
+    levels: List[ float ] = []  
 
     t = AggTaskArgs(
-        task_args.hazard_model_id,
-        coded_location.downsample(0.1).code,
-        [coded_location.downsample(0.001).code],
-        toshi_ids,
-        source_branches,
-        [task_args.agg],
-        [deagg_config.imt],
-        levels,
-        deagg_config.vs30,
-        task_args.dimensions,
-        deagg_config.poe,
-        imtl,
-        False,
-        task_args.stride,
+        hazard_model_id=config.hazard_model_id,
+        grid_loc=coded_location.downsample(0.1).code,
+        locs=[coded_location.downsample(0.001).code],
+        logic_tree=logic_tree,
+        aggs=config.aggs, # TODO: I think this only works w/ one agg (len==1)
+        imts=[deagg_config.imt],
+        levels=levels,
+        vs30=deagg_config.vs30,
+        deagg=True,
+        poe=deagg_config.poe,
+        deagg_imtl=imtl,
+        saveL_rlz=False,
+        stride=config.stride,
     )
 
     process_location_list(t)

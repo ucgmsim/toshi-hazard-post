@@ -25,11 +25,11 @@ class AggregationConfig:
         self.imts = self.config['aggregation']['imts']
         self.vs30s = self.config['aggregation']['vs30s']  # TODO: can we remove vs30s and just assume we're processing one at a time? Get vs30 (needed for THS) from ToshiAPI?
         self.aggs = self.config['aggregation']['aggs']
-        self.locations = self.config['aggregation']['locations']
+        self.locations = self.config['aggregation'].get('locations')
         self.save_rlz = self.config['aggregation'].get('save_rlz')
         self.stride = self.config['aggregation'].get('stride')
         # self._load_ltf()
-        self.hazard_gts = self.config['aggregation']['hazard_gts']
+        self.hazard_gts = self.config['aggregation']['gtids']
         self.lt_config = Path(self.config['aggregation']['logic_tree_file'])  # TODO: offer alternatives to loading a file (e.g. get model by version or a serialized SourceLogicTree)
         assert self.lt_config.exists()
 
@@ -49,7 +49,7 @@ class AggregationConfig:
             self.deaggregation = True
             self.deagg_poes = self.config.get('deaggregation').get('poes')
             self.deagg_invtime = self.config.get('deaggregation').get('inv_time')
-            self.deagg_gtids = self.config.get('deaggregation').get('gtids')
+            # self.deagg_gtids = self.config.get('deaggregation').get('gtids')
             self.deagg_dimensions = self.config.get('deaggregation').get('dimensions')
 
     # def _load_deagg(self):
