@@ -4,15 +4,18 @@ import json
 import unittest
 from pathlib import Path
 import numpy as np
+import pytest
 
-from .test_branch_combinator import convert_gmcm_branches, convert_source_branches
+from dacite import from_dict
+
+from toshi_hazard_post.logic_tree.logic_tree import GMCMBranch, HazardLogicTree
+
 
 from toshi_hazard_post.data_functions import ValueStore
 from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import (
     weighted_stats,
     calc_weighted_sum,
     get_branch_weights,
-    get_len_rate,
     build_branches,
     calculate_aggs,
 )
@@ -42,86 +45,145 @@ class TestAggStats(unittest.TestCase):
         assert np.allclose(stats, stats_expected)
 
 
+def generate_values():
+    import numpy as np
+
+    rng = np.random.default_rng(12345)
+
+    values = ValueStore()
+    values.set_values(
+        value=rng.random(
+            10,
+        ),
+        key="hazsol_0:0",
+        loc='WLG',
+        imt='PGA',
+    )
+    values.set_values(
+        value=rng.random(
+            10,
+        ),
+        key="hazsol_0:1",
+        loc='WLG',
+        imt='PGA',
+    )
+    values.set_values(
+        value=rng.random(
+            10,
+        ),
+        key="hazsol_0:2",
+        loc='WLG',
+        imt='PGA',
+    )
+    values.set_values(
+        value=rng.random(
+            10,
+        ),
+        key="hazsol_1:0",
+        loc='WLG',
+        imt='PGA',
+    )
+    values.set_values(
+        value=rng.random(
+            10,
+        ),
+        key="hazsol_1:1",
+        loc='WLG',
+        imt='PGA',
+    )
+
+    values.set_values(
+        value=rng.random(
+            10,
+        ),
+        key="hazsol_3:0",
+        loc='WLG',
+        imt='PGA',
+    )
+    values.set_values(
+        value=rng.random(
+            10,
+        ),
+        key="hazsol_3:1",
+        loc='WLG',
+        imt='PGA',
+    )
+
+    return values
+
+
+def generate_gmcm_branches():
+
+    gmcm_branches = []
+    realizations = [
+        ["hazsol_0:0", "hazsol_1:0"],
+        ["hazsol_0:0", "hazsol_1:1"],
+    ]
+
+    weights = [
+        0.1,
+        0.2,
+    ]
+
+    for rlz, weight in zip(realizations, weights):
+        gmcm_branches.append(GMCMBranch(rlz, weight))
+
+    return gmcm_branches
+
+
 class TestProb(unittest.TestCase):
     def setUp(self):
-        self._prob_sum_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'weighted_sum.npy')
-        self._weighted_sum_args_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'args.json')
-        self._values_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'values.npy')
-        self._rlz_combs_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'rlz_combs.json')
+        self._weighted_sum_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'weighted_sum.npy')
 
     def test_calc_weighted_sum(self):
 
-        rlz_combs = json.load(open(self._rlz_combs_file))
-        values = convert_values(np.load(self._values_file, allow_pickle=True)[()])
-        args = json.load(open(self._weighted_sum_args_file))
-        prob_sum = calc_weighted_sum(rlz_combs, values, args['loc'], args['imt'], args['start_ind'], args['end_ind'])
-
-        expected = np.load(self._prob_sum_file)
+        values = generate_values()
+        gmcm_branches = generate_gmcm_branches()
+        prob_sum = calc_weighted_sum(gmcm_branches, values, 'WLG', 'PGA', 2, 8)
+        expected = np.load(self._weighted_sum_filepath)
 
         assert np.allclose(prob_sum, expected)
 
+        start_ind = 3
+        end_ind = 7
+        prob_sum = calc_weighted_sum(gmcm_branches, values, 'WLG', 'PGA', start_ind, end_ind)
+        assert prob_sum.shape[1] == (end_ind - start_ind)
 
-class TestBranchFuns(unittest.TestCase):
+
+class TestBranchFunctions(unittest.TestCase):
     def setUp(self):
-        self._weighted_sum_args_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'args.json')
-        self._source_branches_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'source_branches.json')
-        self._aggs_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'aggs.json')
+        logic_tree_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'logic_tree.json')
+        branch_probs_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'branch_probs.npy')
+        self._hazard_aggs_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'hazard_agg.npy')
+        self._branch_weights_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'branch_weights.npy')
 
-        self._wights_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'weights.npy')
-        self._values_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'values.npy')
-        self._branch_probs_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'branch_probs.npy')
-        self._agg_probs_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'aggregate_probs.npy')
-
-        source_branches_old = json.load(open(self._source_branches_file))
-        self._values = convert_values(np.load(self._values_file, allow_pickle=True)[()])
-
-        self._source_branches = convert_source_branches(source_branches_old)
-        for i, sb in enumerate(source_branches_old):
-            self._source_branches[i].gmcm_branches = convert_gmcm_branches(sb['rlz_combs'], sb['weight_combs'])
-
-    def test_get_branch_weights(self):
-
-        weights = get_branch_weights(self._source_branches)
-
-        expected = np.load(self._wights_file)
-
-        assert np.allclose(weights, expected)
-
-    def test_get_len_rate(self):
-
-        assert self._values.len_rate == 44
+        self._logic_tree = from_dict(data_class=HazardLogicTree, data=json.load(open(logic_tree_filepath)))
+        self._branch_probs = np.load(branch_probs_filepath)
 
     def test_build_branches(self):
 
-        args = json.load(open(self._weighted_sum_args_file))
+        values = generate_values()
+        imt = 'PGA'
+        loc = 'WLG'
+        start_ind = 2
+        end_ind = 7
+        branch_probs = build_branches(self._logic_tree, values, imt, loc, start_ind, end_ind)
 
-        branch_probs = build_branches(
-            self._source_branches,
-            self._values,
-            args['imt'],
-            args['loc'],
-            args['vs30'],
-            args['start_ind'],
-            args['end_ind'],
-        )
-
-        start = 10
-        stop = 20
-        branch_probs_10_20 = build_branches(
-            self._source_branches, self._values, args['imt'], args['loc'], args['vs30'], start, stop
-        )
-
-        expected = np.load(self._branch_probs_file)
-
-        assert np.allclose(branch_probs, expected)
-        assert np.allclose(branch_probs_10_20, expected[:, start:stop])
+        assert branch_probs.shape[1] == end_ind - start_ind
+        assert np.allclose(branch_probs, self._branch_probs)
 
     def test_calculate_aggs(self):
 
-        expected = np.load(self._agg_probs_file)
-        branch_probs = np.load(self._branch_probs_file)
-        aggs = json.load(open(self._aggs_file))
-        weights = np.load(self._wights_file)
-        aggregate_probs = calculate_aggs(branch_probs, aggs, weights)
+        weights = [0.1, 0.1, 0.2, 0.3, 0.1, 0.2]
+        aggs = ['mean', 'std', 'cov', '0.6']
+        hazard_agg = calculate_aggs(self._branch_probs, aggs, weights)
+        expected = np.load(self._hazard_aggs_filepath)
 
-        assert np.allclose(aggregate_probs, expected)
+        assert np.allclose(hazard_agg, expected)
+
+    def test_get_branch_weights(self):
+
+        branch_weights = get_branch_weights(self._logic_tree)
+        expected = np.load(self._branch_weights_filepath)
+
+        assert np.allclose(branch_weights, expected)
