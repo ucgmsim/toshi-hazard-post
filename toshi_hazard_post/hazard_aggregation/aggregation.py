@@ -5,20 +5,13 @@ import multiprocessing
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List
+from typing import Dict, Iterable, List
 
 import numpy as np
 import numpy.typing as npt
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
 
-from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
-# from toshi_hazard_store.branch_combinator.branch_combinator import (
-#     get_weighted_branches,
-#     grouped_ltbs,
-#     merge_ltbs_fromLT,
-# )
-from toshi_hazard_post.logic_tree.branch_combinator import get_logic_tree
 from toshi_hazard_post.data_functions import (
     get_imts,
     get_levels,
@@ -27,6 +20,14 @@ from toshi_hazard_post.data_functions import (
 )
 from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.locations import get_locations
+
+# from toshi_hazard_store.branch_combinator.branch_combinator import (
+#     get_weighted_branches,
+#     grouped_ltbs,
+#     merge_ltbs_fromLT,
+# )
+from toshi_hazard_post.logic_tree.branch_combinator import get_logic_tree
+from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
 from toshi_hazard_post.util.file_utils import save_deaggs, save_realizations
 
 from .aggregate_rlzs import build_branches, calculate_aggs, get_branch_weights
@@ -146,7 +147,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
                     end_ind = ncols
 
                 tic = time.perf_counter()
-                branch_probs = build_branches(logic_tree, values, imt, loc, vs30, start_ind, end_ind)
+                branch_probs = build_branches(logic_tree, values, imt, loc, start_ind, end_ind)
                 hazard[start_ind:end_ind, :] = calculate_aggs(branch_probs, aggs, weights)
                 log.info(f'time to calculate hazard for one stride {time.perf_counter() - tic} seconds')
 
@@ -271,7 +272,7 @@ def process_aggregation_local(
         id of toshi-hazard-store model to write to
     tohsi_ids : List[str]
         Toshi IDs of Openquake Hazard Solutions
-    logic_trees 
+    logic_trees
         dict of HazardLogicTree
     coded_locations : List[CodedLocation]
         locations at which to calculate hazard
@@ -353,14 +354,14 @@ def process_aggregation(config: AggregationConfig) -> None:
     """
     serial = False
 
-    logic_trees = {} 
+    logic_trees = {}
     for vs30 in config.vs30s:
         logic_trees[vs30] = get_logic_tree(
             config.lt_config,
             config.hazard_gts,
             vs30,
             gmm_correlations=[],  # TODO: for now no gmm correlations, need a good method for specifying in the config
-            truncate=config.source_branches_truncate
+            truncate=config.source_branches_truncate,
         )
     log.info('finished building logic trees')
 

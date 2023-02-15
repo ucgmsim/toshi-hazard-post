@@ -1,6 +1,5 @@
 """Handle the standard configuration file."""
 
-import json
 import logging
 from pathlib import Path
 
@@ -23,14 +22,20 @@ class AggregationConfig:
         self.hazard_model_id = self.config['aggregation']['hazard_model_id']
         self.stage = self.config['aggregation']['stage']
         self.imts = self.config['aggregation']['imts']
-        self.vs30s = self.config['aggregation']['vs30s']  # TODO: can we remove vs30s and just assume we're processing one at a time? Get vs30 (needed for THS) from ToshiAPI?
+
+        # TODO: can we remove vs30s and just assume we're processing one at a time? Get vs30 (needed for THS) from
+        # ToshiAPI?
+        self.vs30s = self.config['aggregation']['vs30s']
+
         self.aggs = self.config['aggregation']['aggs']
         self.locations = self.config['aggregation'].get('locations')
         self.save_rlz = self.config['aggregation'].get('save_rlz')
         self.stride = self.config['aggregation'].get('stride')
         # self._load_ltf()
         self.hazard_gts = self.config['aggregation']['gtids']
-        self.lt_config = Path(self.config['aggregation']['logic_tree_file'])  # TODO: offer alternatives to loading a file (e.g. get model by version or a serialized SourceLogicTree)
+        self.lt_config = Path(
+            self.config['aggregation']['logic_tree_file']
+        )  # TODO: offer alternatives to loading a file (e.g. get model by version or a serialized SourceLogicTree)
         assert self.lt_config.exists()
 
         # debug/test option defaults

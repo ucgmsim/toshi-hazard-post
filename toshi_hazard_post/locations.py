@@ -6,6 +6,7 @@ from nzshm_common.location.location import LOCATIONS_BY_ID
 
 from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig
 
+
 def stat_test_missing() -> List[Tuple[float, float]]:
 
     locations = [
@@ -176,7 +177,7 @@ def locations_nzpt2_and_nz34_binned(grid_res: float = 1.0, point_res: float = 0.
 
 
 def locations_nzpt2_chunked(
-        grid_res: float = 1.0, point_res: float = 0.001, range: List[int] = []
+    grid_res: float = 1.0, point_res: float = 0.001, range: List[int] = []
 ) -> Dict[int, List[CodedLocation]]:
 
     chunk_size = 25
@@ -210,7 +211,7 @@ def locations_nz34_chunked(grid_res: float = 1.0, point_res: float = 0.001) -> D
     return locations_by_chunk(grid_points, point_res, chunk_size)
 
 
-def locations_nz2_chunked(grid_res: float = 1.0, point_res: float  = 0.001) -> Dict[int, List[CodedLocation]]:
+def locations_nz2_chunked(grid_res: float = 1.0, point_res: float = 0.001) -> Dict[int, List[CodedLocation]]:
     '''used for testing'''
 
     chunk_size = 1

@@ -6,10 +6,10 @@ from typing import List
 
 from nzshm_common.location.code_location import CodedLocation
 
-from toshi_hazard_post.logic_tree.branch_combinator import get_logic_tree
 from toshi_hazard_post.hazard_aggregation.aggregation import AggTaskArgs, process_location_list
 from toshi_hazard_post.local_config import NUM_WORKERS
-from toshi_hazard_post.toshi_api_support import get_deagg_config, toshi_api, get_imtl
+from toshi_hazard_post.logic_tree.branch_combinator import get_logic_tree
+from toshi_hazard_post.toshi_api_support import get_deagg_config, get_imtl, toshi_api
 
 from .aggregation_config import AggregationConfig
 
@@ -48,7 +48,8 @@ class DeAggregationWorkerMP(multiprocessing.Process):
 def process_deaggregation(config: AggregationConfig) -> List[str]:
     """Aggregate the Deaggregations in parallel."""
 
-    # TODO: deagg should get the hazard_id from  the oq runs (not sure it's there atm) so that user can't overwrite with the wrong id
+    # TODO: deagg should get the hazard_id from  the oq runs (not sure it's there atm) so that user can't overwrite
+    # with the wrong id
     serial = False  # for easier debugging
     if serial:
         results = process_deaggregation_serial(config)
@@ -118,8 +119,6 @@ def process_single_deagg(gtid: str, config: AggregationConfig) -> None:
     resolution = 0.001
     coded_location = CodedLocation(*loc, resolution)
 
-    omit: List[str] = []
-
     # TODO: check that we get the correct logic tree when some tasks are missing
     logic_tree = get_logic_tree(
         config.lt_config,
@@ -131,14 +130,14 @@ def process_single_deagg(gtid: str, config: AggregationConfig) -> None:
     log.info('finished building logic tree ')
 
     # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
-    levels: List[ float ] = []  
+    levels: List[float] = []
 
     t = AggTaskArgs(
         hazard_model_id=config.hazard_model_id,
         grid_loc=coded_location.downsample(0.1).code,
         locs=[coded_location.downsample(0.001).code],
         logic_tree=logic_tree,
-        aggs=config.aggs, # TODO: I think this only works w/ one agg (len==1)
+        aggs=config.aggs,  # TODO: I think this only works w/ one agg (len==1)
         imts=[deagg_config.imt],
         levels=levels,
         vs30=deagg_config.vs30,

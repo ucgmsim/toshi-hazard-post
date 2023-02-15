@@ -6,9 +6,8 @@ import json
 import logging
 from collections import namedtuple
 from pathlib import Path, PurePath
-from typing import Union, List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional, Union
 
-from nshm_toshi_client.toshi_client_base import ToshiClientBase
 from nshm_toshi_client.toshi_file import ToshiFile
 
 from toshi_hazard_post.local_config import API_KEY, API_URL, S3_URL, WORK_PATH
@@ -77,8 +76,8 @@ class SourceSolutionMap:
     def __key(onfault_nrml_id: str, distributed_nrml_id: str) -> str:
         return ':'.join((str(onfault_nrml_id), str(distributed_nrml_id)))
 
-class ToshiApi(ToshiFile):
 
+class ToshiApi(ToshiFile):
     def save_sources_to_toshi(self, filepath: Union[str, Path], tag: str = None) -> str:
         """Archive and upload one file."""
         log.info(f"Processing */{Path(filepath).name} :: {tag}")
@@ -96,7 +95,6 @@ class ToshiApi(ToshiFile):
         self.upload_content(post_url, archive_path)
         log.info(f"pushed {archive_path} to ToshiAPI {API_URL} with id {archive_file_id}")
         return archive_file_id
-    
 
     def get_disagg_gt(self, general_task_id: str) -> Dict[str, Any]:
         qry = '''
@@ -132,7 +130,6 @@ class ToshiApi(ToshiFile):
         input_variables = dict(general_task_id=general_task_id)
         executed = self.run_query(qry, input_variables)
         return {'data': executed}
-
 
     def get_hazard_gt(self, id: str) -> SourceSolutionMap:
 
@@ -170,7 +167,6 @@ class ToshiApi(ToshiFile):
             return SourceSolutionMap(executed['node1']['children']['edges'])
         else:
             return SourceSolutionMap()
-
 
 
 headers = {"x-api-key": API_KEY}

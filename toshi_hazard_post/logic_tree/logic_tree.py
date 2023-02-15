@@ -3,16 +3,17 @@
 """
 Classes to define hazard logic trees and gather openquake run info from Toshi
 """
-from pathlib import Path
 import itertools
 from dataclasses import dataclass, field
-from typing import Any, Dict, Generator, List, Union
 from functools import reduce
-from operator import mul
 from math import isclose
+from operator import mul
+from pathlib import Path
+from typing import Any, Dict, List
 
-from nzshm_model.source_logic_tree.logic_tree import FlattenedSourceLogicTree, CompositeBranch
-from toshi_hazard_post.toshi_api_support import API_KEY, API_URL, SourceSolutionMap, toshi_api
+from nzshm_model.source_logic_tree.logic_tree import CompositeBranch, FlattenedSourceLogicTree
+
+from toshi_hazard_post.toshi_api_support import SourceSolutionMap, toshi_api
 
 DTOL = 1.0e-6
 
@@ -66,6 +67,7 @@ class GMCMBranch:
 #     def insert(self, i, item):
 #         self._branches.insert(i, item)
 
+
 @dataclass
 class HazardBranch:
     """Replaces Source Branch"""
@@ -85,7 +87,7 @@ class HazardBranch:
     @property
     def weight(self):
         return self.source_branch.weight
-    
+
     def set_gmcm_branches(self, metadata: Dict[str, dict], correlations: List[List[str]]) -> None:
         """
         Build the table of ground motion combinations and weights for a single source branch.
@@ -101,7 +103,7 @@ class HazardBranch:
         correlations
             GMCM logic tree correlations, each inner list element contains two ground motion model strings to correlate.
         """
-        
+
         if correlations:
             correlation_master = [corr[0] for corr in correlations]
             correlation_puppet = [corr[1] for corr in correlations]
@@ -188,6 +190,7 @@ class HazardBranch:
         # return gmcm_branches
         self.gmcm_branches = gmcm_branches
 
+
 @dataclass
 class HazardLogicTree:
     """replaces SourceBranchGroup"""
@@ -199,7 +202,7 @@ class HazardLogicTree:
     @property
     def hazard_ids(self):
         toshi_ids = [id for branch in self.branches for id in branch.hazard_ids]
-        return(list(set(toshi_ids)))
+        return list(set(toshi_ids))
 
     @classmethod
     def from_flattened_slt(cls, flat_slt: FlattenedSourceLogicTree, gt_ids: List[str]):

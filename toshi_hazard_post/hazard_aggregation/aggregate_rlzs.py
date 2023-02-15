@@ -1,14 +1,15 @@
 import logging
 import time
-from typing import Collection, Dict, Iterable, List
+from typing import Collection, Iterable, List
 
 import numpy as np
 import numpy.typing as npt
 
-# from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
-from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree, GMCMBranch
 from toshi_hazard_post.calculators import calculate_weighted_quantiles, prob_to_rate, rate_to_prob, weighted_avg_and_std
 from toshi_hazard_post.data_functions import ValueStore
+
+# from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
+from toshi_hazard_post.logic_tree.logic_tree import GMCMBranch, HazardLogicTree
 
 DTOL = 1.0e-6
 INV_TIME = 1.0
@@ -219,7 +220,6 @@ def build_branches(
     values: ValueStore,
     imt: str,
     loc: str,
-    vs30: int,
     start_ind: int,
     end_ind: int,
 ) -> npt.NDArray:

@@ -1,3 +1,6 @@
+"""fucntions for downloading csv and hdf5 archives from ToshiApi. Temporory while we wait for THS support for
+disaggregation realizations"""
+
 import logging
 import os
 from pathlib import Path, PurePath
@@ -19,7 +22,7 @@ def get_archive_info(hazard_soln_id, archive_type):
     api = ToshiClientBase(API_URL, None, True, headers)
 
     qry = '''
-    query oqhazsoln ($id:ID!) {  
+    query oqhazsoln ($id:ID!) {
         node (id: $id) {
         ... on OpenquakeHazardSolution {
                 ###archive_type###_archive {

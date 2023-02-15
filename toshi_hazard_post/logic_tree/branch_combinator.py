@@ -1,23 +1,13 @@
 import ast
-import itertools
-import json
 import logging
-import math
 from pathlib import Path
-from collections import namedtuple
-from collections.abc import MutableSequence
-from dataclasses import dataclass, field
-from functools import reduce
-from operator import mul
-from typing import Any, Dict, Iterable, Iterator, List, Union
+from typing import Dict, Iterable, List, Union
 
+from nzshm_model.source_logic_tree.logic_tree import FlattenedSourceLogicTree
+from nzshm_model.source_logic_tree.slt_config import from_config
 from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
 
-
-from nzshm_model.source_logic_tree.slt_config import from_config
-from nzshm_model.source_logic_tree.logic_tree import FlattenedSourceLogicTree
-
-from .logic_tree import HazardLogicTree, GMCMBranch
+from .logic_tree import HazardLogicTree
 
 DTOL = 1.0e-6
 
@@ -46,13 +36,14 @@ def preload_meta(ids: Iterable[str], vs30: int) -> Dict[str, dict]:
 
     return metadata
 
+
 def get_logic_tree(
     lt_config_filepath: Union[str, Path],
     hazard_gts: List[str],
     vs30: int,
     gmm_correlations: List[List[str]],
     truncate: int = None,
- ) -> HazardLogicTree:
+) -> HazardLogicTree:
 
     fslt = FlattenedSourceLogicTree.from_source_logic_tree(from_config(lt_config_filepath))
     if truncate:
@@ -178,8 +169,6 @@ def get_logic_tree(
 #         )
 #     # TODO: record mapping between rlz number and gmm name
 #     return gmcm_branches
-
-
 
 
 # def build_source_branches(
@@ -383,7 +372,7 @@ def get_logic_tree(
 
 # def merge_ltbs(logic_tree_permutations: List[Any], gtdata: Dict[Any, Any], omit: List[str]) -> Iterator[Member]:
 #     """Deprecated
-    
+
 #     Same as merge_ltbs_fromLT() but includes all results from gtdata rather than restricting to matches
 #     with logic_tree_permutations.
 
@@ -417,7 +406,7 @@ def get_logic_tree(
 
 # def merge_ltbs_fromLT(logic_tree_permutations: List[Any], gtdata: Dict[Any, Any], omit: List[str]) -> Iterator[Member]:
 #     """Deprecated
-    
+
 #     Map source IDs in source logic tree to Toshi IDs of Openquake Hazard Solutions
 
 #     Parameters
