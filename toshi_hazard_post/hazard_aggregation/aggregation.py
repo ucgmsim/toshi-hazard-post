@@ -195,7 +195,7 @@ def save_disaggregation(
         dae = model.DisaggAggregationExceedance.new_model(
             hazard_model_id,
             location, 
-            str(vs30),
+            vs30,
             imt,
             hazard_agg,
             disagg_agg,
