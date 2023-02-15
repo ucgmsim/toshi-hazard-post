@@ -5,7 +5,7 @@ import multiprocessing
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Any
 
 import numpy as np
 import numpy.typing as npt
@@ -155,9 +155,10 @@ def process_location_list(task_args: AggTaskArgs) -> None:
                     save_realizations(imt, loc, vs30, branch_probs, weights, logic_tree)
 
             if deagg_dimensions:
-                save_deaggs(
-                    hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
-                )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
+                # save_deaggs(
+                #     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
+                # )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
+                save_disaggregation(task_args.hazard_model_id, location, imt, vs30, poe, imtl, hazard, bins)
             else:
                 save_aggregation(aggs, levels, hazard, imt, vs30, task_args.hazard_model_id, location)
 
@@ -166,6 +167,44 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
     toc_fn = time.perf_counter()
     log.info('process_location_list took %.3f secs' % (toc_fn - tic_fn))
+
+
+def save_disaggregation(
+       hazard_model_id: str,
+       location: CodedLocation,
+       imt: str,
+       vs30: int,
+       poe: float, # fraction in 50 years
+       imtl: float,
+       deagg_array: npt.NDArray,
+       bins: Dict[str, Any]
+) -> None:
+    """
+    Only handles a single aggregate statistic, assumed to be mean for both the hazard curve and the disagg.
+    Assumes probability is fraction in 50 years
+    """
+
+    shape = [len(v) for v in bins.values()]
+    deagg_array = deagg_array.reshape(shape)
+    
+    bins_array = np.array(list(bins.values()), dtype=object)
+    hazard_agg = model.AggregationEnum.MEAN.value
+    disagg_agg = model.AggregationEnum.MEAN.value
+    probability = model.ProbabilityEnum[f'_{int(poe*100)}_PCT_IN_50YRS']
+    with model.DisaggAggregationExceedance.batch_write() as batch:
+        dae = model.DisaggAggregationExceedance.new_model(
+            hazard_model_id,
+            location, 
+            str(vs30),
+            imt,
+            hazard_agg,
+            disagg_agg,
+            probability,
+            imtl,
+            deagg_array,
+            bins_array,
+        )
+        batch.save(dae)
 
 
 def save_aggregation(

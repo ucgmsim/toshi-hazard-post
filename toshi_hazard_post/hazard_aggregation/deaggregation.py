@@ -50,7 +50,7 @@ def process_deaggregation(config: AggregationConfig) -> List[str]:
 
     # TODO: deagg should get the hazard_id from  the oq runs (not sure it's there atm) so that user can't overwrite
     # with the wrong id
-    serial = False  # for easier debugging
+    serial = True  # for easier debugging
     if serial:
         results = process_deaggregation_serial(config)
         return results

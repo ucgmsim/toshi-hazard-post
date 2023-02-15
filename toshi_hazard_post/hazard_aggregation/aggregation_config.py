@@ -20,7 +20,7 @@ class AggregationConfig:
         self.config = toml.load(config)
         self.validate()
         self.hazard_model_id = self.config['aggregation']['hazard_model_id']
-        self.stage = self.config['aggregation']['stage']
+        # self.stage = self.config['aggregation']['stage']  # not used
         self.imts = self.config['aggregation']['imts']
 
         # TODO: can we remove vs30s and just assume we're processing one at a time? Get vs30 (needed for THS) from
@@ -74,7 +74,7 @@ class AggregationConfig:
         """Check the configuration is valid."""
         print(self.config['aggregation'])
         assert self.config['aggregation']['hazard_model_id']
-        assert self.config['aggregation']['stage']
+        # assert self.config['aggregation']['stage']  # not used
         assert self.config['aggregation']['imts']
         assert self.config['aggregation']['vs30s']
         assert self.config['aggregation']['aggs']
