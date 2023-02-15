@@ -3,7 +3,7 @@
 """
 Classes to define hazard logic trees and gather openquake run info from Toshi
 """
-
+from pathlib import Path
 import itertools
 from dataclasses import dataclass, field
 from typing import Any, Dict, Generator, List, Union
@@ -101,7 +101,7 @@ class HazardBranch:
         correlations
             GMCM logic tree correlations, each inner list element contains two ground motion model strings to correlate.
         """
-
+        
         if correlations:
             correlation_master = [corr[0] for corr in correlations]
             correlation_puppet = [corr[1] for corr in correlations]
@@ -211,11 +211,10 @@ class HazardLogicTree:
             for comp_branch in branches:
                 hazard_ids = []
                 for branch in comp_branch.branches:
-                    hazard_ids.append(
-                        source_solution_map.get_solution_id(
-                            onfault_nrml_id=branch.onfault_nrml_id, distributed_nrml_id=branch.distributed_nrml_id
-                        )
+                    hazard_id = source_solution_map.get_solution_id(
+                        onfault_nrml_id=branch.onfault_nrml_id, distributed_nrml_id=branch.distributed_nrml_id
                     )
+                    hazard_ids.append(hazard_id) if hazard_id else None
                 yield HazardBranch(comp_branch, hazard_ids)
 
         return cls(flat_slt.title, gt_ids, list(yield_haz_branches(flat_slt.branches)))

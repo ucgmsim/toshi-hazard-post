@@ -48,7 +48,8 @@ class DeAggregationWorkerMP(multiprocessing.Process):
 def process_deaggregation(config: AggregationConfig) -> List[str]:
     """Aggregate the Deaggregations in parallel."""
 
-    serial = True  # for easier debugging
+    # TODO: deagg should get the hazard_id from  the oq runs (not sure it's there atm) so that user can't overwrite with the wrong id
+    serial = False  # for easier debugging
     if serial:
         results = process_deaggregation_serial(config)
         return results
@@ -141,10 +142,10 @@ def process_single_deagg(gtid: str, config: AggregationConfig) -> None:
         imts=[deagg_config.imt],
         levels=levels,
         vs30=deagg_config.vs30,
-        deagg=True,
+        deagg=config.deagg_dimensions,
         poe=deagg_config.poe,
         deagg_imtl=imtl,
-        saveL_rlz=False,
+        save_rlz=False,
         stride=config.stride,
     )
 

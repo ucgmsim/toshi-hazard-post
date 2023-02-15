@@ -193,7 +193,7 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
     tic = time.perf_counter()
     log.info('loading %s hazard IDs ... ' % len(toshi_ids))
 
-    values = ValueStore
+    values = ValueStore()
 
     # download csv archives
     downloads = download_csv(toshi_ids, DOWNLOAD_DIR)

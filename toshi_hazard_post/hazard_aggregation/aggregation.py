@@ -351,7 +351,7 @@ def process_aggregation(config: AggregationConfig) -> None:
     config : AggregationConfig
         the config
     """
-    serial = True
+    serial = False
 
     logic_trees = {} 
     for vs30 in config.vs30s:

@@ -167,27 +167,27 @@ def calculate_aggs(branch_probs: npt.NDArray, aggs: List[str], weight_combs: Col
     return rate_to_prob(median, INV_TIME)
 
 
-def get_len_rate(values: Dict[str, dict]) -> int:
-    """Get the length of the probability array.
-    Depricated
+# def get_len_rate(values: Dict[str, dict]) -> int:
+#     """Get the length of the probability array.
+#     Depricated
 
-    Parameters
-    ----------
-    values
-        probability values
+#     Parameters
+#     ----------
+#     values
+#         probability values
 
-    Returns
-    -------
-    length
-    """
+#     Returns
+#     -------
+#     length
+#     """
 
-    # TODO: is there a better way to do this? Maybe if values is stored as a DataFrame?
-    k1 = next(iter(values.keys()))
-    k2 = next(iter(values[k1].keys()))
-    k3 = next(iter(values[k1][k2].keys()))
-    rate_shape = values[k1][k2][k3].shape
+#     # TODO: is there a better way to do this? Maybe if values is stored as a DataFrame?
+#     k1 = next(iter(values.keys()))
+#     k2 = next(iter(values[k1].keys()))
+#     k3 = next(iter(values[k1][k2].keys()))
+#     rate_shape = values[k1][k2][k3].shape
 
-    return rate_shape[0]
+#     return rate_shape[0]
 
 
 def get_branch_weights(logic_tree: HazardLogicTree) -> npt.NDArray:

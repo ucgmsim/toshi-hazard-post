@@ -46,6 +46,26 @@ def preload_meta(ids: Iterable[str], vs30: int) -> Dict[str, dict]:
 
     return metadata
 
+def get_logic_tree(
+    lt_config_filepath: Union[str, Path],
+    hazard_gts: List[str],
+    vs30: int,
+    gmm_correlations: List[List[str]],
+    truncate: int = None,
+ ) -> HazardLogicTree:
+
+    fslt = FlattenedSourceLogicTree.from_source_logic_tree(from_config(lt_config_filepath))
+    if truncate:
+        # for testing
+        fslt.branches = fslt.branches[:truncate]
+    logic_tree = HazardLogicTree.from_flattened_slt(fslt, hazard_gts)
+    metadata = preload_meta(logic_tree.hazard_ids, vs30)
+
+    for branch in logic_tree.branches:
+        branch.set_gmcm_branches(metadata, gmm_correlations)
+
+    return logic_tree
+
 
 # def build_rlz_table(
 #     branch: SourceBranch, metadata: Dict[str, dict], correlations: List[List[str]] = None
@@ -159,26 +179,6 @@ def preload_meta(ids: Iterable[str], vs30: int) -> Dict[str, dict]:
 #     # TODO: record mapping between rlz number and gmm name
 #     return gmcm_branches
 
-
-def get_logic_tree(
-    lt_config_filepath: Union[str, Path],
-    hazard_gts: List[str],
-    vs30: int,
-    gmm_correlations: List[List[str]],
-    truncate: int = None,
- ) -> HazardLogicTree:
-
-    fslt = FlattenedSourceLogicTree.from_source_logic_tree(from_config(lt_config_filepath))
-    if truncate:
-        # for testing
-        fslt.branches = fslt.branches[:truncate]
-    logic_tree = HazardLogicTree.from_flattened_slt(fslt, hazard_gts)
-    metadata = preload_meta(logic_tree.hazard_ids, vs30)
-
-    for branch in logic_tree.branches:
-        branch.set_gmcm_branches(metadata, gmm_correlations)
-
-    return logic_tree
 
 
 
@@ -316,157 +316,161 @@ def get_logic_tree(
 #     return source_branches
 
 
-Member = namedtuple("Member", "group tag weight inv_id bg_id hazard_solution_id vs30")
+# Member = namedtuple("Member", "group tag weight inv_id bg_id hazard_solution_id vs30")
 
 
-def weight_and_ids(data: Dict[str, dict]) -> Iterator[Member]:
-    """Parses ToshiAPI query result from Openquake Hazard GT to return weights and Toshi IDs for each branch of the
-    source logic tree.
+# def weight_and_ids(data: Dict[str, dict]) -> Iterator[Member]:
+#     """Parses ToshiAPI query result from Openquake Hazard GT to return weights and Toshi IDs for each branch of the
+#     source logic tree.
 
-    Parameters
-    ----------
-    data
-        result of ToshiAPI query on GT ID of oq-engine run
+#     Parameters
+#     ----------
+#     data
+#         result of ToshiAPI query on GT ID of oq-engine run
 
-    Returns
-    -------
-    branch_info
-        namedtuples containing information on each logic tree branch in the source logic tree
-    """
+#     Returns
+#     -------
+#     branch_info
+#         namedtuples containing information on each logic tree branch in the source logic tree
+#     """
 
-    def get_tag(args):
-        for arg in args:
-            if arg['k'] == "logic_tree_permutations":
-                return json.loads(arg['v'].replace("'", '"'))[0]['permute']  # ['members'][0]
-        assert 0
+#     def get_tag(args):
+#         for arg in args:
+#             if arg['k'] == "logic_tree_permutations":
+#                 return json.loads(arg['v'].replace("'", '"'))[0]['permute']  # ['members'][0]
+#         assert 0
 
-    def get_vs30(args):
-        for arg in args:
-            if arg['k'] == "vs30":
-                return int(float(arg['v']))
-        assert 0
+#     def get_vs30(args):
+#         for arg in args:
+#             if arg['k'] == "vs30":
+#                 return int(float(arg['v']))
+#         assert 0
 
-    nodes = data['data']['node1']['children']['edges']
-    for obj in nodes:
-        if obj['node']['child']['hazard_solution']:
-            tag = get_tag(obj['node']['child']['arguments'])
-            vs30 = get_vs30(obj['node']['child']['arguments'])
-            hazard_solution_id = obj['node']['child']['hazard_solution']['id']
-            yield Member(**tag[0]['members'][0], group=None, hazard_solution_id=hazard_solution_id, vs30=vs30)
-
-
-def all_members_dict(ltbs: List[List[dict]]) -> Dict[str, Any]:
-    """Parses source logic tree to place info in namedtuple
-
-    Parameters
-    ----------
-    ltbs
-        contains dict definitions of source logic trees for each fault system
-
-    Returns
-    -------
-    members
-        {str(concat of source ids) : namedtuple}
-    """
-    res = {}
-
-    def members():
-        for grp in ltbs[0][0]['permute']:
-            # print(grp['group'])
-            for m in grp['members']:
-                yield Member(**m, group=grp['group'], hazard_solution_id=None, vs30=None)
-
-    for m in members():
-        res[f'{m.inv_id}{m.bg_id}'] = m
-    return res
+#     nodes = data['data']['node1']['children']['edges']
+#     for obj in nodes:
+#         if obj['node']['child']['hazard_solution']:
+#             tag = get_tag(obj['node']['child']['arguments'])
+#             vs30 = get_vs30(obj['node']['child']['arguments'])
+#             hazard_solution_id = obj['node']['child']['hazard_solution']['id']
+#             yield Member(**tag[0]['members'][0], group=None, hazard_solution_id=hazard_solution_id, vs30=vs30)
 
 
-def merge_ltbs(logic_tree_permutations: List[Any], gtdata: Dict[Any, Any], omit: List[str]) -> Iterator[Member]:
-    """Same as merge_ltbs_fromLT() but includes all results from gtdata rather than restricting to matches
-    with logic_tree_permutations.
+# def all_members_dict(ltbs: List[List[dict]]) -> Dict[str, Any]:
+#     """Parses source logic tree to place info in namedtuple
 
-    Parameters
-    ----------
-    logic_tree_permutations
-        contains dict definitions of source logic trees for each fault system
-    gtdata
-        result of ToshiAPI query on GT ID of oq-engine run
-    omit
-        list of Openquake Hazard Solutions Toshi IDs to exculde from the aggregation calculation
+#     Parameters
+#     ----------
+#     ltbs
+#         contains dict definitions of source logic trees for each fault system
 
-    Returns
-    -------
-    branch
-        namedtuple for each (pre-combined) branch of source logic tree with Toshi Openquake Hazard Solutions mapped
-        to branches
-    """
+#     Returns
+#     -------
+#     members
+#         {str(concat of source ids) : namedtuple}
+#     """
+#     res = {}
 
-    members = all_members_dict(logic_tree_permutations)
-    # weights are the actual Hazard weight @ 1.0
-    for toshi_ltb in weight_and_ids(gtdata):
-        if toshi_ltb.hazard_solution_id in omit:
-            log.debug(f'skipping {toshi_ltb}')
-            continue
-        d = toshi_ltb._asdict()
-        d['weight'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].weight
-        d['group'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].group
-        yield Member(**d)
+#     def members():
+#         for grp in ltbs[0][0]['permute']:
+#             # print(grp['group'])
+#             for m in grp['members']:
+#                 yield Member(**m, group=grp['group'], hazard_solution_id=None, vs30=None)
+
+#     for m in members():
+#         res[f'{m.inv_id}{m.bg_id}'] = m
+#     return res
 
 
-def merge_ltbs_fromLT(logic_tree_permutations: List[Any], gtdata: Dict[Any, Any], omit: List[str]) -> Iterator[Member]:
-    """Map source IDs in source logic tree to Toshi IDs of Openquake Hazard Solutions
+# def merge_ltbs(logic_tree_permutations: List[Any], gtdata: Dict[Any, Any], omit: List[str]) -> Iterator[Member]:
+#     """Deprecated
+    
+#     Same as merge_ltbs_fromLT() but includes all results from gtdata rather than restricting to matches
+#     with logic_tree_permutations.
 
-    Parameters
-    ----------
-    logic_tree_permutations
-        contains dict definitions of source logic trees for each fault system
-    gtdata
-        result of ToshiAPI query on GT ID of oq-engine run
-    omit
-        list of Openquake Hazard Solutions Toshi IDs to exculde from the aggregation calculation
+#     Parameters
+#     ----------
+#     logic_tree_permutations
+#         contains dict definitions of source logic trees for each fault system
+#     gtdata
+#         result of ToshiAPI query on GT ID of oq-engine run
+#     omit
+#         list of Openquake Hazard Solutions Toshi IDs to exculde from the aggregation calculation
 
-    Returns
-    -------
-    branch
-        namedtuple for each (pre-combined) branch of source logic tree with Toshi Openquake Hazard Solutions mapped
-        to branches
-    """
+#     Returns
+#     -------
+#     branch
+#         namedtuple for each (pre-combined) branch of source logic tree with Toshi Openquake Hazard Solutions mapped
+#         to branches
+#     """
 
-    members = all_members_dict(logic_tree_permutations)
-    # weights are the actual Hazard weight @ 1.0
-    for toshi_ltb in weight_and_ids(gtdata):
-        if toshi_ltb.hazard_solution_id in omit:
-            log.debug(f'skipping {toshi_ltb}')
-            continue
-        if members.get(f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'):
-            d = toshi_ltb._asdict()
-            d['weight'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].weight
-            d['group'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].group
-            d['tag'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].tag
-            yield Member(**d)
+#     members = all_members_dict(logic_tree_permutations)
+#     # weights are the actual Hazard weight @ 1.0
+#     for toshi_ltb in weight_and_ids(gtdata):
+#         if toshi_ltb.hazard_solution_id in omit:
+#             log.debug(f'skipping {toshi_ltb}')
+#             continue
+#         d = toshi_ltb._asdict()
+#         d['weight'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].weight
+#         d['group'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].group
+#         yield Member(**d)
 
 
-def grouped_ltbs(merged_ltbs: Iterable[Member], vs30: int) -> Dict[str, list]:
-    """groups by trt
+# def merge_ltbs_fromLT(logic_tree_permutations: List[Any], gtdata: Dict[Any, Any], omit: List[str]) -> Iterator[Member]:
+#     """Deprecated
+    
+#     Map source IDs in source logic tree to Toshi IDs of Openquake Hazard Solutions
 
-    Parameters
-    ----------
-    merged_ltbs
-        all (pre-combined) source branches with Toshi Openquake Hazard Solutions
-        mapped (from merge_ltbs_fromLT() )
-    vs30
-        vs30
+#     Parameters
+#     ----------
+#     logic_tree_permutations
+#         contains dict definitions of source logic trees for each fault system
+#     gtdata
+#         result of ToshiAPI query on GT ID of oq-engine run
+#     omit
+#         list of Openquake Hazard Solutions Toshi IDs to exculde from the aggregation calculation
 
-    Returns
-    -------
-    grouped
-        source branches grouped by fault system
-    """
+#     Returns
+#     -------
+#     branch
+#         namedtuple for each (pre-combined) branch of source logic tree with Toshi Openquake Hazard Solutions mapped
+#         to branches
+#     """
 
-    grouped: Dict[str, list] = {}
-    for ltb in merged_ltbs:
-        if ltb.vs30 == vs30:
-            if ltb.group not in grouped:
-                grouped[ltb.group] = []
-            grouped[ltb.group].append(ltb)
-    return grouped
+#     members = all_members_dict(logic_tree_permutations)
+#     # weights are the actual Hazard weight @ 1.0
+#     for toshi_ltb in weight_and_ids(gtdata):
+#         if toshi_ltb.hazard_solution_id in omit:
+#             log.debug(f'skipping {toshi_ltb}')
+#             continue
+#         if members.get(f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'):
+#             d = toshi_ltb._asdict()
+#             d['weight'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].weight
+#             d['group'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].group
+#             d['tag'] = members[f'{toshi_ltb.inv_id}{toshi_ltb.bg_id}'].tag
+#             yield Member(**d)
+
+
+# def grouped_ltbs(merged_ltbs: Iterable[Member], vs30: int) -> Dict[str, list]:
+#     """groups by trt
+
+#     Parameters
+#     ----------
+#     merged_ltbs
+#         all (pre-combined) source branches with Toshi Openquake Hazard Solutions
+#         mapped (from merge_ltbs_fromLT() )
+#     vs30
+#         vs30
+
+#     Returns
+#     -------
+#     grouped
+#         source branches grouped by fault system
+#     """
+
+#     grouped: Dict[str, list] = {}
+#     for ltb in merged_ltbs:
+#         if ltb.vs30 == vs30:
+#             if ltb.group not in grouped:
+#                 grouped[ltb.group] = []
+#             grouped[ltb.group].append(ltb)
+#     return grouped
