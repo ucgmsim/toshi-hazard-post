@@ -18,7 +18,7 @@ VERBOSE = True
 log = logging.getLogger(__name__)
 
 
-def weighted_stats(values: Iterable[float], quantiles: List[str], sample_weight: Iterable[float] = None) -> npt.NDArray:
+def weighted_stats(values: npt.NDArray, quantiles: List[str], sample_weight: Iterable[float] = None) -> npt.NDArray:
     """Get weighted statistics for a 1D array like object.
 
     Parameters
@@ -42,9 +42,9 @@ def weighted_stats(values: Iterable[float], quantiles: List[str], sample_weight:
 
     tic = time.perf_counter()
 
-    values = np.array(values)
+    # values = np.array(values)
     if sample_weight is None:
-        sample_weight = np.ones(len(values))
+        sample_weight = np.ones(values.shape[0])
     sample_weight = np.array(sample_weight)
     sample_weight = sample_weight / sum(sample_weight)
 
@@ -158,14 +158,14 @@ def calculate_aggs(branch_probs: npt.NDArray, aggs: List[str], weight_combs: Col
 
     branch_probs = prob_to_rate(branch_probs, INV_TIME)
 
-    nrows = branch_probs.shape[1]
-    ncols = len(aggs)
-    median = np.empty((nrows, ncols))
-    for i in range(nrows):
-        quantiles = weighted_stats(branch_probs[:, i], aggs, sample_weight=weight_combs)
-        median[i, :] = np.array(quantiles)
-
-    return rate_to_prob(median, INV_TIME)
+    # nrows = branch_probs.shape[1]
+    # ncols = len(aggs)
+    # median = np.empty((nrows, ncols))
+    # for i in range(nrows):
+        # quantiles = weighted_stats(branch_probs[:, i], aggs, sample_weight=weight_combs)
+        # median[i, :] = np.array(quantiles)
+    quantiles = weighted_stats(branch_probs, aggs, sample_weight=weight_combs)
+    return rate_to_prob(quantiles, INV_TIME)
 
 
 # def get_len_rate(values: Dict[str, dict]) -> int:

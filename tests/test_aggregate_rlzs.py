@@ -33,7 +33,7 @@ def convert_values(values_dict):
 class TestAggStats(unittest.TestCase):
     def setUp(self):
         self._stats_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'quantiles_expected.npy')
-        self._probs = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        self._probs = np.array([[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]])
         self._aggs = ["0.1", "0.5", "mean", "cov", "std", "0.9"]
         self._weights = [1, 2, 1, 4, 1, 2, 2, 3, 3]
 
