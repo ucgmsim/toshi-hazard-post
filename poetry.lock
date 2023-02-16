@@ -731,9 +731,18 @@ description = "A small pure python library for shared NZ NSHM data like location
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0.0"
+develop = false
 
 [package.extras]
+dev = []
 geometry = ["Shapely[geometry] (>=1.8.3,<2.0.0)", "geopandas[geometry] (>=0.11.1,<0.12.0)"]
+test = []
+
+[package.source]
+type = "git"
+url = "https://github.com/GNS-Science/nzshm-common-py.git"
+reference = "feature/20-backarc-v2"
+resolved_reference = "4877d56cbf583401c24bdd530c3b80c169c758e0"
 
 [[package]]
 name = "packaging"
@@ -1360,7 +1369,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "3191e18c583d0e17466b83e9e5f7076ae00a82c010ebe9858086dc24b4826616"
+content-hash = "57d0b84e46d3804900429ca02b5e38fc3c939968c89c3a6378a996d5dae717cb"
 
 [metadata.files]
 aiohttp = [
@@ -2065,10 +2074,7 @@ numpy = [
     {file = "numpy-1.23.5-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:01dd17cbb340bf0fc23981e52e1d18a9d4050792e8fb8363cecbf066a84b827d"},
     {file = "numpy-1.23.5.tar.gz", hash = "sha256:1b1766d6f397c18153d40015ddfc79ddb715cabadc04d2d228d4e5a8bc4ded1a"},
 ]
-nzshm-common = [
-    {file = "nzshm-common-0.4.0.tar.gz", hash = "sha256:f0f7d303548c70be0f12c7894b75fcf59a7019f068e9ab71f9c950b9ec63740b"},
-    {file = "nzshm_common-0.4.0-py3-none-any.whl", hash = "sha256:78572dde972362ee3b0c3b5e2633950cf9befcc7ada03a382ad5084e5c148ef1"},
-]
+nzshm-common = []
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},

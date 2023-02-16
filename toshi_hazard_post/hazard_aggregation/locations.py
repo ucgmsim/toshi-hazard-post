@@ -2,7 +2,7 @@ from typing import Dict, List, Tuple
 
 from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
-from nzshm_common.location.location import LOCATIONS_BY_ID
+from nzshm_common.location.location import LOCATIONS_BY_ID, LOCATIONS_SRWG214_BY_ID
 
 from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig
 
@@ -98,14 +98,13 @@ def get_locations(config: AggregationConfig) -> List[Tuple[float]]:
         elif '~' in location_spec:
             locations.append(tuple(map(float, location_spec.split('~'))))
         elif location_spec == "NZ_34":
-            locs = [(loc['latitude'], loc['longitude']) for loc in LOCATIONS_BY_ID.values()]
-            if config.location_limit:
-                locs = locs[: config.location_limit]
-            locations += locs
+            locations += [(loc['latitude'], loc['longitude']) for loc in LOCATIONS_BY_ID.values()]
         elif location_spec == "STAT_TEST_64":
             locations += stat_test_64()
         elif location_spec == 'STAT_TEST_MISSING':
             locations += stat_test_missing()
+        elif location_spec == "SRWG214":
+            locations += [(loc['latitude'], loc['longitude']) for loc in LOCATIONS_SRWG214_BY_ID.values()]
         else:
             locs = (
                 load_grid(location_spec)
@@ -116,6 +115,9 @@ def get_locations(config: AggregationConfig) -> List[Tuple[float]]:
                 l = locs.index((-34.7, 172.7))
                 locs = locs[0:l] + locs[l + 1 :]
             locations += locs
+    if config.location_limit:
+        locs = locs[: config.location_limit]
+
     return locations
 
 

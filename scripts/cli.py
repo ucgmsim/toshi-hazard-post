@@ -6,7 +6,7 @@ import sys
 import warnings
 
 import click
-from toshi_hazard_store.model import migrate_v3 as migrate
+# from toshi_hazard_store.model import migrate_v3 as migrate
 
 from toshi_hazard_post.hazard_aggregation import AggregationConfig, process_aggregation, process_deaggregation
 from toshi_hazard_post.hazard_aggregation import process_config_deaggregation
@@ -77,7 +77,7 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
             raise Exception(f'deaggregation not supported in {mode} mode')
         if migrate_tables:
             click.echo("Ensuring that dynamodb tables are available in target region & stage.")
-            migrate()
+            # migrate()
         distribute_aggregation(agconf, mode)
         return
 

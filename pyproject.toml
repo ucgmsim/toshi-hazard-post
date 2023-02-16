@@ -38,6 +38,7 @@ click = "^8.1.3"
 toshi-hazard-store = "0.5.5"
 pandas = "^1.4.3"
 numba = "^0.56.0"
+nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "feature/20-backarc-v2"}
 
 
 [tool.poetry.dev-dependencies]
