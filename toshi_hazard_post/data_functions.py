@@ -5,7 +5,8 @@ from typing import Any, Dict, List, Set
 
 import numpy as np
 import numpy.typing as npt
-from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
+# from toshi_hazard_store.query_v3 import get_hazard_metadata_v3, get_rlz_curves_v3
+import toshi_hazard_store
 
 # from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
 from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
@@ -71,7 +72,7 @@ def get_levels(logic_tree: HazardLogicTree, locs: List[str], vs30: int) -> Any:
     id = logic_tree.hazard_ids[0]
 
     log.info(f"get_levels locs[0]: {locs[0]} vs30: {vs30}, id {id}")
-    hazard = next(get_rlz_curves_v3([locs[0]], [vs30], None, [id], None))
+    hazard = next(toshi_hazard_store.query_v3.get_rlz_curves_v3([locs[0]], [vs30], None, [id], None))
 
     return hazard.values[0].lvls
 
@@ -93,7 +94,7 @@ def get_imts(logic_tree: HazardLogicTree, vs30: int) -> list:
     levels : List[str]
         IMTs of hazard curve"""
 
-    meta = next(get_hazard_metadata_v3(logic_tree.hazard_ids, [vs30]))
+    meta = next(toshi_hazard_store.query_v3.get_hazard_metadata_v3(logic_tree.hazard_ids, [vs30]))
     imts = list(meta.imts)
     imts.sort()
 
@@ -145,7 +146,7 @@ def load_realization_values(toshi_ids: List[str], locs: List[str], vs30s: List[i
 
     values = ValueStore()
     try:
-        for res in get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
+        for res in toshi_hazard_store.query_v3.get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
             key = ':'.join((res.hazard_solution_id, str(res.rlz)))
             for val in res.values:
                 values.set_values(value=np.array(val.vals), key=key, loc=res.nloc_001, imt=val.imt)

@@ -140,7 +140,8 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
             # ncols = get_len_rate(values)
             ncols = values.len_rate
-            hazard = np.empty((ncols, len(aggs)))
+            # hazard = np.empty((ncols, len(aggs)))
+            hazard = np.empty((len(aggs), ncols))
             for start_ind in range(0, ncols, stride):
                 end_ind = start_ind + stride
                 if end_ind > ncols:
@@ -148,7 +149,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
                 tic = time.perf_counter()
                 branch_probs = build_branches(logic_tree, values, imt, loc, start_ind, end_ind)
-                hazard[start_ind:end_ind, :] = calculate_aggs(branch_probs, aggs, weights)
+                hazard[:, start_ind:end_ind] = calculate_aggs(branch_probs, aggs, weights)
                 log.info(f'time to calculate hazard for one stride {time.perf_counter() - tic} seconds')
 
                 if save_rlz:
@@ -240,7 +241,7 @@ def save_aggregation(
         for aggind, agg in enumerate(aggs):
             hazard_vals = []
             for j, level in enumerate(levels):
-                hazard_vals.append((level, hazard[j, aggind]))  # tuple lvl, val
+                hazard_vals.append((level, hazard[aggind, j]))  # tuple lvl, val
 
             if not hazard_vals:
                 log.debug('no hazard_vals for agg %s imt %s' % (agg, imt))

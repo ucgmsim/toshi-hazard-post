@@ -67,7 +67,7 @@ def weighted_stats(values: npt.NDArray, quantiles: List[str], sample_weight: Ite
             quantiles = quantiles[0:cov_ind] + quantiles[cov_ind + 1 :]
             cov = std / mean
 
-    quants = np.array([float(q) for q in quantiles])  # TODO this is hacky, need to tighten up API with typing
+    quants = np.array([float(q) for q in quantiles])  # TODO this is hacky?
     # print(f'QUANTILES: {quantiles}')
 
     assert np.all(quants >= 0) and np.all(quants <= 1), 'quantiles should be in [0, 1]'
@@ -75,11 +75,11 @@ def weighted_stats(values: npt.NDArray, quantiles: List[str], sample_weight: Ite
     wq = calculate_weighted_quantiles(values, sample_weight, quants)
 
     if get_cov:
-        wq = np.append(np.append(wq[0:cov_ind], np.array([cov])), wq[cov_ind:])
+        wq = np.vstack( (np.vstack((wq[0:cov_ind,:], cov)), wq[cov_ind:,:]) )
     if get_std:
-        wq = np.append(np.append(wq[0:std_ind], np.array([std])), wq[std_ind:])
+        wq = np.vstack( (np.vstack((wq[0:std_ind,:], std)), wq[std_ind:,:]) )
     if get_mean:
-        wq = np.append(np.append(wq[0:mean_ind], np.array([mean])), wq[mean_ind:])
+        wq = np.vstack( (np.vstack((wq[0:mean_ind,:], mean)), wq[mean_ind:,:]) )
 
     toc = time.perf_counter()
     log.debug(f'time to calculate weighted quantiles {toc-tic} seconds')

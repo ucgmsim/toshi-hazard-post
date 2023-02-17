@@ -75,7 +75,7 @@ def weighted_avg_and_std(values: npt.NDArray, weights: npt.NDArray) -> Tuple[np.
 
     # values = np.array(values)
     # axis = get_axis(values)
-    axis = 1
+    axis = 0
     average = np.average(values, weights=weights, axis=axis)
     # Fast and numerically precise:
     variance = np.average((values - average) ** 2, weights=weights, axis=axis)
@@ -102,17 +102,21 @@ def calculate_weighted_quantiles(
         weighed quantiles
     """
 
-    # axis = get_axis(values)
-    axis = 1
-    sorter = np.argsort(values, axis=axis).reshape((values.shape[1],))
-    values = values[:, sorter]
-    weights = weights[sorter]
+    nbranches, nlevels = values.shape
 
-    weighted_quantiles = np.cumsum(weights) - 0.5 * weights
-    weighted_quantiles /= np.sum(weights)
+    # TODO: this uses more memory, are we getting a speed improvement in return?
+    weights = np.vstack([weights.reshape(nbranches,1)]*nlevels)
 
-    wq = np.empty((len(quantiles), values.shape[axis]))
-    for i_row in range(values.shape[axis]):
-        wq[:, i_row] = np.interp(quantiles, weighted_quantiles, values[i_row,:])
+    axis = 0
+    sorter = np.argsort(values, axis=axis) # .reshape((values.shape[1],))
+    values = np.take_along_axis(values, sorter, axis=axis)
+    weights = np.take_along_axis(weights, sorter, axis=axis)
+
+    weighted_quantiles = np.cumsum(weights, axis = axis) - 0.5 * weights
+    weighted_quantiles /= np.sum(weights, axis = axis)
+
+    wq = np.empty((len(quantiles), values.shape[1]))
+    for i in range(values.shape[1]):
+        wq[:, i] = np.interp(quantiles, weighted_quantiles[:, i], values[:, i])
 
     return wq
