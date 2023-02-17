@@ -33,14 +33,14 @@ def convert_values(values_dict):
 class TestAggStats(unittest.TestCase):
     def setUp(self):
         self._stats_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'quantiles_expected.npy')
-        self._probs = np.array([[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]])
+        self._probs = np.array([[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]]).reshape(9,1)
         self._aggs = ["0.1", "0.5", "mean", "cov", "std", "0.9"]
-        self._weights = [1, 2, 1, 4, 1, 2, 2, 3, 3]
+        self._weights = np.array([1, 2, 1, 4, 1, 2, 2, 3, 3])
 
     def test_weighted_stats(self):
 
         stats = weighted_stats(self._probs, self._aggs, self._weights)
-        stats_expected = np.load(self._stats_file)
+        stats_expected = np.load(self._stats_file).reshape((6,1))
 
         assert np.allclose(stats, stats_expected)
 
@@ -174,10 +174,10 @@ class TestBranchFunctions(unittest.TestCase):
 
     def test_calculate_aggs(self):
 
-        weights = [0.1, 0.1, 0.2, 0.3, 0.1, 0.2]
+        weights = np.array([0.1, 0.1, 0.2, 0.3, 0.1, 0.2])
         aggs = ['mean', 'std', 'cov', '0.6']
         hazard_agg = calculate_aggs(self._branch_probs, aggs, weights)
-        expected = np.load(self._hazard_aggs_filepath)
+        expected = np.load(self._hazard_aggs_filepath).T
 
         assert np.allclose(hazard_agg, expected)
 

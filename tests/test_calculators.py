@@ -43,7 +43,7 @@ class TestMeanStd(unittest.TestCase):
 
         w_and_v = json.load(open(self._weights_values_file))
         self._weights = w_and_v['weights']
-        self._values = np.array([w_and_v['values']])
+        self._values = np.array([w_and_v['values']]).reshape((9,1))
 
     def test_weighted_avg_and_std(self):
 
@@ -59,14 +59,14 @@ class TestQuantiles(unittest.TestCase):
 
         w_and_v = json.load(open(self._weights_values_file))
         self._weights = w_and_v['weights']
-        self._values = np.array([w_and_v['values']])
+        self._values = np.array([w_and_v['values']]).reshape((9,1))
 
     def test_calculate_quantiles(self):
 
         quantiles = [0.5]
-        values = np.array([[1, 2, 3, 4, 5]])
+        values = np.array([[1, 2, 3, 5, 4]]).reshape((5,1))
         weights = np.array((1, 0, 0, 1, 1))
-        weighted_quantiles = calculate_weighted_quantiles(np.array(values), np.array(weights), quantiles)
+        weighted_quantiles = calculate_weighted_quantiles(values, weights, quantiles)
         weighted_quantiles_expeced = [4]
 
         assert np.allclose(weighted_quantiles, weighted_quantiles_expeced)
