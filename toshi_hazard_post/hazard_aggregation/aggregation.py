@@ -40,7 +40,7 @@ pr = cProfile.Profile()
 AggTaskArgs = namedtuple(
     "AggTaskArgs",
     """hazard_model_id grid_loc locs logic_tree aggs imts levels vs30 deagg poe deagg_imtl save_rlz
-    stride""",
+    stride skip_save""",
 )
 
 
@@ -154,6 +154,9 @@ def process_location_list(task_args: AggTaskArgs) -> None:
                 if save_rlz:
                     save_realizations(imt, loc, vs30, branch_probs, weights, logic_tree)
 
+            if task_args.skip_save:
+                continue
+            
             if deagg_dimensions:
                 # save_deaggs(
                 #     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
@@ -288,6 +291,7 @@ def process_aggregation_local_serial(
                 deagg_imtl=None,
                 save_rlz=save_rlz,
                 stride=config.stride,
+                skip_save=config.skip_save,
             )
 
             # process_location_list(t, config.deagg_poes[0])
@@ -358,6 +362,7 @@ def process_aggregation_local(
                 deagg_imtl=None,
                 save_rlz=save_rlz,
                 stride=config.stride,
+                skip_save=config.skip_save,
             )
 
             task_queue.put(t)
@@ -391,7 +396,7 @@ def process_aggregation(config: AggregationConfig) -> None:
     config : AggregationConfig
         the config
     """
-    serial = False
+    serial = True
 
     logic_trees = {}
     for vs30 in config.vs30s:

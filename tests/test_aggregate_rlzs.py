@@ -33,9 +33,9 @@ def convert_values(values_dict):
 class TestAggStats(unittest.TestCase):
     def setUp(self):
         self._stats_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'quantiles_expected.npy')
-        self._probs = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        self._probs = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
         self._aggs = ["0.1", "0.5", "mean", "cov", "std", "0.9"]
-        self._weights = [1, 2, 1, 4, 1, 2, 2, 3, 3]
+        self._weights = np.array([1, 2, 1, 4, 1, 2, 2, 3, 3])
 
     def test_weighted_stats(self):
 
@@ -120,10 +120,10 @@ def generate_gmcm_branches():
         ["hazsol_0:0", "hazsol_1:1"],
     ]
 
-    weights = [
+    weights = np.array([
         0.1,
         0.2,
-    ]
+    ])
 
     for rlz, weight in zip(realizations, weights):
         gmcm_branches.append(GMCMBranch(rlz, weight))
@@ -174,7 +174,7 @@ class TestBranchFunctions(unittest.TestCase):
 
     def test_calculate_aggs(self):
 
-        weights = [0.1, 0.1, 0.2, 0.3, 0.1, 0.2]
+        weights = np.array([0.1, 0.1, 0.2, 0.3, 0.1, 0.2])
         aggs = ['mean', 'std', 'cov', '0.6']
         hazard_agg = calculate_aggs(self._branch_probs, aggs, weights)
         expected = np.load(self._hazard_aggs_filepath)

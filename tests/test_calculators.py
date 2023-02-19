@@ -42,8 +42,8 @@ class TestMeanStd(unittest.TestCase):
         self._std_expected = 2.6294520822489
 
         w_and_v = json.load(open(self._weights_values_file))
-        self._weights = w_and_v['weights']
-        self._values = w_and_v['values']
+        self._weights = np.array(w_and_v['weights'])
+        self._values = np.array(w_and_v['values'])
 
     def test_weighted_avg_and_std(self):
 
@@ -58,8 +58,8 @@ class TestQuantiles(unittest.TestCase):
         self._weights_values_file = Path(Path(__file__).parent, 'fixtures/calculators', 'weights_and_values.json')
 
         w_and_v = json.load(open(self._weights_values_file))
-        self._weights = w_and_v['weights']
-        self._values = w_and_v['values']
+        self._weights = np.array(w_and_v['weights'])
+        self._values = np.array(w_and_v['values'])
 
     def test_calculate_quantiles(self):
 

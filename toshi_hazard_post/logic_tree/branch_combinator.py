@@ -5,7 +5,8 @@ from typing import Dict, Iterable, List, Union
 
 from nzshm_model.source_logic_tree.logic_tree import FlattenedSourceLogicTree
 from nzshm_model.source_logic_tree.slt_config import from_config
-from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
+# from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
+import toshi_hazard_store
 
 from .logic_tree import HazardLogicTree
 
@@ -29,7 +30,7 @@ def preload_meta(ids: Iterable[str], vs30: int) -> Dict[str, dict]:
         dictionary of ground motion logic tree metadata dictionaries
     """
     metadata = {}
-    for meta in get_hazard_metadata_v3(ids, [vs30]):
+    for meta in toshi_hazard_store.query_v3.get_hazard_metadata_v3(ids, [vs30]):
         hazard_id = meta.hazard_solution_id
         gsim_lt = ast.literal_eval(meta.gsim_lt)
         metadata[hazard_id] = gsim_lt
