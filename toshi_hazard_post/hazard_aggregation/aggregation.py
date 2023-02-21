@@ -397,7 +397,6 @@ def process_aggregation(config: AggregationConfig) -> None:
     config : AggregationConfig
         the config
     """
-    serial = True
 
     logic_trees = {}
     for vs30 in config.vs30s:
@@ -423,7 +422,7 @@ def process_aggregation(config: AggregationConfig) -> None:
     for imt in config.imts:
         assert imt in avail_imts
 
-    if not serial:
+    if not config.run_serial:
         process_aggregation_local(
             config.hazard_model_id,
             logic_trees,

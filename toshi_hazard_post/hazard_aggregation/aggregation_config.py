@@ -42,12 +42,14 @@ class AggregationConfig:
         self.location_limit = 0
         self.source_branches_truncate = 0
         self.reuse_source_branches_id = None
+        self.run_serial = False
         self.skip_save = False
         if self.config.get('debug'):
             self.skip_save = self.config['debug'].get('skip_save')
             self.location_limit = self.config.get('debug').get('location_limit', 0)
             self.source_branches_truncate = self.config.get('debug').get('source_branches_truncate', 0)
             self.reuse_source_branches_id = self.config.get('debug').get('reuse_source_branches_id')
+            self.run_serial = self.config.get('debug').get('run_serial')
 
         # deaggregation
         # TODO: that's a lot of repeated config parameters. Do we want to make the config files seperate?
