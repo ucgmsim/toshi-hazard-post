@@ -110,7 +110,7 @@ def get_locations(config: AggregationConfig) -> List[Tuple[float, float]]:
     locations: List[Tuple[float, float]] = []
     for location_spec in config.locations:
         if '~' in location_spec:
-            locations.append(tuple(map(float, loc.split('~'))))  # type: ignore
+            locations.append(tuple(map(float, location_spec.split('~'))))  # type: ignore
         elif location_by_id(location_spec):
             locations.append(lat_lon(location_spec))
         elif LOCATION_LISTS.get(location_spec):
