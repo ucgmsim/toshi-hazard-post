@@ -7,7 +7,10 @@ import sys
 import click
 # from toshi_hazard_store.model import migrate_v3 as migrate
 
-from toshi_hazard_post.hazard_aggregation import AggregationConfig, process_aggregation, process_deaggregation
+# from toshi_hazard_post.hazard_aggregation import AggregationConfig, process_aggregation, process_deaggregation
+from toshi_hazard_post.hazard_aggregation.aggregation import process_aggregation
+from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig
+from toshi_hazard_post.hazard_aggregation.deaggregation import process_deaggregation
 # from toshi_hazard_post.hazard_aggregation.aws_aggregation import distribute_aggregation, push_test_message
 
 log = logging.getLogger()
