@@ -422,8 +422,8 @@ def process_aggregation(config: AggregationConfig) -> None:
     for imt in config.imts:
         assert imt in avail_imts
 
-    if not config.run_serial:
-        process_aggregation_local(
+    if config.run_serial:
+        process_aggregation_local_serial(
             config.hazard_model_id,
             logic_trees,
             coded_locations,
@@ -433,7 +433,7 @@ def process_aggregation(config: AggregationConfig) -> None:
             save_rlz=config.save_rlz,
         )  # TODO: use source_branches dict
     else:
-        process_aggregation_local_serial(
+        process_aggregation_local(
             config.hazard_model_id,
             logic_trees,
             coded_locations,
