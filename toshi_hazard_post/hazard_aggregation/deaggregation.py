@@ -146,6 +146,7 @@ def process_single_deagg(gtid: str, config: AggregationConfig) -> None:
         deagg_imtl=imtl,
         save_rlz=False,
         stride=config.stride,
+        skip_save=config.skip_save,
     )
 
     process_location_list(t)

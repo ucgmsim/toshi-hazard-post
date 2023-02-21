@@ -102,7 +102,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     deagg_dimensions = task_args.deagg
     save_rlz = task_args.save_rlz
     stride = task_args.stride if task_args.stride else 100
-
+    skip_save = task_args.skip_save
     toshi_ids = logic_tree.hazard_ids
 
     if deagg_dimensions:
@@ -157,13 +157,14 @@ def process_location_list(task_args: AggTaskArgs) -> None:
             if task_args.skip_save:
                 continue
             
-            if deagg_dimensions:
-                # save_deaggs(
-                #     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
-                # )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
-                save_disaggregation(task_args.hazard_model_id, location, imt, vs30, poe, imtl, hazard, bins)
-            else:
-                save_aggregation(aggs, levels, hazard, imt, vs30, task_args.hazard_model_id, location)
+            if not skip_save:
+                if deagg_dimensions:
+                    # save_deaggs(
+                    #     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
+                    # )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
+                    save_disaggregation(task_args.hazard_model_id, location, imt, vs30, poe, imtl, hazard, bins)
+                else:
+                    save_aggregation(aggs, levels, hazard, imt, vs30, task_args.hazard_model_id, location)
 
         toc_imt = time.perf_counter()
         log.info('imt: %s took %.3f secs' % (imt, (toc_imt - tic_imt)))
