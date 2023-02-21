@@ -18,7 +18,7 @@ VERBOSE = True
 log = logging.getLogger(__name__)
 
 
-def weighted_stats(values: Iterable[float], quantiles: List[str], sample_weight: Iterable[float] = None) -> npt.NDArray:
+def weighted_stats(values: npt.NDArray, quantiles: List[str], sample_weight: npt.NDArray = None) -> npt.NDArray:
     """Get weighted statistics for a 1D array like object.
 
     Parameters
@@ -42,10 +42,8 @@ def weighted_stats(values: Iterable[float], quantiles: List[str], sample_weight:
 
     tic = time.perf_counter()
 
-    values = np.array(values)
     if sample_weight is None:
         sample_weight = np.ones(len(values))
-    sample_weight = np.array(sample_weight)
     sample_weight = sample_weight / sum(sample_weight)
 
     get_mean = False
@@ -129,7 +127,7 @@ def calc_weighted_sum(
     return prob_table
 
 
-def calculate_aggs(branch_probs: npt.NDArray, aggs: List[str], weight_combs: Collection[float]) -> npt.NDArray:
+def calculate_aggs(branch_probs: npt.NDArray, aggs: List[str], weight_combs: npt.NDArray) -> npt.NDArray:
     """Gets aggregate statistics for array of probability curves.
 
     Parameters
