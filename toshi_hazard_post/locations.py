@@ -2,7 +2,7 @@ from typing import Dict, List, Tuple
 
 from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
-from nzshm_common.location.location import LOCATIONS_BY_ID
+from nzshm_common.location.location import location_by_id, LOCATION_LISTS
 
 from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig
 
@@ -104,31 +104,33 @@ def get_locations(config: AggregationConfig) -> List[Tuple[float, float]]:
         list of (latitude, longitude)
     """
 
-    if type(config.locations) is list:
-        locations: List[Tuple[float, float]] = []
-        for loc in config.locations:
-            if '~' in loc:
-                locations.append(tuple(map(float, loc.split('~'))))  # type: ignore
-            else:
-                locations.append((LOCATIONS_BY_ID[loc]['latitude'], LOCATIONS_BY_ID[loc]['longitude']))
-    elif config.locations == "NZ_34":
-        locations = [(loc['latitude'], loc['longitude']) for loc in LOCATIONS_BY_ID.values()]
-        if config.location_limit:
-            locations = locations[: config.location_limit]
-    elif config.locations == "STAT_TEST_64":
-        locations = stat_test_64()
-    elif config.locations == 'STAT_TEST_MISSING':
-        locations = stat_test_missing()
-    else:
-        locations = (
-            load_grid(config.locations)
-            if not config.location_limit
-            else load_grid(config.locations)[: config.location_limit]
-        )
-    if config.locations == 'NZ_0_1_NB_1_1':  # TODO: hacky fix to a missing point in the oq calculation grid
-        ind_missing = locations.index((-34.7, 172.7))
-        locations = locations[0:ind_missing] + locations[ind_missing + 1 :]
+    def lat_lon(id):
+        return (location_by_id(id)['latitude'], location_by_id(id)['longitude'])
 
+    locations: List[Tuple[float, float]] = []
+    for location_spec in config.locations:
+        if '~' in location_spec:
+            locations.append(tuple(map(float, loc.split('~'))))  # type: ignore
+        elif location_by_id(location_spec):
+            locations.append(lat_lon(location_spec))
+        elif LOCATION_LISTS.get(location_spec):
+            location_ids = LOCATION_LISTS[location_spec]["locations"]
+            locations += [lat_lon(id) for id in location_ids] 
+        elif config.locations == "STAT_TEST_64":
+            locations += stat_test_64()
+        elif config.locations == 'STAT_TEST_MISSING':
+            locations += stat_test_missing()
+        else:
+            locations += ( 
+                load_grid(location_spec)
+            )
+
+        if location_spec == 'NZ_0_1_NB_1_1':  # TODO: hacky fix to a missing point in the oq calculation grid
+            ind_missing = locations.index((-34.7, 172.7))
+            locations = locations[0:ind_missing] + locations[ind_missing + 1 :]
+
+    if config.location_limit:
+        locations = locations[: config.location_limit]
     return locations
 
 
