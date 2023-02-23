@@ -134,7 +134,7 @@ class ToshiApi(ToshiFile):
 
     def get_hazard_gt(self, id: str) -> SourceSolutionMap:
 
-        qry = ''' 
+        qry = '''
         query hazard_gt ($general_task_id:ID!) {
             node1: node(id: $general_task_id) {
                 id

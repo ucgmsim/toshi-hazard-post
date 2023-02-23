@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Collection, Iterable, List
+from typing import List
 
 import numpy as np
 import numpy.typing as npt

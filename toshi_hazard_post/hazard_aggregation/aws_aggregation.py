@@ -77,7 +77,6 @@ def save_logic_trees(logic_trees: Dict[int, HazardLogicTree]) -> str:
 
 def distribute_aggregation(config: AggregationConfig, process_mode: str) -> None:
     """Configure the tasks using toshi to store the configuration."""
-    omit: List[str] = []
 
     # build logic tree or reuse existing (for testin/debugging only)
     if config.reuse_source_branches_id:

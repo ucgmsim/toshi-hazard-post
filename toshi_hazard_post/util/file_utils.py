@@ -79,7 +79,7 @@ def get_location(header):
     try:
         end_lon = tail.index(',')
         lon = tail[:end_lon]
-    except:
+    except ValueError:
         lon = tail[:]
 
     start_lat = info.index('lat=') + 4
@@ -87,7 +87,7 @@ def get_location(header):
     try:
         end_lat = tail.index(',')
         lat = tail[:end_lat]
-    except:
+    except ValueError:
         lat = tail[:]
 
     location = CodedLocation(float(lat), float(lon), 0.001).code

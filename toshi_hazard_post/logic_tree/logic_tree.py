@@ -8,7 +8,6 @@ from dataclasses import dataclass, field
 from functools import reduce
 from math import isclose
 from operator import mul
-from pathlib import Path
 from typing import Any, Dict, List
 
 from nzshm_model.source_logic_tree.logic_tree import CompositeBranch, FlattenedSourceLogicTree

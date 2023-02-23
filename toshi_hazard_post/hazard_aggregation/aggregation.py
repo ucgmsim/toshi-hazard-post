@@ -28,7 +28,7 @@ from toshi_hazard_post.locations import get_locations
 # )
 from toshi_hazard_post.logic_tree.branch_combinator import get_logic_tree
 from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
-from toshi_hazard_post.util.file_utils import save_deaggs, save_realizations
+from toshi_hazard_post.util.file_utils import save_realizations
 
 from .aggregate_rlzs import build_branches, calculate_aggs, get_branch_weights
 from .aggregation_config import AggregationConfig

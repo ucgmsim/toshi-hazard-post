@@ -37,7 +37,7 @@ class AggregationConfig:
             self.deaggregation = False
         else:
             self.deaggregation = True
-            self.deagg_dimensions = self.config['deaggregation']['dimensions']
+            self.deagg_dimensions = list(map(str.lower, self.config['deaggregation']['dimensions']))
             self.validate_deagg(self)
 
         # debug/test option defaults
@@ -53,7 +53,6 @@ class AggregationConfig:
             self.reuse_source_branches_id = self.config.get('debug').get('reuse_source_branches_id')
             self.run_serial = self.config.get('debug').get('run_serial')
 
-
     def validate(self):
         """Check the configuration is valid."""
         print(self.config['aggregation'])
@@ -62,11 +61,10 @@ class AggregationConfig:
         assert self.config['aggregation']['aggs']
         assert self.config['aggregation']['logic_tree_file']
 
-
     def validate_deagg(self):
         """Check the deagg configuration is valid."""
         print(self.conifg['deggregation'])
         assert len(self.deagg_dimensions) == len(set(self.deagg_dimensions))
-        
-        valid_dimensions = ['eps','dist','mag','trt']
+
+        valid_dimensions = ['eps', 'dist', 'mag', 'trt']
         assert all([dim in valid_dimensions for dim in self.deagg_dimensions])
