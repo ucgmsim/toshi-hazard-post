@@ -104,9 +104,6 @@ doc = [
     ]
 
 
-[tool.poetry.group.dev.dependencies]
-snakeviz = "^2.1.1"
-
 [tool.black]
 line-length = 120
 skip-string-normalization = true
