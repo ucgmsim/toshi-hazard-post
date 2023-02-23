@@ -29,12 +29,13 @@ class AggregationConfig:
         assert self.lt_config.exists()
         self.stride = self.config['aggregation'].get('stride')
 
-        if not self.config.get('debug'):
+        self.save_rlz = False
+        if not self.config.get('deaggregation'):
+            self.deaggregation = False
             self.imts = self.config['aggregation']['imts']
             self.vs30s = self.config['aggregation']['vs30s']
             self.locations = self.config['aggregation']['locations']
-            self.save_rlz = self.config['aggregation']['save_rlz']
-            self.deaggregation = False
+            self.save_rlz = self.config['aggregation'].get('save_rlz')
         else:
             self.deaggregation = True
             self.deagg_dimensions = list(map(str.lower, self.config['deaggregation']['dimensions']))
