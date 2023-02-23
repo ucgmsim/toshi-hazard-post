@@ -8,8 +8,7 @@ from dacite import from_dict
 
 import toshi_hazard_post.hazard_aggregation.aws_aggregation
 import toshi_hazard_post.hazard_aggregation.aggregation_task
-from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
-from .test_branch_combinator import convert_source_branches, load_gmcm_branches
+from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
 
 MockRequests = namedtuple('MockRequests', 'ok content')
 
@@ -22,7 +21,7 @@ class MockOpen:
         return self._path.open()
 
 
-@mock.patch('toshi_hazard_post.hazard_aggregation.aws_aggregation.save_sources_to_toshi')
+@mock.patch('toshi_hazard_post.hazard_aggregation.aws_aggregation.toshi_api.save_sources_to_toshi')
 @mock.patch('toshi_hazard_post.hazard_aggregation.aggregation_task.ZipFile')
 @mock.patch.multiple(
     'toshi_hazard_post.hazard_aggregation.aggregation_task',
@@ -32,24 +31,17 @@ class MockOpen:
 )
 class TestSourceBranches(unittest.TestCase):
     def setUp(self):
-        self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches.json')
-        self._gmcm_branches_filepath = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'gmcm_branches.json')
+        self._logic_tree_file = Path(Path(__file__).parent, 'fixtures/aws', 'logic_tree.json')
 
     def test_save_and_fetch(self, mock_zipfile, mock_save_sources, io, ToshiFile, requests):
 
-        gmcm_branches = load_gmcm_branches(self._gmcm_branches_filepath)
-        # source_branches = {400: convert_source_branches(json.load(open(self._sb_file, 'r')))}
-        source_branches = {400: from_dict(data_class=SourceBranchGroup, data=json.load(open(self._sb_file, 'r')))}
-        for i in range(len(source_branches)):
-            source_branches[400][i].gmcm_branches = gmcm_branches
+        logic_trees = {400: from_dict(data_class=HazardLogicTree, data=json.load(open(self._logic_tree_file, 'r')))}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             with mock.patch.object(toshi_hazard_post.hazard_aggregation.aws_aggregation, 'WORK_PATH', tmp_dir):
-                toshi_hazard_post.hazard_aggregation.aws_aggregation.save_source_branches(source_branches)
+                toshi_hazard_post.hazard_aggregation.aws_aggregation.save_logic_trees(logic_trees)
 
-            mock_zipfile.return_value = MockOpen(Path(tmp_dir, 'source_branches.json'))
-            source_branches_fetched = toshi_hazard_post.hazard_aggregation.aggregation_task.fetch_source_branches(
-                'foobar'
-            )
+            mock_zipfile.return_value = MockOpen(Path(tmp_dir, 'logic_trees.json'))
+            logic_trees_fetched = toshi_hazard_post.hazard_aggregation.aggregation_task.fetch_logic_trees('foobar')
 
-        assert source_branches_fetched == source_branches
+        assert logic_trees_fetched == logic_trees

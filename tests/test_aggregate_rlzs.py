@@ -120,10 +120,12 @@ def generate_gmcm_branches():
         ["hazsol_0:0", "hazsol_1:1"],
     ]
 
-    weights = np.array([
-        0.1,
-        0.2,
-    ])
+    weights = np.array(
+        [
+            0.1,
+            0.2,
+        ]
+    )
 
     for rlz, weight in zip(realizations, weights):
         gmcm_branches.append(GMCMBranch(rlz, weight))

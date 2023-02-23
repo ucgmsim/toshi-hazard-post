@@ -2,9 +2,13 @@ from typing import Dict, List, Tuple
 
 from nzshm_common.grids.region_grid import load_grid
 from nzshm_common.location.code_location import CodedLocation
-from nzshm_common.location.location import location_by_id, LOCATION_LISTS
+from nzshm_common.location.location import LOCATION_LISTS, location_by_id
 
 from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig
+
+
+def lat_lon(id):
+    return (location_by_id(id)['latitude'], location_by_id(id)['latitude'])
 
 
 def stat_test_missing() -> List[Tuple[float, float]]:
@@ -115,15 +119,13 @@ def get_locations(config: AggregationConfig) -> List[Tuple[float, float]]:
             locations.append(lat_lon(location_spec))
         elif LOCATION_LISTS.get(location_spec):
             location_ids = LOCATION_LISTS[location_spec]["locations"]
-            locations += [lat_lon(id) for id in location_ids] 
+            locations += [lat_lon(id) for id in location_ids]
         elif config.locations == "STAT_TEST_64":
             locations += stat_test_64()
         elif config.locations == 'STAT_TEST_MISSING':
             locations += stat_test_missing()
         else:
-            locations += ( 
-                load_grid(location_spec)
-            )
+            locations += load_grid(location_spec)
 
         if location_spec == 'NZ_0_1_NB_1_1':  # TODO: hacky fix to a missing point in the oq calculation grid
             ind_missing = locations.index((-34.7, 172.7))
@@ -172,7 +174,8 @@ def locations_nzpt2_and_nz34_binned(grid_res: float = 1.0, point_res: float = 0.
 
     # wlg_grid_0_01 = load_grid("WLG_0_01_nb_1_1")
     nz_0_2 = load_grid("NZ_0_2_NB_1_1")
-    nz34 = [(o['latitude'], o['longitude']) for o in LOCATIONS_BY_ID.values()]
+    # nz34 = [(o['latitude'], o['longitude']) for o in LOCATIONS_BY_ID.values()]
+    nz34 = [lat_lon(id) for id in LOCATION_LISTS['NZ']['locations']]
 
     grid_points = nz34 + nz_0_2
     return locations_by_degree(grid_points, grid_res, point_res)
@@ -199,7 +202,7 @@ def locations_nzpt2_and_nz34_chunked(grid_res: float = 1.0, point_res: float = 0
     chunk_size = 25
     # wlg_grid_0_01 = load_grid("WLG_0_01_nb_1_1")
     nz_0_2 = load_grid("NZ_0_2_NB_1_1")
-    nz34 = [(o['latitude'], o['longitude']) for o in LOCATIONS_BY_ID.values()]
+    nz34 = [lat_lon(id) for id in LOCATION_LISTS['NZ']['locations']]
     grid_points = nz34 + nz_0_2
     return locations_by_chunk(grid_points, point_res, chunk_size)
 
@@ -208,7 +211,7 @@ def locations_nz34_chunked(grid_res: float = 1.0, point_res: float = 0.001) -> D
 
     chunk_size = 2
     # wlg_grid_0_01 = load_grid("WLG_0_01_nb_1_1")
-    nz34 = [(o['latitude'], o['longitude']) for o in LOCATIONS_BY_ID.values()]
+    nz34 = [lat_lon(id) for id in LOCATION_LISTS['NZ']['locations']]
     grid_points = nz34
     return locations_by_chunk(grid_points, point_res, chunk_size)
 
@@ -219,7 +222,7 @@ def locations_nz2_chunked(grid_res: float = 1.0, point_res: float = 0.001) -> Di
     chunk_size = 1
     # wlg_grid_0_01 = load_grid("WLG_0_01_nb_1_1")
     cities = ['WLG', 'CHC', 'KBZ']
-    nz34 = [(o['latitude'], o['longitude']) for o in LOCATIONS_BY_ID.values() if o['id'] in cities]
+    nz34 = [lat_lon(id) for id in cities]
     grid_points = nz34
     return locations_by_chunk(grid_points, point_res, chunk_size)
 

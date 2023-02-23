@@ -3,10 +3,10 @@ import logging
 from pathlib import Path
 from typing import Dict, Iterable, List, Union
 
-from nzshm_model.source_logic_tree.logic_tree import FlattenedSourceLogicTree
-from nzshm_model.source_logic_tree.slt_config import from_config
 # from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
 import toshi_hazard_store
+from nzshm_model.source_logic_tree.logic_tree import FlattenedSourceLogicTree
+from nzshm_model.source_logic_tree.slt_config import from_config
 
 from .logic_tree import HazardLogicTree
 

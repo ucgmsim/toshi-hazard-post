@@ -195,6 +195,8 @@ class HazardBranch:
 class HazardLogicTree:
     """replaces SourceBranchGroup"""
 
+    # TODO: unique mapping for each vs30 so that gtIDs from different vs30 runs can be combined
+
     name: str
     gt_ids: List[str]
     branches: List[HazardBranch] = field(default_factory=list)

@@ -12,7 +12,7 @@ def test_locations():
     locations = get_locations(config)
     assert locations[0] == (-43.13, 175.444)
     assert locations[1] == (-35.229696132, 173.958389289)
-    
+
     config.locations = ["SRWG214"]
     assert len(get_locations(config)) == 214
 

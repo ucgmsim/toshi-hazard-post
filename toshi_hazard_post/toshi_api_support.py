@@ -65,6 +65,7 @@ class SourceSolutionMap:
                 hazard_solution = job['node']['child']['hazard_solution']
                 if hazard_solution:
                     self._dict[self.__key(onfault_nrml_id, distributed_nrml_id)] = hazard_solution['id']
+        return
 
     def append(self, other: 'SourceSolutionMap'):
         self._dict.update(other._dict)

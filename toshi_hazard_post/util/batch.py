@@ -3,7 +3,7 @@
 import collections
 import json
 import urllib.parse
-from typing import List
+from typing import List, Dict, Any
 
 from .util import compress_config
 
@@ -23,7 +23,7 @@ def get_ecs_job_config(
     job_queue="BasicFargate_Q",
     extra_env: List[BatchEnvironmentSetting] = None,
     use_compression=False,
-):
+) -> Dict[str, Any]:
     """Build a config for batch."""
     if "Fargate" in job_definition:
         assert vcpu in [0.25, 0.5, 1, 2, 4]

@@ -5,7 +5,7 @@ import multiprocessing
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Any
+from typing import Any, Dict, Iterable, List
 
 import numpy as np
 import numpy.typing as npt
@@ -49,13 +49,13 @@ class DistributedAggregationTaskArguments:
     """Class for passing arguments to Distributed Tasks."""
 
     hazard_model_id: str
-    source_branches_id: str
-    toshi_ids: List[str]
+    logic_trees_id: str
     locations: List[CodedLocation]
-    aggs: List[str]
-    imts: List[str]
     levels: List[float]
     vs30s: List[int]
+    aggs: List[str]
+    imts: List[str]
+    stride: int
 
 
 class AggregationWorkerMP(multiprocessing.Process):
@@ -156,7 +156,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
             if task_args.skip_save:
                 continue
-            
+
             if not skip_save:
                 if deagg_dimensions:
                     # save_deaggs(
@@ -174,14 +174,14 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
 
 def save_disaggregation(
-       hazard_model_id: str,
-       location: CodedLocation,
-       imt: str,
-       vs30: int,
-       poe: float, # fraction in 50 years
-       imtl: float,
-       deagg_array: npt.NDArray,
-       bins: Dict[str, Any]
+    hazard_model_id: str,
+    location: CodedLocation,
+    imt: str,
+    vs30: int,
+    poe: float,  # fraction in 50 years
+    imtl: float,
+    deagg_array: npt.NDArray,
+    bins: Dict[str, Any],
 ) -> None:
     """
     Only handles a single aggregate statistic, assumed to be mean for both the hazard curve and the disagg.
@@ -190,7 +190,7 @@ def save_disaggregation(
 
     shape = [len(v) for v in bins.values()]
     deagg_array = deagg_array.reshape(shape)
-    
+
     bins_array = np.array(list(bins.values()), dtype=object)
     hazard_agg = model.AggregationEnum.MEAN.value
     disagg_agg = model.AggregationEnum.MEAN.value
@@ -198,7 +198,7 @@ def save_disaggregation(
     with model.DisaggAggregationExceedance.batch_write() as batch:
         dae = model.DisaggAggregationExceedance.new_model(
             hazard_model_id,
-            location, 
+            location,
             vs30,
             imt,
             hazard_agg,
@@ -267,9 +267,13 @@ def process_aggregation_local_serial(
     logic_trees: Dict[int, HazardLogicTree],
     coded_locations: Iterable[CodedLocation],
     levels: Iterable[float],
-    config: AggregationConfig,
+    vs30s: Iterable[int],
+    aggs: Iterable[str],
+    imts: Iterable[str],
+    stride: int,
     num_workers: int,
     save_rlz: bool = False,
+    skip_save: bool = False,
 ) -> None:
     """Run task serially. This is only needed if running the debugger"""
 
@@ -277,22 +281,22 @@ def process_aggregation_local_serial(
     # source_branches = {int(k): v for k, v in source_branches.items()}
 
     for coded_loc in coded_locations:
-        for vs30 in config.vs30s:
+        for vs30 in vs30s:
             t = AggTaskArgs(
                 hazard_model_id=hazard_model_id,
                 grid_loc=coded_loc.downsample(0.1).code,
                 locs=[coded_loc.downsample(0.001).code],
                 logic_tree=logic_trees[vs30],
-                aggs=config.aggs,
-                imts=config.imts,
+                aggs=aggs,
+                imts=imts,
                 levels=levels,
                 vs30=vs30,
                 deagg=False,
                 poe=None,
                 deagg_imtl=None,
                 save_rlz=save_rlz,
-                stride=config.stride,
-                skip_save=config.skip_save,
+                stride=stride,
+                skip_save=skip_save,
             )
 
             # process_location_list(t, config.deagg_poes[0])
@@ -304,9 +308,13 @@ def process_aggregation_local(
     logic_trees: Dict[int, HazardLogicTree],
     coded_locations: Iterable[CodedLocation],
     levels: Iterable[float],
-    config: AggregationConfig,
+    vs30s: Iterable[int],
+    aggs: Iterable[str],
+    imts: Iterable[str],
+    stride: int,
     num_workers: int,
     save_rlz: bool = False,
+    skip_save: bool = False,
 ) -> List[str]:
     """Place aggregation jobs into a multiprocessing queue.
 
@@ -348,22 +356,22 @@ def process_aggregation_local(
     num_jobs = 0
 
     for coded_loc in coded_locations:
-        for vs30 in config.vs30s:
+        for vs30 in vs30s:
             t = AggTaskArgs(
                 hazard_model_id=hazard_model_id,
                 grid_loc=coded_loc.downsample(0.1).code,
                 locs=[coded_loc.downsample(0.001).code],
                 logic_tree=logic_trees[vs30],
-                aggs=config.aggs,
-                imts=config.imts,
+                aggs=aggs,
+                imts=imts,
                 levels=levels,
                 vs30=vs30,
                 deagg=False,
                 poe=None,
                 deagg_imtl=None,
                 save_rlz=save_rlz,
-                stride=config.stride,
-                skip_save=config.skip_save,
+                stride=stride,
+                skip_save=skip_save,
             )
 
             task_queue.put(t)
@@ -428,9 +436,13 @@ def process_aggregation(config: AggregationConfig) -> None:
             logic_trees,
             coded_locations,
             levels,
-            config,
+            config.vs30s,
+            config.aggs,
+            config.imts,
+            config.stride,
             NUM_WORKERS,
-            save_rlz=config.save_rlz,
+            config.save_rlz,
+            config.skip_save,
         )  # TODO: use source_branches dict
     else:
         process_aggregation_local(
@@ -438,7 +450,11 @@ def process_aggregation(config: AggregationConfig) -> None:
             logic_trees,
             coded_locations,
             levels,
-            config,
+            config.vs30s,
+            config.aggs,
+            config.imts,
+            config.stride,
             NUM_WORKERS,
-            save_rlz=config.save_rlz,
+            config.save_rlz,
+            config.skip_save,
         )  # TODO: use source_branches dict
