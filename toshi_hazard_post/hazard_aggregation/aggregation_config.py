@@ -39,7 +39,7 @@ class AggregationConfig:
         else:
             self.deaggregation = True
             self.deagg_dimensions = list(map(str.lower, self.config['deaggregation']['dimensions']))
-            self.validate_deagg(self)
+            self.validate_deagg()
 
         # debug/test option defaults
         self.location_limit = 0
@@ -64,7 +64,7 @@ class AggregationConfig:
 
     def validate_deagg(self):
         """Check the deagg configuration is valid."""
-        print(self.conifg['deggregation'])
+        print(self.config['deaggregation'])
         assert len(self.deagg_dimensions) == len(set(self.deagg_dimensions))
 
         valid_dimensions = ['eps', 'dist', 'mag', 'trt']
