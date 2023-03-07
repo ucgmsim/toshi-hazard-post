@@ -10,7 +10,7 @@ from dacite import from_dict
 
 from toshi_hazard_post.logic_tree.logic_tree import GMCMBranch, HazardLogicTree
 
-
+from toshi_hazard_post.calculators import prob_to_rate, rate_to_prob
 from toshi_hazard_post.data_functions import ValueStore
 from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import (
     weighted_stats,
@@ -20,6 +20,7 @@ from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import (
     calculate_aggs,
 )
 
+INV_TIME = 1.0
 
 def convert_values(values_dict):
     values = ValueStore()
@@ -52,58 +53,58 @@ def generate_values():
 
     values = ValueStore()
     values.set_values(
-        value=rng.random(
+        value=prob_to_rate(rng.random(
             10,
-        ),
+        ), INV_TIME),
         key="hazsol_0:0",
         loc='WLG',
         imt='PGA',
     )
     values.set_values(
-        value=rng.random(
+        value=prob_to_rate(rng.random(
             10,
-        ),
+        ), INV_TIME),
         key="hazsol_0:1",
         loc='WLG',
         imt='PGA',
     )
     values.set_values(
-        value=rng.random(
+        value=prob_to_rate(rng.random(
             10,
-        ),
+        ), INV_TIME),
         key="hazsol_0:2",
         loc='WLG',
         imt='PGA',
     )
     values.set_values(
-        value=rng.random(
+        value=prob_to_rate(rng.random(
             10,
-        ),
+        ), INV_TIME),
         key="hazsol_1:0",
         loc='WLG',
         imt='PGA',
     )
     values.set_values(
-        value=rng.random(
+        value=prob_to_rate(rng.random(
             10,
-        ),
+        ), INV_TIME),
         key="hazsol_1:1",
         loc='WLG',
         imt='PGA',
     )
 
     values.set_values(
-        value=rng.random(
+        value=prob_to_rate(rng.random(
             10,
-        ),
+        ), INV_TIME),
         key="hazsol_3:0",
         loc='WLG',
         imt='PGA',
     )
     values.set_values(
-        value=rng.random(
+        value=prob_to_rate(rng.random(
             10,
-        ),
+        ), INV_TIME),
         key="hazsol_3:1",
         loc='WLG',
         imt='PGA',
@@ -142,7 +143,7 @@ class TestProb(unittest.TestCase):
         values = generate_values()
         gmcm_branches = generate_gmcm_branches()
         prob_sum = calc_weighted_sum(gmcm_branches, values, 'WLG', 'PGA', 2, 8)
-        expected = np.load(self._weighted_sum_filepath)
+        expected = prob_to_rate(np.load(self._weighted_sum_filepath), INV_TIME)
 
         assert np.allclose(prob_sum, expected)
 
@@ -160,7 +161,7 @@ class TestBranchFunctions(unittest.TestCase):
         self._branch_weights_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'branch_weights.npy')
 
         self._logic_tree = from_dict(data_class=HazardLogicTree, data=json.load(open(logic_tree_filepath)))
-        self._branch_probs = np.load(branch_probs_filepath)
+        self._branch_probs = prob_to_rate(np.load(branch_probs_filepath), INV_TIME)
 
     def test_build_branches(self):
 
@@ -179,7 +180,7 @@ class TestBranchFunctions(unittest.TestCase):
         weights = np.array([0.1, 0.1, 0.2, 0.3, 0.1, 0.2])
         aggs = ['mean', 'std', 'cov', '0.6']
         hazard_agg = calculate_aggs(self._branch_probs, aggs, weights)
-        expected = np.load(self._hazard_aggs_filepath)
+        expected = prob_to_rate(np.load(self._hazard_aggs_filepath), INV_TIME)
 
         assert np.allclose(hazard_agg, expected)
 

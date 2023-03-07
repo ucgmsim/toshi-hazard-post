@@ -155,8 +155,6 @@ def batch_job_configs(
             imts=config.imts,
             stride=config.stride,
         )
-        breakpoint()
-        assert 0
         locs_processed += NUM_WORKERS
         task_count += 1
         yield batch_job_config(task_arguments=asdict(data), job_arguments=dict(task_id=task_count), task_id=task_count)

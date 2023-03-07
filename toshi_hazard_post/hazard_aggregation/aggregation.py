@@ -12,6 +12,7 @@ import numpy.typing as npt
 from nzshm_common.location.code_location import CodedLocation
 from toshi_hazard_store import model
 
+from toshi_hazard_post.calculators import rate_to_prob
 from toshi_hazard_post.data_functions import (
     get_imts,
     get_levels,
@@ -32,6 +33,8 @@ from toshi_hazard_post.util.file_utils import save_realizations
 
 from .aggregate_rlzs import build_branches, calculate_aggs, get_branch_weights
 from .aggregation_config import AggregationConfig
+
+INV_TIME = 1.0
 
 log = logging.getLogger(__name__)
 pr = cProfile.Profile()
@@ -162,9 +165,9 @@ def process_location_list(task_args: AggTaskArgs) -> None:
                     # save_deaggs(
                     #     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
                     # )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
-                    save_disaggregation(task_args.hazard_model_id, location, imt, vs30, poe, imtl, hazard, bins)
+                    save_disaggregation(task_args.hazard_model_id, location, imt, vs30, poe, imtl, rate_to_prob(hazard, INV_TIME), bins)
                 else:
-                    save_aggregation(aggs, levels, hazard, imt, vs30, task_args.hazard_model_id, location)
+                    save_aggregation(aggs, levels, rate_to_prob(hazard, INV_TIME), imt, vs30, task_args.hazard_model_id, location)
 
         toc_imt = time.perf_counter()
         log.info('imt: %s took %.3f secs' % (imt, (toc_imt - tic_imt)))

@@ -115,19 +115,20 @@ def calc_weighted_sum(
 
     nrows = len(gmcm_branches)
     ncols = end_ind - start_ind
-    prob_table = np.empty((nrows, ncols))
+    sum_table = np.empty((nrows, ncols))
 
     for i, gmcm_branch in enumerate(gmcm_branches):
         rate = np.zeros((ncols,))
         for rlz in gmcm_branch.realizations:
-            rate += prob_to_rate(values.values(key=rlz, loc=loc, imt=imt)[start_ind:end_ind], INV_TIME)
-        prob = rate_to_prob(rate, INV_TIME)
-        prob_table[i, :] = prob
+            # rate += prob_to_rate(values.values(key=rlz, loc=loc, imt=imt)[start_ind:end_ind], INV_TIME)
+            rate += values.values(key=rlz, loc=loc, imt=imt)[start_ind:end_ind]
+        # prob = rate_to_prob(rate, INV_TIME)
+        sum_table[i, :] = rate
 
-    return prob_table
+    return sum_table
 
 
-def calculate_aggs(branch_probs: npt.NDArray, aggs: List[str], weight_combs: npt.NDArray) -> npt.NDArray:
+def calculate_aggs(branch_values: npt.NDArray, aggs: List[str], weight_combs: npt.NDArray) -> npt.NDArray:
     """Gets aggregate statistics for array of probability curves.
 
     Parameters
@@ -154,16 +155,17 @@ def calculate_aggs(branch_probs: npt.NDArray, aggs: List[str], weight_combs: npt
 
     # TODO: eliminate redundant prob-->rate-->prop conversion
 
-    branch_probs = prob_to_rate(branch_probs, INV_TIME)
+    # branch_probs = prob_to_rate(branch_probs, INV_TIME)
 
-    nrows = branch_probs.shape[1]
+    nrows = branch_values.shape[1]
     ncols = len(aggs)
     median = np.empty((nrows, ncols))
     for i in range(nrows):
-        quantiles = weighted_stats(branch_probs[:, i], aggs, sample_weight=weight_combs)
+        quantiles = weighted_stats(branch_values[:, i], aggs, sample_weight=weight_combs)
         median[i, :] = np.array(quantiles)
 
-    return rate_to_prob(median, INV_TIME)
+    # return rate_to_prob(median, INV_TIME)
+    return median
 
 
 # def get_len_rate(values: Dict[str, dict]) -> int:
