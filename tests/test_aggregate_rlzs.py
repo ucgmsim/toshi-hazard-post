@@ -22,6 +22,7 @@ from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import (
 
 INV_TIME = 1.0
 
+
 def convert_values(values_dict):
     values = ValueStore()
     for key, vd1 in values_dict.items():
@@ -53,58 +54,79 @@ def generate_values():
 
     values = ValueStore()
     values.set_values(
-        value=prob_to_rate(rng.random(
-            10,
-        ), INV_TIME),
+        value=prob_to_rate(
+            rng.random(
+                10,
+            ),
+            INV_TIME,
+        ),
         key="hazsol_0:0",
         loc='WLG',
         imt='PGA',
     )
     values.set_values(
-        value=prob_to_rate(rng.random(
-            10,
-        ), INV_TIME),
+        value=prob_to_rate(
+            rng.random(
+                10,
+            ),
+            INV_TIME,
+        ),
         key="hazsol_0:1",
         loc='WLG',
         imt='PGA',
     )
     values.set_values(
-        value=prob_to_rate(rng.random(
-            10,
-        ), INV_TIME),
+        value=prob_to_rate(
+            rng.random(
+                10,
+            ),
+            INV_TIME,
+        ),
         key="hazsol_0:2",
         loc='WLG',
         imt='PGA',
     )
     values.set_values(
-        value=prob_to_rate(rng.random(
-            10,
-        ), INV_TIME),
+        value=prob_to_rate(
+            rng.random(
+                10,
+            ),
+            INV_TIME,
+        ),
         key="hazsol_1:0",
         loc='WLG',
         imt='PGA',
     )
     values.set_values(
-        value=prob_to_rate(rng.random(
-            10,
-        ), INV_TIME),
+        value=prob_to_rate(
+            rng.random(
+                10,
+            ),
+            INV_TIME,
+        ),
         key="hazsol_1:1",
         loc='WLG',
         imt='PGA',
     )
 
     values.set_values(
-        value=prob_to_rate(rng.random(
-            10,
-        ), INV_TIME),
+        value=prob_to_rate(
+            rng.random(
+                10,
+            ),
+            INV_TIME,
+        ),
         key="hazsol_3:0",
         loc='WLG',
         imt='PGA',
     )
     values.set_values(
-        value=prob_to_rate(rng.random(
-            10,
-        ), INV_TIME),
+        value=prob_to_rate(
+            rng.random(
+                10,
+            ),
+            INV_TIME,
+        ),
         key="hazsol_3:1",
         loc='WLG',
         imt='PGA',

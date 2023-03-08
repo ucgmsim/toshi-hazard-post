@@ -9,13 +9,14 @@ import toshi_hazard_store
 
 # from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
 from toshi_hazard_post.calculators import prob_to_rate
+from toshi_hazard_post.local_config import WORK_PATH
 from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
 from toshi_hazard_post.util.file_utils import get_disagg
 from toshi_hazard_post.util.toshi_client import download_csv
 
-DOWNLOAD_DIR = '/work/chrisdc/NZSHM-WORKING/PROD/'
 INV_TIME = 1.0
 log = logging.getLogger(__name__)
+
 
 # TODO: split rlz number from id rather than joining in key, could keep interface the same and then transition to
 # no longer using id:rlz keys later
@@ -150,7 +151,9 @@ def load_realization_values(toshi_ids: List[str], locs: List[str], vs30s: List[i
         for res in toshi_hazard_store.query_v3.get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
             key = ':'.join((res.hazard_solution_id, str(res.rlz)))
             for val in res.values:
-                values.set_values(value=prob_to_rate(np.array(val.vals), INV_TIME), key=key, loc=res.nloc_001, imt=val.imt)
+                values.set_values(
+                    value=prob_to_rate(np.array(val.vals), INV_TIME), key=key, loc=res.nloc_001, imt=val.imt
+                )
                 # for i, v in enumerate(val.vals):
                 #     if not v:  # TODO: not sure what this is for
                 #         log.debug(
@@ -198,7 +201,7 @@ def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
     values = ValueStore()
 
     # download csv archives
-    downloads = download_csv(toshi_ids, DOWNLOAD_DIR)
+    downloads = download_csv(toshi_ids, WORK_PATH)
     log.info('finished downloading csv archives')
     for i, download in enumerate(downloads.values()):
         csv_archive = download['filepath']

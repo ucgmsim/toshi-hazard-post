@@ -12,6 +12,7 @@ from toshi_hazard_post.hazard_aggregation.aggregation import process_aggregation
 from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig
 from toshi_hazard_post.hazard_aggregation.deaggregation import process_deaggregation
 from toshi_hazard_post.hazard_aggregation.aws_aggregation import distribute_aggregation, push_test_message
+from toshi_hazard_post.hazard_aggregation.aws_deaggregation import distribute_deaggregation
 
 log = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
@@ -56,7 +57,7 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
     # log.info("Doit")
 
     if push_sns_test:
-        # push_test_message()
+        push_test_message()
         return
 
     if mode == 'LOCAL':
@@ -66,12 +67,13 @@ def main(config, mode, deagg, push_sns_test, migrate_tables):
             process_aggregation(agconf)
         return
     if 'AWS_BATCH' in mode:  # TODO: multiple vs30s
-        if deagg:
-            raise Exception(f'deaggregation not supported in {mode} mode')
         if migrate_tables:
             click.echo("Ensuring that dynamodb tables are available in target region & stage.")
             migrate()
-        distribute_aggregation(agconf, mode)
+        if deagg:
+            distribute_deaggregation(agconf, mode)
+        else:
+            distribute_aggregation(agconf, mode)
         return
 
 

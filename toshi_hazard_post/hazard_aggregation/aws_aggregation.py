@@ -3,7 +3,7 @@ import json
 import logging
 from dataclasses import asdict
 from pathlib import Path
-from typing import Dict, List, Tuple, Any, Iterator
+from typing import Any, Dict, Iterator, List, Tuple
 
 import boto3
 from nzshm_common.location.code_location import CodedLocation
@@ -132,10 +132,7 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str) -> None
 
 
 def batch_job_configs(
-        config: AggregationConfig,
-        locations: List[Tuple[float, float]],
-        logic_trees_id: str,
-        levels: List[float]
+    config: AggregationConfig, locations: List[Tuple[float, float]], logic_trees_id: str, levels: List[float]
 ) -> Iterator[Dict[str, Any]]:
 
     task_count = 0

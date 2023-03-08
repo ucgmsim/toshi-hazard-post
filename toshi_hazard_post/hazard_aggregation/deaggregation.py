@@ -2,7 +2,9 @@ import logging
 import multiprocessing
 import time
 from collections import namedtuple
-from typing import List
+from dataclasses import dataclass
+from pathlib import Path
+from typing import List, Union
 
 from nzshm_common.location.code_location import CodedLocation
 
@@ -17,6 +19,20 @@ log = logging.getLogger(__name__)
 
 # TODO: remove if not needed
 DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtid config")
+
+
+@dataclass
+class DistributedDeaggTaskArguments:
+    """Class for passing arguments to distributed tasks"""
+
+    gtid: str
+    source_branches_truncate: int
+    hazard_model_id: str
+    aggs: List[str]
+    deagg_dimensions: List[str]
+    stride: int
+    skip_save: bool
+    lt_config_id: str
 
 
 class DeAggregationWorkerMP(multiprocessing.Process):
@@ -39,7 +55,16 @@ class DeAggregationWorkerMP(multiprocessing.Process):
                 log.info('%s: Exiting' % proc_name)
                 break
 
-            process_single_deagg(nt.gtid, nt.config)
+            process_single_deagg(
+                nt.gtid,
+                nt.config.lt_config,
+                nt.config.source_branches_truncate,
+                nt.config.hazard_model_id,
+                nt.config.aggs,
+                nt.config.deagg_dimensions,
+                nt.config.stride,
+                nt.config.skip_save,
+            )
             self.task_queue.task_done()
             log.info('%s task done.' % self.name)
             self.result_queue.put(str(nt.gtid))
@@ -100,13 +125,31 @@ def process_deaggregation_serial(config: AggregationConfig) -> List[str]:
 
     results = []
     for gtid in config.hazard_gts:
-        process_single_deagg(gtid, config)
+        process_single_deagg(
+            gtid,
+            config.lt_config,
+            config.source_branches_truncate,
+            config.hazard_model_id,
+            config.aggs,
+            config.deagg_dimensions,
+            config.stride,
+            config.skip_save,
+        )
         results.append(gtid)
 
     return results
 
 
-def process_single_deagg(gtid: str, config: AggregationConfig) -> None:
+def process_single_deagg(
+    gtid: str,
+    lt_config: Union[str, Path],
+    source_branches_truncate: int,
+    hazard_model_id: str,
+    aggs: List[str],
+    deagg_dimensions: List[str],
+    stride: int,
+    skip_save: bool,
+) -> None:
 
     # TODO: running 2 toshiAPI quieries on each GT ID, could we remove the redundancy?
     gtdata = toshi_api.get_disagg_gt(gtid)
@@ -120,11 +163,11 @@ def process_single_deagg(gtid: str, config: AggregationConfig) -> None:
 
     # TODO: check that we get the correct logic tree when some tasks are missing
     logic_tree = get_logic_tree(
-        config.lt_config,
+        lt_config,
         [gtid],
         deagg_config.vs30,
         gmm_correlations=[],
-        truncate=config.source_branches_truncate,
+        truncate=source_branches_truncate,
     )
     log.info('finished building logic tree ')
 
@@ -132,20 +175,20 @@ def process_single_deagg(gtid: str, config: AggregationConfig) -> None:
     levels: List[float] = []
 
     t = AggTaskArgs(
-        hazard_model_id=config.hazard_model_id,
+        hazard_model_id=hazard_model_id,
         grid_loc=coded_location.downsample(0.1).code,
         locs=[coded_location.downsample(0.001).code],
         logic_tree=logic_tree,
-        aggs=config.aggs,  # TODO: I think this only works w/ one agg (len==1)
+        aggs=aggs,  # TODO: I think this only works w/ one agg (len==1)
         imts=[deagg_config.imt],
         levels=levels,
         vs30=deagg_config.vs30,
-        deagg=config.deagg_dimensions,
+        deagg=deagg_dimensions,
         poe=deagg_config.poe,
         deagg_imtl=imtl,
         save_rlz=False,
-        stride=config.stride,
-        skip_save=config.skip_save,
+        stride=stride,
+        skip_save=skip_save,
     )
 
     process_location_list(t)

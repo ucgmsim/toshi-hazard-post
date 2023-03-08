@@ -165,9 +165,13 @@ def process_location_list(task_args: AggTaskArgs) -> None:
                     # save_deaggs(
                     #     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
                     # )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
-                    save_disaggregation(task_args.hazard_model_id, location, imt, vs30, poe, imtl, rate_to_prob(hazard, INV_TIME), bins)
+                    save_disaggregation(
+                        task_args.hazard_model_id, location, imt, vs30, poe, imtl, rate_to_prob(hazard, INV_TIME), bins
+                    )
                 else:
-                    save_aggregation(aggs, levels, rate_to_prob(hazard, INV_TIME), imt, vs30, task_args.hazard_model_id, location)
+                    save_aggregation(
+                        aggs, levels, rate_to_prob(hazard, INV_TIME), imt, vs30, task_args.hazard_model_id, location
+                    )
 
         toc_imt = time.perf_counter()
         log.info('imt: %s took %.3f secs' % (imt, (toc_imt - tic_imt)))

@@ -3,7 +3,7 @@
 import collections
 import json
 import urllib.parse
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from .util import compress_config
 

@@ -54,6 +54,8 @@ RUN poetry install --no-interaction --no-dev
 ADD scripts scripts
 RUN chmod +x /app/scripts/container_task.sh
 
+WORKDIR /WORKING
+
 # Hide virtual env prompt
 # ENV VIRTUAL_ENV_DISABLE_PROMPT 1
 

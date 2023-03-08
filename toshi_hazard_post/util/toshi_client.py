@@ -8,6 +8,8 @@ from pathlib import Path, PurePath
 import requests
 from nshm_toshi_client.toshi_client_base import ToshiClientBase
 
+from toshi_hazard_post.local_config import API_KEY, API_URL
+
 log = logging.getLogger(__name__)
 
 
@@ -16,8 +18,6 @@ def get_archive_info(hazard_soln_id, archive_type):
     archive_type: str {'csv','hdf5'}
     """
 
-    API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY')
-    API_URL = os.environ.get('NZSHM22_TOSHI_API_URL')
     headers = {"x-api-key": API_KEY}
     api = ToshiClientBase(API_URL, None, True, headers)
 

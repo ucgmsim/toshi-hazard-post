@@ -1,12 +1,11 @@
 from pathlib import Path
-import pytest
 import json
 from unittest import mock, TestCase
-from typing import List, Set
+from typing import List
 
 from dacite import from_dict
 
-from nzshm_model.source_logic_tree.logic_tree import FlattenedSourceLogicTree, Branch, CompositeBranch
+from nzshm_model.source_logic_tree.logic_tree import FlattenedSourceLogicTree
 from toshi_hazard_post.toshi_api_support import SourceSolutionMap
 from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree, GMCMBranch
 
@@ -81,7 +80,8 @@ class TestHazardLogicTree(TestCase):
 
         mock_api.return_value = mock_source_solution_map()
 
-        # build a HazardLogicTree mocking the call to ToshiApi which would return a SourceSolutionMap for a particular GT ID
+        # build a HazardLogicTree mocking the call to ToshiApi which would return a SourceSolutionMap for a particular
+        # GT ID
         logic_tree = HazardLogicTree.from_flattened_slt(self.flattened_lt, ['mock'])
 
         # check that the hazard ids in logic_tree are the correct ones
@@ -90,7 +90,8 @@ class TestHazardLogicTree(TestCase):
         # check that the number of branches matches the input FlattenedSourceLogicTree
         assert len(logic_tree.branches) == len(self.flattened_lt.branches)
 
-        # check that the CompositeBranch es on the HazardLogicTree branches are the same as the CompositeBranch es from the FlattenedSourceLogicTree
+        # check that the CompositeBranch es on the HazardLogicTree branches are the same as the CompositeBranch es from
+        # the FlattenedSourceLogicTree
         comp_branches = [branch.source_branch for branch in logic_tree.branches]
         expected = [branch for branch in self.flattened_lt.branches]
         assert comp_branches == expected
