@@ -126,11 +126,6 @@ def get_locations(config: AggregationConfig) -> List[Tuple[float, float]]:
             locations += stat_test_missing()
         else:
             locations += load_grid(location_spec)
-
-        if location_spec == 'NZ_0_1_NB_1_1':  # TODO: hacky fix to a missing point in the oq calculation grid
-            ind_missing = locations.index((-34.7, 172.7))
-            locations = locations[0:ind_missing] + locations[ind_missing + 1 :]
-
     if config.location_limit:
         locations = locations[: config.location_limit]
     return locations
