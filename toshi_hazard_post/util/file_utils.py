@@ -23,9 +23,9 @@ log = logging.getLogger(__name__)
 
 
 class Dimension(Enum):
+    trt = 'TRT'
     mag = 'Mag'
     dist = 'Dist'
-    trt = 'TRT'
     eps = 'Eps'
 
 
