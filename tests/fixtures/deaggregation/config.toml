@@ -1,0 +1,25 @@
+[aggregation]
+hazard_model_id = "TEST"
+aggs = ["mean"]
+logic_tree_file =  "/home/chrisdc/NSHM/DEV/toshi-hazard-post/tests/fixtures/deaggregation/SLT_v9p0p0.py"
+stride = 500
+locations = ['srg_135']
+vs30s = [275]
+imts = ["SA(5.0)"]
+
+[deaggregation]
+hazard_model_target = "NSHM_v1.0.4"
+dimensions = ['eps','dist','mag','trt']
+inv_time = 50
+
+agg_targets = ["mean"]
+poes = [0.02]
+
+
+[debug]
+# skip_save = true
+run_serial = true
+# location_limit = 1
+# source_branches_truncate = 2
+# reuse_source_branches_id = "RmlsZToxMTc3NDU=" # small config
+#reuse_source_branches_id = "RmlsZToxMTc3NDc=" # FULL source_branches.json from
