@@ -21,7 +21,7 @@ class AggregationConfig:
         self.validate()
 
         self.hazard_model_id = self.config['aggregation']['hazard_model_id']
-        self.hazard_gts = self.config['aggregation']['gtids']
+        self.hazard_gts = self.config['aggregation'].get('gtids')
         self.aggs = self.config['aggregation']['aggs']
         self.lt_config = Path(
             self.config['aggregation']['logic_tree_file']
@@ -29,16 +29,23 @@ class AggregationConfig:
         assert self.lt_config.exists()
         self.stride = self.config['aggregation'].get('stride')
 
+        self.imts = self.config['aggregation'].get('imts')
+        self.vs30s = self.config['aggregation'].get('vs30s')
+        self.locations = self.config['aggregation'].get('locations')
+
         self.save_rlz = False
         if not self.config.get('deaggregation'):
             self.deaggregation = False
-            self.imts = self.config['aggregation']['imts']
-            self.vs30s = self.config['aggregation']['vs30s']
-            self.locations = self.config['aggregation']['locations']
             self.save_rlz = self.config['aggregation'].get('save_rlz')
+            self.validate_agg()
         else:
             self.deaggregation = True
+            
             self.deagg_dimensions = list(map(str.lower, self.config['deaggregation']['dimensions']))
+            self.inv_time = self.config['deaggregation'].get('inv_time')
+            self.deagg_agg_targets = self.config['deaggregation'].get('agg_targets')
+            self.poes = self.config['deaggregation'].get('poes')
+            self.deagg_hazard_model_target = self.config['deaggregation'].get('hazard_model_target')
             self.validate_deagg()
 
         # debug/test option defaults
@@ -58,9 +65,15 @@ class AggregationConfig:
         """Check the configuration is valid."""
         print(self.config['aggregation'])
         assert self.config['aggregation']['hazard_model_id']
-        assert self.config['aggregation']['gtids']
+        # assert self.config['aggregation']['gtids']
         assert self.config['aggregation']['aggs']
         assert self.config['aggregation']['logic_tree_file']
+
+    def validate_agg(self):
+        assert self.hazard_gts
+        assert self.imts
+        assert self.vs30s
+        assert self.locations
 
     def validate_deagg(self):
         """Check the deagg configuration is valid."""
@@ -69,3 +82,15 @@ class AggregationConfig:
 
         valid_dimensions = ['eps', 'dist', 'mag', 'trt']
         assert all([dim in valid_dimensions for dim in self.deagg_dimensions])
+
+        dspec = bool(
+            self.inv_time or
+            self.deagg_agg_targets or
+            self.poes or
+            self.imts or 
+            self.vs30s or 
+            self.deagg_hazard_model_id
+        )
+        if self.hazard_gts and dspec:
+            raise Exception("for disaggregation you can only provied EITHER gtid(s) or a disagg spec")
+        assert self.hazard_gts or dspec

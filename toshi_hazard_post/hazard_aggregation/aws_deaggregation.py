@@ -13,7 +13,7 @@ from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 
 from ..toshi_api_support import toshi_api
 from .aggregation_config import AggregationConfig
-from .deaggregation import DistributedDeaggTaskArguments
+from .deaggregation import DistributedDeaggTaskArguments, get_deagg_gtids
 
 log = logging.getLogger(__name__)
 
@@ -54,9 +54,11 @@ def batch_job_configs(
     lt_config_id: str,
 ) -> Iterator[Dict[str, Any]]:
 
+    gtids = get_deagg_gtids(config)
+
     task_count = 0
     locs_processed = 0
-    for gtid in config.hazard_gts:
+    for gtid in gtids:
         data = DistributedDeaggTaskArguments(
             gtid,
             config.source_branches_truncate,
