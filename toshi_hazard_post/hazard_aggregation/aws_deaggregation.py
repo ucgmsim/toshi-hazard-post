@@ -7,7 +7,7 @@ from typing import Any, Dict, Iterator
 
 import boto3
 
-import toshi_hazard_post.hazard_aggregation.aggregation_task
+import toshi_hazard_post.hazard_aggregation.deaggregation_task
 from toshi_hazard_post.local_config import API_URL, NUM_WORKERS, S3_URL, WORK_PATH
 from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 

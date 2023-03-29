@@ -53,6 +53,7 @@ def fetch_lt_config(lt_config_id: str) -> Path:
     toshi_api = ToshiFile(API_URL, S3_URL, None, with_schema_validation=True, headers=headers)
     filenode = toshi_api.get_download_url(lt_config_id)
     folder = Path(WORK_PATH, 'downloads', lt_config_id)
+    folder.mkdir(parents=True, exist_ok=True)
     file_path = PurePath(folder, 'lt_config.py.zip')
 
     r = requests.get(filenode['file_url'])
