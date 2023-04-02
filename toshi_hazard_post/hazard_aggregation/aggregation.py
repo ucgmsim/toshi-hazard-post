@@ -18,6 +18,7 @@ from toshi_hazard_post.data_functions import (
     get_levels,
     load_realization_values,
     load_realization_values_deagg,
+    get_site_vs30,
 )
 from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.locations import get_locations
@@ -141,6 +142,8 @@ def process_location_list(task_args: AggTaskArgs) -> None:
             resolution = 0.001
             location = CodedLocation(float(lat), float(lon), resolution)
 
+            site_vs30 = get_site_vs30(toshi_ids, loc) if vs30 == 0 else 0
+
             # ncols = get_len_rate(values)
             ncols = values.len_rate
             hazard = np.empty((ncols, len(aggs)))
@@ -170,7 +173,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
                     )
                 else:
                     save_aggregation(
-                        aggs, levels, rate_to_prob(hazard, INV_TIME), imt, vs30, task_args.hazard_model_id, location
+                        aggs, levels, rate_to_prob(hazard, INV_TIME), imt, vs30, site_vs30, task_args.hazard_model_id, location
                     )
 
         toc_imt = time.perf_counter()
@@ -224,6 +227,7 @@ def save_aggregation(
     hazard: npt.NDArray,
     imt: str,
     vs30: int,
+    site_vs30: float,
     hazard_model_id: str,
     location: str,
 ) -> None:
@@ -241,6 +245,8 @@ def save_aggregation(
         intensity measure type
     vs30
         site condition
+    site_vs30
+        sites specific vs30 for models that don't use the same value for every location. 0 if not used.
     hazard_model_id
         THS ID
     location
@@ -266,6 +272,8 @@ def save_aggregation(
                 agg=agg,
                 hazard_model_id=hazard_model_id,
             ).set_location(location)
+            if site_vs30:
+                hag.site_vs30 = site_vs30
             batch.save(hag)
 
 
