@@ -52,6 +52,8 @@ RUN poetry install --no-interaction --no-dev
 # RUN rm pyproject.toml poetry.lock
 
 ADD scripts scripts
+ADD pynamodb_settings.py pynamodb_settings.py
+ENV PYNAMODB_CONFIG=/app/pynamodb_settings.py
 RUN chmod +x /app/scripts/container_task.sh
 
 WORKDIR /WORKING
