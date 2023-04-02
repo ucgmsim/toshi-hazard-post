@@ -26,10 +26,10 @@ def test_locations():
     assert (-41.51, 173.95) in locations
 
     config.locations = ["NZ_0_1_NB_1_1"]
-    assert len(get_locations(config)) == 3740
+    assert len(get_locations(config)) == 3741
 
     config.locations = ["NZ", "NZ_0_1_NB_1_1"]
-    assert len(get_locations(config)) == 3740 + 36
+    assert len(get_locations(config)) == 3741 + 36
 
     config.locations = ["srg_1"]
     assert get_locations(config)[0] == (-35.229696132, 173.958389289)
