@@ -118,7 +118,9 @@ def get_deagg_gtids(config: AggregationConfig) -> List[str]:
             )
 
     def extract_deagg_config(subtask):
-        deagg_task_config = json.loads(subtask['arguments']['disagg_config'].replace("'", '"'))
+        deagg_task_config = json.loads(
+            subtask['arguments']['disagg_config'].replace("'", '"').replace('None','null')
+        )
 
         return DeaggConfig(
             hazard_model_id=subtask['arguments']['hazard_model_id'],
