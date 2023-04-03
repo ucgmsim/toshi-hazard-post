@@ -16,9 +16,9 @@ from toshi_hazard_post.calculators import rate_to_prob
 from toshi_hazard_post.data_functions import (
     get_imts,
     get_levels,
+    get_site_vs30,
     load_realization_values,
     load_realization_values_deagg,
-    get_site_vs30,
 )
 from toshi_hazard_post.local_config import NUM_WORKERS
 from toshi_hazard_post.locations import get_locations
@@ -173,7 +173,14 @@ def process_location_list(task_args: AggTaskArgs) -> None:
                     )
                 else:
                     save_aggregation(
-                        aggs, levels, rate_to_prob(hazard, INV_TIME), imt, vs30, site_vs30, task_args.hazard_model_id, location
+                        aggs,
+                        levels,
+                        rate_to_prob(hazard, INV_TIME),
+                        imt,
+                        vs30,
+                        site_vs30,
+                        task_args.hazard_model_id,
+                        location,
                     )
 
         toc_imt = time.perf_counter()

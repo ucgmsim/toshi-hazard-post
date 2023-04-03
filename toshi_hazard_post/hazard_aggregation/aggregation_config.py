@@ -40,7 +40,7 @@ class AggregationConfig:
             self.validate_agg()
         else:
             self.deaggregation = True
-            
+
             self.deagg_dimensions = list(map(str.lower, self.config['deaggregation']['dimensions']))
             self.inv_time = self.config['deaggregation'].get('inv_time')
             self.deagg_agg_targets = self.config['deaggregation'].get('agg_targets')
@@ -89,12 +89,12 @@ class AggregationConfig:
         assert all([dim in valid_dimensions for dim in self.deagg_dimensions])
 
         dspec = bool(
-            self.inv_time or
-            self.deagg_agg_targets or
-            self.poes or
-            self.imts or 
-            self.vs30s or 
-            self.deagg_hazard_model_id
+            self.inv_time
+            or self.deagg_agg_targets
+            or self.poes
+            or self.imts
+            or self.vs30s
+            or self.deagg_hazard_model_id
         )
         if self.hazard_gts and dspec:
             raise Exception("for disaggregation you can only provied EITHER gtid(s) or a disagg spec")

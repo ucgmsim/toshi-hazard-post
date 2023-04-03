@@ -1,22 +1,22 @@
+import itertools
+import json
 import logging
 import multiprocessing
 import time
+import urllib.request
 from collections import namedtuple
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Union
-import urllib.request
-import json
-import itertools
 
 from nzshm_common.location.code_location import CodedLocation
 from nzshm_model.source_logic_tree.slt_config import from_config
 
 from toshi_hazard_post.hazard_aggregation.aggregation import AggTaskArgs, process_location_list
 from toshi_hazard_post.local_config import NUM_WORKERS
+from toshi_hazard_post.locations import get_locations
 from toshi_hazard_post.logic_tree.branch_combinator import get_logic_tree
 from toshi_hazard_post.toshi_api_support import get_deagg_config, get_imtl, toshi_api
-from toshi_hazard_post.locations import get_locations
 
 from .aggregation_config import AggregationConfig
 
@@ -73,11 +73,13 @@ class DeAggregationWorkerMP(multiprocessing.Process):
             self.task_queue.task_done()
             log.info('%s task done.' % self.name)
             self.result_queue.put(str(nt.gtid))
+
+
 @dataclass
 class DeaggConfig:
     """class for specifying a deaggregation to lookup in GT index"""
 
-    hazard_model_id: str 
+    hazard_model_id: str
     location: str
     inv_time: int
     agg: str
@@ -92,12 +94,12 @@ def get_index_from_s3():
     index_str = urllib.request.urlopen(index_request)
     return json.loads(index_str.read().decode("utf-8"))
 
+
 def coded_location(loc):
     return CodedLocation(*loc, 0.001).code
 
+
 def get_deagg_gtids(config: AggregationConfig) -> List[str]:
-
-
     def requested_configs(config: AggregationConfig):
         for location, agg, poe, imt, vs30 in itertools.product(
             # [CodedLocation(*loc, 0.001).code for loc in get_locations(config)],
@@ -118,9 +120,7 @@ def get_deagg_gtids(config: AggregationConfig) -> List[str]:
             )
 
     def extract_deagg_config(subtask):
-        deagg_task_config = json.loads(
-            subtask['arguments']['disagg_config'].replace("'", '"').replace('None','null')
-        )
+        deagg_task_config = json.loads(subtask['arguments']['disagg_config'].replace("'", '"').replace('None', 'null'))
 
         return DeaggConfig(
             hazard_model_id=subtask['arguments']['hazard_model_id'],
@@ -129,7 +129,7 @@ def get_deagg_gtids(config: AggregationConfig) -> List[str]:
             agg=subtask['arguments']['hazard_agg_target'],
             poe=deagg_task_config['poe'],
             imt=deagg_task_config['imt'],
-            vs30=deagg_task_config['vs30']
+            vs30=deagg_task_config['vs30'],
         )
 
     def num_success(gt):
@@ -159,7 +159,6 @@ def get_deagg_gtids(config: AggregationConfig) -> List[str]:
             gtids += gtids_tmp
 
     return gtids
-
 
 
 def process_deaggregation(config: AggregationConfig) -> List[str]:

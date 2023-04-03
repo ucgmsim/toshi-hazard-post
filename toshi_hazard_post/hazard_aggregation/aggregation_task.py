@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     # Wait for some more time, scaled by taskid to avoid S3 consistency issue
     num_machines = config['job_arguments']['num_machines']
-    sleep_time = config['job_arguments']['task_id']%num_machines
+    sleep_time = config['job_arguments']['task_id'] % num_machines
     print(f'assuming there are {num_machines} jobs running simultaniously . . . ')
     print(f'sleeping for {sleep_time} seconds')
     time.sleep(sleep_time)

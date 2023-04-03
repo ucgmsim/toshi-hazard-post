@@ -24,9 +24,7 @@ def get_deagg_config(data: Dict[str, Any]) -> DeaggConfig:
     args = node['node']['child']['arguments']
     for arg in args:
         if arg['k'] == "disagg_config":
-            disagg_args = json.loads(
-                arg['v'].replace("'", '"').replace('None','null')
-            )
+            disagg_args = json.loads(arg['v'].replace("'", '"').replace('None', 'null'))
 
     location = disagg_args['location']
     vs30 = int(disagg_args['vs30'])
@@ -40,9 +38,7 @@ def get_imtl(gtdata: Dict[str, Any]) -> str:
 
     for arg in gtdata['data']['node1']['children']['edges'][0]['node']['child']['arguments']:
         if arg['k'] == 'disagg_config':
-            return json.loads(
-                arg['v'].replace("'", '"').replace('None','null')
-            )['level']
+            return json.loads(arg['v'].replace("'", '"').replace('None', 'null'))['level']
     return ''
 
 
@@ -63,9 +59,9 @@ class SourceSolutionMap:
             for job in hazard_jobs:
                 for arg in job['node']['child']['arguments']:
                     if arg['k'] == 'logic_tree_permutations':
-                        branch_info = json.loads(
-                            arg['v'].replace("'", '"').replace('None','null')
-                        )[0]['permute'][0]['members'][0]
+                        branch_info = json.loads(arg['v'].replace("'", '"').replace('None', 'null'))[0]['permute'][0][
+                            'members'
+                        ][0]
                         onfault_nrml_id = branch_info['inv_id']
                         distributed_nrml_id = branch_info['bg_id']
                 hazard_solution = job['node']['child']['hazard_solution']

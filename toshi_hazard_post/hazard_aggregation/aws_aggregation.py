@@ -159,7 +159,7 @@ def batch_job_configs(
         yield batch_job_config(
             task_arguments=asdict(data),
             job_arguments=dict(task_id=task_count, num_machines=num_machines),
-            task_id=task_count
+            task_id=task_count,
         )
         if TEST_SIZE and locs_processed >= TEST_SIZE:
             break

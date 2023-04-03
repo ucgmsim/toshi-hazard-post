@@ -9,14 +9,14 @@ from toshi_hazard_post.hazard_aggregation.deaggregation import get_deagg_gtids
 
 index_filepath = Path(Path(__file__).parent, 'fixtures', 'deaggregation', 'index.json')
 with open(index_filepath) as index_file:
-    index = json.load(index_file) 
+    index = json.load(index_file)
+
 
 @mock.patch('toshi_hazard_post.hazard_aggregation.deaggregation.urllib.request')
-@mock.patch('toshi_hazard_post.hazard_aggregation.deaggregation.get_index_from_s3', return_value = index)
+@mock.patch('toshi_hazard_post.hazard_aggregation.deaggregation.get_index_from_s3', return_value=index)
 class testGetGts(unittest.TestCase):
-
     def setUp(self):
-        
+
         config_filepath = Path(Path(__file__).parent, 'fixtures', 'deaggregation', 'config.toml')
         self._config = AggregationConfig(config_filepath)
 

@@ -128,13 +128,13 @@ def check_values(values: ValueStore, toshi_hazard_ids: List[str], locs: List[str
 
 def get_site_vs30(toshi_ids: List[str], loc: str) -> float:
 
-    vs30 = 0 
+    vs30 = 0
     for res in toshi_hazard_store.query_v3.get_rlz_curves_v3([loc], [0], None, toshi_ids, None):
-        if not(vs30):
+        if not (vs30):
             vs30 = res.site_vs30
         elif res.site_vs30 != vs30:
             raise Exception(f'not all Hazard Solutions have teh samve site_vs30. HazardSolution IDs: {toshi_ids}')
-        
+
     return res.site_vs30
 
 
