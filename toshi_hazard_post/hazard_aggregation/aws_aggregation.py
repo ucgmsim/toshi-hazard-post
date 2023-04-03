@@ -29,6 +29,7 @@ log = logging.getLogger(__name__)
 TEST_SIZE = None  # 16  # HOW many locations to run MAX (also see TOML limit)
 MEMORY = 15360  # 7168 #8192 #30720 #15360 # 10240
 NUM_WORKERS = 4  # noqa
+NUM_MACHINES = 300
 
 
 def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int) -> Dict[str, Any]:
@@ -138,6 +139,7 @@ def batch_job_configs(
     task_count = 0
     log.debug('len locations %s' % len(locations))
     locs_processed = 0
+    num_machines = config.num_machines if config.num_machines else NUM_MACHINES
     for key, coded_locs in locations_by_chunk(locations, point_res=0.001, chunk_size=NUM_WORKERS).items():
         # for key, coded_locs in locations_by_degree(locations, grid_res=1.0, point_res=0.001).items():
         log.info('key: %s coded_locs[:3]: %s len(coded_locs): %s' % (key, coded_locs[:3], len(coded_locs)))
@@ -154,6 +156,10 @@ def batch_job_configs(
         )
         locs_processed += NUM_WORKERS
         task_count += 1
-        yield batch_job_config(task_arguments=asdict(data), job_arguments=dict(task_id=task_count), task_id=task_count)
+        yield batch_job_config(
+            task_arguments=asdict(data),
+            job_arguments=dict(task_id=task_count, num_machines=num_machines),
+            task_id=task_count
+        )
         if TEST_SIZE and locs_processed >= TEST_SIZE:
             break

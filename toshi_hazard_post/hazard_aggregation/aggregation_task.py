@@ -25,7 +25,6 @@ from .aggregation import DistributedAggregationTaskArguments, process_aggregatio
 # from toshi_hazard_store import model
 # from toshi_hazard_store.aggregate_rlzs import process_location_list
 
-
 log = logging.getLogger(__name__)
 
 # configure logging
@@ -130,6 +129,10 @@ if __name__ == "__main__":
         config = json.loads(decompress_config(args.config))
 
     # Wait for some more time, scaled by taskid to avoid S3 consistency issue
-    time.sleep(config['job_arguments']['task_id'])
+    num_machines = config['job_arguments']['num_machines']
+    sleep_time = config['job_arguments']['task_id']%num_machines
+    print(f'assuming there are {num_machines} jobs running simultaniously . . . ')
+    print(f'sleeping for {sleep_time} seconds')
+    time.sleep(sleep_time)
 
     process_args(args=DistributedAggregationTaskArguments(**config['task_arguments']))

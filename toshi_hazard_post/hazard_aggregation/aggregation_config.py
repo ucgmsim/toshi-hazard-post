@@ -61,6 +61,11 @@ class AggregationConfig:
             self.reuse_source_branches_id = self.config.get('debug').get('reuse_source_branches_id')
             self.run_serial = self.config.get('debug').get('run_serial')
 
+        self.num_machines = 0
+        if self.config.get('aws_batch'):
+            self.num_machines = self.config['aws_batch']['num_machines']
+            assert type(self.num_machines) is int
+
     def validate(self):
         """Check the configuration is valid."""
         print(self.config['aggregation'])
