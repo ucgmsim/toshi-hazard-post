@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import List, Union
 
 from nzshm_common.location.code_location import CodedLocation
+from nzshm_common.util import decompress_string
 from nzshm_model.source_logic_tree.slt_config import from_config
 
 from toshi_hazard_post.hazard_aggregation.aggregation import AggTaskArgs, process_location_list
@@ -92,7 +93,10 @@ def get_index_from_s3():
     INDEX_URL = "https://nzshm22-static-reports.s3.ap-southeast-2.amazonaws.com/gt-index/gt-index.json"
     index_request = urllib.request.Request(INDEX_URL)
     index_str = urllib.request.urlopen(index_request)
-    return json.loads(index_str.read().decode("utf-8"))
+    index_comp = index_str.read().decode("utf-8")
+    return json.loads(decompress_string(index_comp))
+    # index_str = urllib.request.urlopen(index_request)
+    # return json.loads(index_str.read().decode("utf-8"))
 
 
 def coded_location(loc):
@@ -148,10 +152,10 @@ def get_deagg_gtids(config: AggregationConfig) -> List[str]:
         nbranches = sum([len(fslt.branches) for fslt in slt.fault_system_lts])
         for deagg in requested_configs(config):
             gtids_tmp = []
-            for gt in index:
-                if gt['subtask_type'] == 'OpenquakeHazardTask' and gt['hazard_subtask_type'] == 'DISAGG':
-                    if deagg == extract_deagg_config(gt['subtasks'][0]) and num_success(gt) == nbranches:
-                        gtids_tmp.append(gt['id'])
+            for gt, entry in index.items():
+                if entry['subtask_type'] == 'OpenquakeHazardTask' and entry['hazard_subtask_type'] == 'DISAGG':
+                    if deagg == extract_deagg_config(entry['subtasks'][0]) and num_success(entry) == nbranches:
+                        gtids_tmp.append(entry['id'])
             if not gtids_tmp:
                 raise Exception("no general task found for deagg {}".format(deagg))
             if len(gtids_tmp) > 1:
