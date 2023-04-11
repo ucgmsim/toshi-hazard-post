@@ -46,7 +46,8 @@ ADD demo demo
 ADD dist dist
 ADD README.md ./
 
-RUN poetry install --no-interaction --no-dev
+# RUN poetry install --no-interaction --no-dev
+RUN poetry install --no-interaction --only main
 
 # Clean up project files. You can add them with a Docker mount later.
 # RUN rm pyproject.toml poetry.lock
