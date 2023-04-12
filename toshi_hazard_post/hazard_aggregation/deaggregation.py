@@ -7,7 +7,7 @@ import urllib.request
 from collections import namedtuple
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union
+from typing import Any, Dict, Generator, List, Tuple, Union
 
 from nzshm_common.location.code_location import CodedLocation
 from nzshm_common.util import decompress_string
@@ -24,21 +24,31 @@ from .aggregation_config import AggregationConfig
 log = logging.getLogger(__name__)
 
 # TODO: remove if not needed
-DeaggTaskArgs = namedtuple("DeaggTaskArgs", "gtid config")
+DeaggTaskArgs = namedtuple(
+    "DeaggTaskArgs", "gtid lt_config source_branches_truncate hazard_model_id aggs deagg_dimensions stride skip_save"
+)
 
 
 @dataclass
-class DistributedDeaggTaskArguments:
+class DeaggProcessArgs:
     """Class for passing arguments to distributed tasks"""
 
-    gtid: str
+    lt_config_id: str
+    lt_config: Union[str, Path]
     source_branches_truncate: int
     hazard_model_id: str
     aggs: List[str]
     deagg_dimensions: List[str]
     stride: int
     skip_save: bool
-    lt_config_id: str
+    hazard_gts: List[str]
+    locations: List[Tuple[float, float]]
+    deagg_agg_targets: List[str]
+    poes: List[float]
+    imts: List[str]
+    vs30s: List[int]
+    deagg_hazard_model_target: str
+    inv_time: int
 
 
 class DeAggregationWorkerMP(multiprocessing.Process):
@@ -63,13 +73,13 @@ class DeAggregationWorkerMP(multiprocessing.Process):
 
             process_single_deagg(
                 nt.gtid,
-                nt.config.lt_config,
-                nt.config.source_branches_truncate,
-                nt.config.hazard_model_id,
-                nt.config.aggs,
-                nt.config.deagg_dimensions,
-                nt.config.stride,
-                nt.config.skip_save,
+                nt.lt_config,
+                nt.source_branches_truncate,
+                nt.hazard_model_id,
+                nt.aggs,
+                nt.deagg_dimensions,
+                nt.stride,
+                nt.skip_save,
             )
             self.task_queue.task_done()
             log.info('%s task done.' % self.name)
@@ -89,7 +99,7 @@ class DeaggConfig:
     vs30: int
 
 
-def get_index_from_s3():
+def get_index_from_s3() -> Dict[str, Any]:
     INDEX_URL = "https://nzshm22-static-reports.s3.ap-southeast-2.amazonaws.com/gt-index/gt-index.json"
     index_request = urllib.request.Request(INDEX_URL)
     index_str = urllib.request.urlopen(index_request)
@@ -99,30 +109,49 @@ def get_index_from_s3():
     # return json.loads(index_str.read().decode("utf-8"))
 
 
-def coded_location(loc):
+def coded_location(loc: Tuple[float, float]) -> CodedLocation:
     return CodedLocation(*loc, 0.001).code
 
 
-def get_deagg_gtids(config: AggregationConfig) -> List[str]:
-    def requested_configs(config: AggregationConfig):
-        for location, agg, poe, imt, vs30 in itertools.product(
-            # [CodedLocation(*loc, 0.001).code for loc in get_locations(config)],
-            map(coded_location, get_locations(config)),
-            config.deagg_agg_targets,
-            config.poes,
-            config.imts,
-            config.vs30s,
-        ):
-            yield DeaggConfig(
-                hazard_model_id=config.deagg_hazard_model_target,
-                location=location,
-                inv_time=config.inv_time,
-                agg=agg,
-                poe=poe,
-                imt=imt,
-                vs30=vs30,
-            )
+def requested_configs(
+    locations: List[Tuple[float, float]],
+    deagg_agg_targets: List[str],
+    poes: List[float],
+    imts: List[str],
+    vs30s: List[int],
+    deagg_hazard_model_target: str,
+    inv_time: int,
+) -> Generator[DeaggConfig, None, None]:
+    for location, agg, poe, imt, vs30 in itertools.product(
+        # [CodedLocation(*loc, 0.001).code for loc in get_locations(config)],
+        map(coded_location, locations),
+        deagg_agg_targets,
+        poes,
+        imts,
+        vs30s,
+    ):
+        yield DeaggConfig(
+            hazard_model_id=deagg_hazard_model_target,
+            location=location,
+            inv_time=inv_time,
+            agg=agg,
+            poe=poe,
+            imt=imt,
+            vs30=vs30,
+        )
 
+
+def get_deagg_gtids(
+    hazard_gts: List[str],
+    lt_config: Path,
+    locations: List[Tuple[float, float]],
+    deagg_agg_targets: List[str],
+    poes: List[float],
+    imts: List[str],
+    vs30s: List[int],
+    deagg_hazard_model_target: str,
+    inv_time: int,
+) -> List[str]:
     def extract_deagg_config(subtask):
         deagg_task_config = json.loads(subtask['arguments']['disagg_config'].replace("'", '"').replace('None', 'null'))
 
@@ -143,14 +172,16 @@ def get_deagg_gtids(config: AggregationConfig) -> List[str]:
                 count += 1
         return count
 
-    if config.hazard_gts:
-        return config.hazard_gts
+    if hazard_gts:
+        return hazard_gts
     else:
         gtids = []
         index = get_index_from_s3()
-        slt = from_config(config.lt_config)
+        slt = from_config(lt_config)
         nbranches = sum([len(fslt.branches) for fslt in slt.fault_system_lts])
-        for deagg in requested_configs(config):
+        for deagg in requested_configs(
+            locations, deagg_agg_targets, poes, imts, vs30s, deagg_hazard_model_target, inv_time
+        ):
             gtids_tmp = []
             for gt, entry in index.items():
                 if entry['subtask_type'] == 'OpenquakeHazardTask' and entry['hazard_subtask_type'] == 'DISAGG':
@@ -165,14 +196,44 @@ def get_deagg_gtids(config: AggregationConfig) -> List[str]:
     return gtids
 
 
-def process_deaggregation(config: AggregationConfig) -> List[str]:
-    """Aggregate the Deaggregations in parallel."""
+def process_deaggregation(config: AggregationConfig) -> None:
+    """Gather task information and launch local deaggregation processing.
 
-    # TODO: deagg should get the hazard_id from  the oq runs (not sure it's there atm) so that user can't overwrite
-    # with the wrong id
+    Parameters
+    ----------
+    config : AggregationConfig
+        the config
+    """
+
+    locations = get_locations(config)
+
+    args = DeaggProcessArgs(
+        lt_config_id = '',
+        lt_config = config.lt_config,
+        source_branches_truncate=config.source_branches_truncate,
+        hazard_model_id=config.hazard_model_id,
+        aggs = config.aggs,
+        deagg_dimensions=config.deagg_dimensions,
+        stride = config.stride,
+        skip_save=config.skip_save,
+        hazard_gts = config.hazard_gts,
+        locations=locations,
+        deagg_agg_targets=config.deagg_agg_targets,
+        poes = config.poes,
+        imts = config.imts,
+        vs30s=config.vs30s,
+        deagg_hazard_model_target=config.deagg_hazard_model_target,
+        inv_time=config.inv_time
+    )
+
     if config.run_serial:
-        results = process_deaggregation_serial(config)
-        return results
+        process_deaggregation_local_serial(args)
+    else:
+        process_deaggregation_local(args)
+
+
+def process_deaggregation_local(args: DeaggProcessArgs) -> List[str]:
+    """Aggregate the Deaggregations in parallel."""
 
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
@@ -187,10 +248,28 @@ def process_deaggregation(config: AggregationConfig) -> List[str]:
     # Enqueue jobs
     num_jobs = 0
 
-    gtids = get_deagg_gtids(config)
+    gtids = get_deagg_gtids(
+        args.hazard_gts,
+        Path(args.lt_config),
+        args.locations,
+        args.deagg_agg_targets,
+        args.poes,
+        args.imts,
+        args.vs30s,
+        args.deagg_hazard_model_target,
+        args.inv_time,
+    )
 
     for gtid in gtids:
-        t = DeaggTaskArgs(gtid, config)
+        t = DeaggTaskArgs(
+            gtid, args.lt_config,
+            args.source_branches_truncate,
+            args.hazard_model_id,
+            args.aggs,
+            args.deagg_dimensions,
+            args.stride,
+            args.skip_save
+        )
 
         task_queue.put(t)
         sleep_time = 10
@@ -217,21 +296,31 @@ def process_deaggregation(config: AggregationConfig) -> List[str]:
     return results
 
 
-def process_deaggregation_serial(config: AggregationConfig) -> List[str]:
+def process_deaggregation_local_serial(args: DeaggProcessArgs) -> List[str]:
     """Aggregate the Deaggregations in serail. For debugging."""
 
-    gtids = get_deagg_gtids(config)
+    gtids = get_deagg_gtids(
+        args.hazard_gts,
+        Path(args.lt_config),
+        args.locations,
+        args.deagg_agg_targets,
+        args.poes,
+        args.imts,
+        args.vs30s,
+        args.deagg_hazard_model_target,
+        args.inv_time,
+    )
     results = []
     for gtid in gtids:
         process_single_deagg(
             gtid,
-            config.lt_config,
-            config.source_branches_truncate,
-            config.hazard_model_id,
-            config.aggs,
-            config.deagg_dimensions,
-            config.stride,
-            config.skip_save,
+            args.lt_config,
+            args.source_branches_truncate,
+            args.hazard_model_id,
+            args.aggs,
+            args.deagg_dimensions,
+            args.stride,
+            args.skip_save,
         )
         results.append(gtid)
 
@@ -245,7 +334,7 @@ def process_single_deagg(
     hazard_model_id: str,
     aggs: List[str],
     deagg_dimensions: List[str],
-    stride: int,
+    stride: int, 
     skip_save: bool,
 ) -> None:
 

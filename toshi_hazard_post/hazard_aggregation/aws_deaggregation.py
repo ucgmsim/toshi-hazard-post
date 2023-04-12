@@ -8,20 +8,28 @@ from typing import Any, Dict, Iterator
 import boto3
 
 import toshi_hazard_post.hazard_aggregation.deaggregation_task
+from toshi_hazard_post.locations import get_locations
 from toshi_hazard_post.local_config import API_URL, NUM_WORKERS, S3_URL, WORK_PATH
 from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 
 from ..toshi_api_support import toshi_api
 from .aggregation_config import AggregationConfig
-from .deaggregation import DistributedDeaggTaskArguments, get_deagg_gtids
+from .deaggregation import DeaggProcessArgs, get_deagg_gtids
 
 log = logging.getLogger(__name__)
 
 TEST_SIZE = None  # 16  # HOW many locations to run MAX (also see TOML limit)
-MEMORY = 8192  # 7168 #8192 #30720 #15360 # 10240
-NUM_WORKERS = 1  # noqa
-STRIDE = 200
+# MEMORY = 8192  # 7168 #8192 #30720 #15360 # 10240
+# NUM_WORKERS = 1  # noqa
+MEMORY = 15360  # 7168 #8192 #30720 #15360 # 10240
+NUM_WORKERS = 4  # noqa
+NUM_MACHINES = 300
+STRIDE = 100
 
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int) -> Dict[str, Any]:
     """Create an AWS Batch job configuration."""
@@ -49,26 +57,31 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int) ->
     )
 
 
-def batch_job_configs(
-    config: AggregationConfig,
-    lt_config_id: str,
-) -> Iterator[Dict[str, Any]]:
-
-    gtids = get_deagg_gtids(config)
+def batch_job_configs(config: AggregationConfig, lt_config_id: str) -> Iterator[Dict[str, Any]]:
+    
+    locations = get_locations(config)
 
     task_count = 0
     locs_processed = 0
-    for gtid in gtids:
-        data = DistributedDeaggTaskArguments(
-            gtid,
-            config.source_branches_truncate,
-            config.hazard_model_id,
-            config.aggs,
-            config.deagg_dimensions,
-            STRIDE,
-            config.skip_save,
-            lt_config_id,
-        )
+    for location_chunk in chunks(locations, NUM_WORKERS):
+        data = DeaggProcessArgs(
+                lt_config_id = lt_config_id,
+                lt_config = '',
+                source_branches_truncate=config.source_branches_truncate,
+                hazard_model_id=config.hazard_model_id,
+                aggs = config.aggs,
+                deagg_dimensions=config.deagg_dimensions,
+                stride = config.stride,
+                skip_save=config.skip_save,
+                hazard_gts = config.hazard_gts,
+                locations=location_chunk,
+                deagg_agg_targets=config.deagg_agg_targets,
+                poes = config.poes,
+                imts = config.imts,
+                vs30s=config.vs30s,
+                deagg_hazard_model_target=config.deagg_hazard_model_target,
+                inv_time=config.inv_time
+            )
         locs_processed += NUM_WORKERS
         task_count += 1
         yield batch_job_config(task_arguments=asdict(data), job_arguments=dict(task_id=task_count), task_id=task_count)

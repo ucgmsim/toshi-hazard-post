@@ -30,7 +30,8 @@ TEST_SIZE = None  # 16  # HOW many locations to run MAX (also see TOML limit)
 MEMORY = 15360  # 7168 #8192 #30720 #15360 # 10240
 NUM_WORKERS = 4  # noqa
 NUM_MACHINES = 300
-TIME_LIMIT = 1*60 # minutes
+TIME_LIMIT = 1 * 60  # minutes
+
 
 def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int) -> Dict[str, Any]:
     """Create an AWS Batch job configuration."""

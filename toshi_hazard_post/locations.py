@@ -120,9 +120,9 @@ def get_locations(config: AggregationConfig) -> List[Tuple[float, float]]:
         elif LOCATION_LISTS.get(location_spec):
             location_ids = LOCATION_LISTS[location_spec]["locations"]
             locations += [lat_lon(id) for id in location_ids]
-        elif config.locations == "STAT_TEST_64":
+        elif location_spec == "STAT_TEST_64":
             locations += stat_test_64()
-        elif config.locations == 'STAT_TEST_MISSING':
+        elif location_spec == 'STAT_TEST_MISSING':
             locations += stat_test_missing()
         else:
             locations += load_grid(location_spec)

@@ -17,7 +17,7 @@ from nshm_toshi_client.toshi_file import ToshiFile
 from toshi_hazard_post.local_config import API_KEY, API_URL, LOGGING_CFG, S3_URL, WORK_PATH
 from toshi_hazard_post.util import decompress_config
 
-from .deaggregation import DistributedDeaggTaskArguments, process_single_deagg
+from .deaggregation import DeaggProcessArgs, process_deaggregation_local
 
 # from toshi_hazard_store import model
 # from toshi_hazard_store.aggregate_rlzs import process_location_list
@@ -70,24 +70,15 @@ def fetch_lt_config(lt_config_id: str) -> Path:
     return lt_filepath
 
 
-def process_args(args: DistributedDeaggTaskArguments) -> None:
+def process_args(args: DeaggProcessArgs) -> None:
     """Call the process worker with args, sources branches etc ."""
     log.info("args: %s" % args)
     log.debug("using API_KEY with len: %s" % len(API_KEY))
 
     lt_config = fetch_lt_config(args.lt_config_id)
+    args.lt_config = lt_config
 
-    process_single_deagg(
-        args.gtid,
-        lt_config,
-        args.source_branches_truncate,
-        args.hazard_model_id,
-        args.aggs,
-        args.deagg_dimensions,
-        args.stride,
-        args.skip_save,
-    )
-
+    process_deaggregation_local(args)
 
 #  _                     _ _             _                     _ _
 # | | __ _ _ __ ___   __| | |__   __ _  | |__   __ _ _ __   __| | | ___ _ __
@@ -102,7 +93,7 @@ def handler(event, context):
         """Unpack the message from the event and do the work."""
         log.info("begin process_event()")
         message = json.loads(evt['Sns']['Message'])
-        args = DistributedDeaggTaskArguments(**message['aggregation_task_arguments'])
+        args = DeaggProcessArgs(**message['aggregation_task_arguments'])
         process_args(args)
 
     for evt in event.get('Records', []):
@@ -136,4 +127,4 @@ if __name__ == "__main__":
     # Wait for some more time, scaled by taskid to avoid S3 consistency issue
     time.sleep(config['job_arguments']['task_id'])
 
-    process_args(args=DistributedDeaggTaskArguments(**config['task_arguments']))
+    process_args(args=DeaggProcessArgs(**config['task_arguments']))
