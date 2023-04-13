@@ -50,6 +50,7 @@ def get_logic_tree(
     log.info('built FlattenedSourceLogicTree')
     logic_tree = HazardLogicTree.from_flattened_slt(fslt, hazard_gts)
     log.info('built HazardLogicTree')
+    log.info(f'hazard ids: {logic_tree.hazard_ids}')
     metadata = preload_meta(logic_tree.hazard_ids, vs30)
     log.info('loaded metadata')
 
