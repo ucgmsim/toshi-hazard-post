@@ -340,8 +340,12 @@ def process_single_deagg(
     skip_save: bool,
 ) -> None:
 
-    # TODO: running 2 toshiAPI quieries on each GT ID, could we remove the redundancy?
+    log.info(f'gtid: {gtid}, lt_config: {lt_config}, source_branches_truncate: {source_branches_truncate}, hazard_model_id {hazard_model_id}, aggs: {aggs}, deagg_dimensions: {deagg_dimensions}, stride: {stride}, skip_save: {skip_save}')
+
+    # TODO: running 2 toshiAPI quieries on each GT ID, could we remove the redundancy?finishedfinished  
+    log.info('start get_disagg_gt()')
     gtdata = toshi_api.get_disagg_gt(gtid)
+    log.info('finish get_disagg_gt()')
     imtl = get_imtl(gtdata)
     deagg_config = get_deagg_config(gtdata)
 
@@ -350,6 +354,7 @@ def process_single_deagg(
     resolution = 0.001
     coded_location = CodedLocation(*loc, resolution)
 
+    log.info('start building logic tree ')
     # TODO: check that we get the correct logic tree when some tasks are missing
     logic_tree = get_logic_tree(
         lt_config,
