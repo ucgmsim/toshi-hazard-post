@@ -47,11 +47,15 @@ def get_logic_tree(
 ) -> HazardLogicTree:
 
     fslt = FlattenedSourceLogicTree.from_source_logic_tree(from_config(lt_config_filepath))
+    log.info('built FlattenedSourceLogicTree')
     logic_tree = HazardLogicTree.from_flattened_slt(fslt, hazard_gts)
+    log.info('built HazardLogicTree')
     metadata = preload_meta(logic_tree.hazard_ids, vs30)
+    log.info('loaded metadata')
 
     for branch in logic_tree.branches:
         branch.set_gmcm_branches(metadata, gmm_correlations)
+    log.info('set gmcm branches')
 
     # for testing
     if truncate:
