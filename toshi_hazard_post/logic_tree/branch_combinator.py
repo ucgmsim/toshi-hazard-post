@@ -56,6 +56,7 @@ def get_logic_tree(
     log.info('loaded metadata')
 
     for branch in logic_tree.branches:
+        log.info('set one gmcm branch')
         branch.set_gmcm_branches(metadata, gmm_correlations)
     log.info('set gmcm branches')
 
