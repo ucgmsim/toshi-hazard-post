@@ -9,7 +9,7 @@ import boto3
 
 import toshi_hazard_post.hazard_aggregation.deaggregation_task
 from toshi_hazard_post.locations import get_locations
-from toshi_hazard_post.local_config import API_URL, NUM_WORKERS, S3_URL, WORK_PATH
+from toshi_hazard_post.local_config import API_URL, S3_URL, WORK_PATH
 from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 
 from ..toshi_api_support import toshi_api
@@ -80,7 +80,8 @@ def batch_job_configs(config: AggregationConfig, lt_config_id: str) -> Iterator[
                 imts = config.imts,
                 vs30s=config.vs30s,
                 deagg_hazard_model_target=config.deagg_hazard_model_target,
-                inv_time=config.inv_time
+                inv_time=config.inv_time,
+                num_workers=NUM_WORKERS
             )
         locs_processed += NUM_WORKERS
         task_count += 1

@@ -49,6 +49,7 @@ class DeaggProcessArgs:
     vs30s: List[int]
     deagg_hazard_model_target: str
     inv_time: int
+    num_workers: int
 
 
 class DeAggregationWorkerMP(multiprocessing.Process):
@@ -223,7 +224,8 @@ def process_deaggregation(config: AggregationConfig) -> None:
         imts = config.imts,
         vs30s=config.vs30s,
         deagg_hazard_model_target=config.deagg_hazard_model_target,
-        inv_time=config.inv_time
+        inv_time=config.inv_time,
+        num_workers=NUM_WORKERS,
     )
 
     if config.run_serial:
@@ -238,7 +240,7 @@ def process_deaggregation_local(args: DeaggProcessArgs) -> List[str]:
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
 
-    num_workers = NUM_WORKERS
+    num_workers = args.num_workers
     print('Creating %d workers' % num_workers)
     workers = [DeAggregationWorkerMP(task_queue, result_queue) for i in range(num_workers)]
     for w in workers:
