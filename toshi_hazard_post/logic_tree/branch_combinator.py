@@ -32,6 +32,7 @@ def preload_meta(ids: Iterable[str], vs30: int) -> Dict[str, dict]:
     metadata = {}
     for meta in toshi_hazard_store.query_v3.get_hazard_metadata_v3(ids, [vs30]):
         hazard_id = meta.hazard_solution_id
+        log.info(f'loaded metadata for {hazard_id}')
         gsim_lt = ast.literal_eval(meta.gsim_lt)
         metadata[hazard_id] = gsim_lt
 
