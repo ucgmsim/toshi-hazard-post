@@ -1640,24 +1640,15 @@ files = [
 
 [[package]]
 name = "nzshm-common"
-version = "0.4.0"
+version = "0.6.0"
 description = "A small pure python library for shared NZ NSHM data like locations."
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0.0"
-files = []
-develop = false
-
-[package.extras]
-dev = []
-geometry = ["geopandas (>=0.12.2,<0.13.0)"]
-test = []
-
-[package.source]
-type = "git"
-url = "https://github.com/GNS-Science/nzshm-common-py.git"
-reference = "feature/27-hawks-bay-vs30"
-resolved_reference = "21ac5a6423bd6350229cc538f42b0ef4684e3ca5"
+files = [
+    {file = "nzshm_common-0.6.0-py3-none-any.whl", hash = "sha256:5f3e1e95a48758f39ff26b3c6b17b0bb03b623a9c14a1f5db5f71aef1b3e1761"},
+    {file = "nzshm_common-0.6.0.tar.gz", hash = "sha256:a449c9114814aad3e1751b49a290fb46f4fd6e916e5efced1560dac7ac81fa46"},
+]
 
 [[package]]
 name = "nzshm-model"
@@ -2292,7 +2283,7 @@ files = [
 
 [[package]]
 name = "toshi-hazard-store"
-version = "0.6.0"
+version = "0.7.0"
 description = "Library for saving and retrieving NZHSM openquake hazard results with convenience (uses AWS Dynamodb)."
 category = "main"
 optional = false
@@ -2302,7 +2293,7 @@ develop = false
 
 [package.dependencies]
 numpy = "^1.23.1"
-nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "feature/27-hawks-bay-vs30"}
+nzshm-common = "^0.6.0"
 pandas = "^1.4.3"
 pynamodb = "^5.2.1"
 pynamodb-attributes = "^0.3.2"
@@ -2310,13 +2301,14 @@ pynamodb-attributes = "^0.3.2"
 [package.extras]
 dev = []
 doc = []
+openquake = ["openquake-engine (>=3.16,<4.0)"]
 test = []
 
 [package.source]
 type = "git"
 url = "https://github.com/GNS-Science/toshi-hazard-store.git"
-reference = "feature/36_site_vs30"
-resolved_reference = "e7bf200e65f189a6fab8741d0cababd873496cd0"
+reference = "fix/update-nzshm-common"
+resolved_reference = "64bb05c25658e8394e823082afc76c6e8648fd56"
 
 [[package]]
 name = "tox"
@@ -2670,4 +2662,4 @@ test = []
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "93f8e959af688cceb0b3795cc69d615b357d171289dc340eb03a5202b4c86feb"
+content-hash = "376ea228169b4c5c2a72b104ebf4718c122d12a0f57edd4fdeb14cce20ab99ba"
