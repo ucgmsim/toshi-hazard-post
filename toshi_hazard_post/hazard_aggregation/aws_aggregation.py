@@ -33,10 +33,27 @@ NUM_MACHINES = 300
 TIME_LIMIT = 1 * 60  # minutes
 
 
-def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int) -> Dict[str, Any]:
+def batch_job_config(
+        task_arguments: Dict=None,
+        job_arguments: Dict=None,
+        task_id: int=0,
+        config_data: Any = None
+) -> Dict[str, Any]:
     """Create an AWS Batch job configuration."""
+
+    if task_arguments is None:
+        task_arguments = {}
+    if job_arguments is None:
+        job_arguments = {}
+
     job_name = f"ToshiHazardPost-HazardAggregation-{task_id}"
-    config_data = dict(task_arguments=task_arguments, job_arguments=job_arguments)
+    if not config_data:
+        config_data = dict(task_arguments=task_arguments, job_arguments=job_arguments)
+        use_compression = True
+        quote_config_string = False
+    else:
+        use_compression = False
+        quote_config_string = True
     extra_env = [
         BatchEnvironmentSetting(name="NZSHM22_HAZARD_STORE_STAGE", value="PROD"),
         BatchEnvironmentSetting(name="NZSHM22_HAZARD_STORE_REGION", value="ap-southeast-2"),
@@ -55,7 +72,8 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int) ->
         job_definition="BigLeverOnDemandEC2-THP-HazardAggregation",
         job_queue="ToshiHazardPost_HazAgg_JQ",  # "BigLever_32GB_8VCPU_v2_JQ", #"BigLeverOnDemandEC2-job-queue"
         extra_env=extra_env,
-        use_compression=True,
+        use_compression=use_compression,
+        quote_config_string=quote_config_string,
     )
 
 
