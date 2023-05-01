@@ -25,6 +25,7 @@ MEMORY = 15360  # 7168 #8192 #30720 #15360 # 10240
 NUM_WORKERS = 4  # noqa
 NUM_MACHINES = 300
 STRIDE = 100
+TIME_LIMIT = 10*60 # minutes
 
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
@@ -47,7 +48,7 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int) ->
         toshi_api_url=API_URL,
         toshi_s3_url=S3_URL,
         task_module=toshi_hazard_post.hazard_aggregation.deaggregation_task.__name__,
-        time_minutes=600,
+        time_minutes=TIME_LIMIT,
         memory=MEMORY,
         vcpu=NUM_WORKERS,
         job_definition="BigLeverOnDemandEC2-THP-HazardAggregation",
