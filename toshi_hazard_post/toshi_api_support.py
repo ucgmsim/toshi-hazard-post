@@ -15,7 +15,7 @@ from toshi_hazard_post.util import archive
 
 log = logging.getLogger(__name__)
 
-DeaggConfig = namedtuple("DeaggConfig", "vs30 imt location poe inv_time")
+DeaggConfig = namedtuple("DeaggConfig", "vs30 imt location poe inv_time deagg_agg_target")
 
 
 def get_deagg_config(data: Dict[str, Any]) -> DeaggConfig:
@@ -25,13 +25,15 @@ def get_deagg_config(data: Dict[str, Any]) -> DeaggConfig:
     for arg in args:
         if arg['k'] == "disagg_config":
             disagg_args = json.loads(arg['v'].replace("'", '"').replace('None', 'null'))
+        if arg['k'] == "hazard_agg_target":
+            deagg_agg_target = arg['v']
 
     location = disagg_args['location']
     vs30 = int(disagg_args['vs30'])
     imt = disagg_args['imt']
     poe = float(disagg_args['poe'])
     inv_time = int(disagg_args['inv_time'])
-    return DeaggConfig(vs30, imt, location, poe, inv_time)
+    return DeaggConfig(vs30, imt, location, poe, inv_time, deagg_agg_target)
 
 
 def get_imtl(gtdata: Dict[str, Any]) -> str:
