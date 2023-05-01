@@ -72,19 +72,29 @@ class DeAggregationWorkerMP(multiprocessing.Process):
                 log.info('%s: Exiting' % proc_name)
                 break
 
-            process_single_deagg(
-                nt.gtid,
-                nt.lt_config,
-                nt.source_branches_truncate,
-                nt.hazard_model_id,
-                nt.aggs,
-                nt.deagg_dimensions,
-                nt.stride,
-                nt.skip_save,
-            )
-            self.task_queue.task_done()
-            log.info('%s task done.' % self.name)
-            self.result_queue.put(str(nt.gtid))
+            try:
+                process_single_deagg(
+                    nt.gtid,
+                    nt.lt_config,
+                    nt.source_branches_truncate,
+                    nt.hazard_model_id,
+                    nt.aggs,
+                    nt.deagg_dimensions,
+                    nt.stride,
+                    nt.skip_save,
+                )
+                self.task_queue.task_done()
+                log.info('%s task done.' % self.name)
+                self.result_queue.put(str(nt.gtid))
+            except KeyError as e:
+                log.warn(f'missing file in archive for GT ID {nt.gtid}')
+                log.warn(e)
+                self.task_queue.task_done()
+                self.result_queue.put(f'FAILED {str(nt.gtid)}')
+            except Exception as e:
+                log.error(f'unknown exception occured: {e}')
+                self.task_queue.task_done()
+                self.result_queue.put(f'FAILED {str(nt.gtid)}')
 
 
 @dataclass
@@ -356,6 +366,7 @@ def process_single_deagg(
 
     log.info('start building logic tree ')
     # TODO: check that we get the correct logic tree when some tasks are missing
+    tic = time.perf_counter()
     logic_tree = get_logic_tree(
         lt_config,
         [gtid],
@@ -363,7 +374,9 @@ def process_single_deagg(
         gmm_correlations=[],
         truncate=source_branches_truncate,
     )
+    toc = time.perf_counter()
     log.info('finished building logic tree ')
+    log.info(f'time to build logic tree {toc-tic} seconds')
 
     # TODO: need some "levels" for deaggs (deagg bins), this can come when we pull deagg data from THS
     levels: List[float] = []
@@ -377,7 +390,7 @@ def process_single_deagg(
         imts=[deagg_config.imt],
         levels=levels,
         vs30=deagg_config.vs30,
-        deagg=deagg_dimensions,
+        deagg=(deagg_dimensions, deagg_config.deagg_agg_target),
         poe=deagg_config.poe,
         deagg_imtl=imtl,
         save_rlz=False,
