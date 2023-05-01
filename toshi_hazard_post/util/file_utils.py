@@ -133,42 +133,63 @@ def get_bin_widths(header):
 
     return bin_widths
 
+def load_file(disagg_file, deagg_dimensions, csv_archive):
+
+    disagg_reader = csv.reader(disagg_file)
+    header0 = next(disagg_reader)
+    location = get_location(header0)
+    bin_widths = get_bin_widths(header0)
+
+    header = next(disagg_reader)
+    DisaggData = namedtuple("DisaggData", header, rename=True)
+    rlz_names = header[len(deagg_dimensions) + 2 :]
+    disaggs, bins = disagg_df(rlz_names, deagg_dimensions, bin_widths)
+
+    i = len(deagg_dimensions)
+    j = i + 2
+    for row in disagg_reader:
+        disagg_data = DisaggData(*row)
+        values = get_values_from_csv(disagg_data)
+        imt = disagg_data.imt
+        ind = match_index(disaggs, values)
+        if not any(ind):
+            exc_text = f'no index found for {csv_archive} row: {row}'
+            exc_text += f'\nvalues: {values}'
+            raise Exception(exc_text)
+        disaggs.iloc[ind, i:] = list(map(float, row[j:]))
+    
+    return disaggs, bins, location, imt, rlz_names
+
 
 def get_disagg(csv_archive, deagg_dimensions):
     """
     get the disagg data from the csv archive
     this is terrible and hacky and only temporory until disagg data is stored by THS
-    assuming only 1 location and 1 imt
+    assuming only 1 location and 1 imt.
+
+    If the requested file is missing, assume that the poe is zero (oq does not write non TRT disaggs if poe==0)
     """
 
     deagg_dimensions = list(map(str.lower, deagg_dimensions))
     filename = '_'.join([d.value for d in Dimension if d.name in deagg_dimensions]) + '-0_1.csv'
 
     with ZipFile(csv_archive) as zipf:
-        with io.TextIOWrapper(zipf.open(filename), encoding="utf-8") as disagg_file:
-            disagg_reader = csv.reader(disagg_file)
-            header0 = next(disagg_reader)
-            location = get_location(header0)
-            bin_widths = get_bin_widths(header0)
-
-            header = next(disagg_reader)
-            DisaggData = namedtuple("DisaggData", header, rename=True)
-            rlz_names = header[len(deagg_dimensions) + 2 :]
-            disaggs, bins = disagg_df(rlz_names, deagg_dimensions, bin_widths)
-
-            i = len(deagg_dimensions)
-            j = i + 2
-            for row in disagg_reader:
-                disagg_data = DisaggData(*row)
-                values = get_values_from_csv(disagg_data)
-                imt = disagg_data.imt
-                ind = match_index(disaggs, values)
-                if not any(ind):
-                    exc_text = f'no index found for {csv_archive} row: {row}'
-                    exc_text += f'\nvalues: {values}'
-                    raise Exception(exc_text)
-                disaggs.iloc[ind, i:] = list(map(float, row[j:]))
-
+        if filename in zipf.namelist():
+            with io.TextIOWrapper(zipf.open(filename), encoding="utf-8") as disagg_file:
+                disaggs, bins, location, imt, rlz_names = load_file(disagg_file, deagg_dimensions, csv_archive)
+        else:
+            ddims = ['mag', 'dist', 'eps', 'trt']
+            filename_fallback = '_'.join([d.value for d in Dimension]) + '-0_1.csv'
+            with io.TextIOWrapper(zipf.open(filename_fallback), encoding="utf-8") as disagg_file:
+                log.info(f'file requested {filename} missing from archive {csv_archive} falling back to loading {filename_fallback}')
+                disaggs, bins, location, imt, rlz_names = load_file(disagg_file, ddims, csv_archive)
+                if not (disaggs[rlz_names]==0).all().all():
+                    raise Exception(f'{deagg_dimensions} file missing, but not all values are 0 in file {csv_archive}')
+                disaggs = disaggs.drop(labels=set(ddims)\
+                    .difference(set(deagg_dimensions)), axis=1)\
+                    .drop_duplicates(subset=deagg_dimensions)
+                bins = {k:v for k,v in bins.items() if k in deagg_dimensions}
+                
     disaggs_dict = {}
     for rlz in rlz_names:
         disaggs_dict[rlz[3:]] = disaggs[rlz].to_numpy(dtype='float64')
