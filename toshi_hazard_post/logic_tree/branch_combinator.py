@@ -2,6 +2,7 @@ import ast
 import logging
 from pathlib import Path
 from typing import Dict, Iterable, List, Union
+import time
 
 # from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
 import toshi_hazard_store
@@ -30,12 +31,19 @@ def preload_meta(ids: Iterable[str], vs30: int) -> Dict[str, dict]:
         dictionary of ground motion logic tree metadata dictionaries
     """
     metadata = {}
-    for meta in toshi_hazard_store.query_v3.get_hazard_metadata_v3(ids, [vs30]):
+    for i, meta in enumerate(toshi_hazard_store.query_v3.get_hazard_metadata_v3(ids, [vs30])):
+        tic = time.perf_counter()
         hazard_id = meta.hazard_solution_id
-        log.info(f'loaded metadata for {hazard_id}')
+        # log.info(f'loaded metadata for {hazard_id}')
         gsim_lt = ast.literal_eval(meta.gsim_lt)
         metadata[hazard_id] = gsim_lt
+        toc = time.perf_counter()
+        print(f'time to load metadata for {hazard_id}: {toc-tic} seconds.')
+        if i==len(ids)-1:
+            break
 
+    print(len(ids))
+    print(len(metadata))
     return metadata
 
 
@@ -52,13 +60,19 @@ def get_logic_tree(
     logic_tree = HazardLogicTree.from_flattened_slt(fslt, hazard_gts)
     log.info('built HazardLogicTree')
     log.info(f'hazard ids: {logic_tree.hazard_ids}')
+    tic = time.perf_counter()
     metadata = preload_meta(logic_tree.hazard_ids, vs30)
+    toc = time.perf_counter()
+    print(f'time to load metadata {toc-tic} seconds')
     log.info('loaded metadata')
 
+    tic = time.perf_counter()
     for branch in logic_tree.branches:
         log.info('set one gmcm branch')
         branch.set_gmcm_branches(metadata, gmm_correlations)
     log.info('set gmcm branches')
+    toc = time.perf_counter()
+    print(f'time to set gmcm branches {toc-tic} seconds')
 
     # for testing
     if truncate:
