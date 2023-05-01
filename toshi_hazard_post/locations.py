@@ -115,6 +115,20 @@ def get_locations(config: AggregationConfig) -> List[Tuple[float, float]]:
     for location_spec in config.locations:
         if '~' in location_spec:
             locations.append(tuple(map(float, location_spec.split('~'))))  # type: ignore
+        elif '_intersect_' in location_spec:
+            spec0, spec1 = location_spec.split('_intersect_')
+            loc0 = set(load_grid(spec0))
+            loc1 = set(load_grid(spec1))
+            loc01 = list(loc0.intersection(loc1))
+            loc01.sort()
+            locations += loc01
+        elif '_diff_' in location_spec:
+            spec0, spec1 = location_spec.split('_diff_')
+            loc0 = set(load_grid(spec0))
+            loc1 = set(load_grid(spec1))
+            loc01 = list(loc0.difference(loc1))
+            loc01.sort()
+            locations += loc01
         elif location_by_id(location_spec):
             locations.append(lat_lon(location_spec))
         elif LOCATION_LISTS.get(location_spec):
