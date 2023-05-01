@@ -82,10 +82,15 @@ class AggregationWorkerMP(multiprocessing.Process):
                 log.info('%s: Exiting' % proc_name)
                 break
 
-            process_location_list(nt)
-            self.task_queue.task_done()
-            log.info('%s task done.' % self.name)
-            self.result_queue.put(str(nt.grid_loc))
+            try:
+                process_location_list(nt)
+                self.task_queue.task_done()
+                log.info('%s task done.' % self.name)
+                self.result_queue.put(str(nt.grid_loc))
+            except Exception as e:
+                log.error(f'unknown exception occured: {e}')
+                self.task_queue.task_done()
+                self.result_queue.put(f'FAILED {str(nt.gtid)}')
 
 
 def process_location_list(task_args: AggTaskArgs) -> None:
@@ -123,7 +128,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
     tic_fn = time.perf_counter()
     if deagg_dimensions:
-        values, bins = load_realization_values_deagg(toshi_ids, locs, [vs30], deagg_dimensions)
+        values, bins = load_realization_values_deagg(toshi_ids, locs, [vs30], deagg_dimensions[0])
     else:
         values = load_realization_values(toshi_ids, locs, [vs30])
 
@@ -169,7 +174,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
                     #     hazard, bins, loc, imt, imtl, poe, vs30, task_args.hazard_model_id, deagg_dimensions
                     # )  # TODO: need more information about deagg to save (e.g. poe, inv_time)
                     save_disaggregation(
-                        task_args.hazard_model_id, location, imt, vs30, poe, imtl, rate_to_prob(hazard, INV_TIME), bins
+                        aggs[0], task_args.hazard_model_id, location, imt, vs30, poe, imtl, rate_to_prob(hazard, INV_TIME), bins, deagg_dimensions[1]
                     )
                 else:
                     save_aggregation(
@@ -191,6 +196,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
 
 
 def save_disaggregation(
+    agg: str,
     hazard_model_id: str,
     location: CodedLocation,
     imt: str,
@@ -199,6 +205,7 @@ def save_disaggregation(
     imtl: float,
     deagg_array: npt.NDArray,
     bins: Dict[str, Any],
+    deagg_agg_target: str,
 ) -> None:
     """
     Only handles a single aggregate statistic, assumed to be mean for both the hazard curve and the disagg.
@@ -209,8 +216,9 @@ def save_disaggregation(
     deagg_array = deagg_array.reshape(shape)
 
     bins_array = np.array(list(bins.values()), dtype=object)
-    hazard_agg = model.AggregationEnum.MEAN.value
-    disagg_agg = model.AggregationEnum.MEAN.value
+
+    hazard_agg = model.AggregationEnum(deagg_agg_target)
+    disagg_agg = model.AggregationEnum(agg)
     probability = model.ProbabilityEnum[f'_{int(poe*100)}_PCT_IN_50YRS']
     with model.DisaggAggregationExceedance.batch_write() as batch:
         dae = model.DisaggAggregationExceedance.new_model(
