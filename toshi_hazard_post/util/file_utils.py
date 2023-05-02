@@ -142,11 +142,11 @@ def load_file(disagg_file, deagg_dimensions, csv_archive):
 
     header = next(disagg_reader)
     DisaggData = namedtuple("DisaggData", header, rename=True)
-    rlz_names = header[len(deagg_dimensions) + 2 :]
+    rlz_names = [col for col in header if 'rlz' in col]
     disaggs, bins = disagg_df(rlz_names, deagg_dimensions, bin_widths)
 
-    i = len(deagg_dimensions)
-    j = i + 2
+    ind_rlz = len(deagg_dimensions)
+    ind_rlz_csv = ['rlz' in col for col in header].index(True)
     for row in disagg_reader:
         disagg_data = DisaggData(*row)
         values = get_values_from_csv(disagg_data)
@@ -156,8 +156,8 @@ def load_file(disagg_file, deagg_dimensions, csv_archive):
             exc_text = f'no index found for {csv_archive} row: {row}'
             exc_text += f'\nvalues: {values}'
             raise Exception(exc_text)
-        disaggs.iloc[ind, i:] = list(map(float, row[j:]))
-    
+        disaggs.iloc[ind, ind_rlz:] = list(map(float, row[ind_rlz_csv:]))
+
     return disaggs, bins, location, imt, rlz_names
 
 
