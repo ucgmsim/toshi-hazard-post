@@ -62,6 +62,8 @@ def tasks_by_chunk(
         aggs = [],
         filter_locations = [],
     )
+
+    p, h, v, i, a = [], [], [], [], []
     for (poe, hazard_model_id, vs30, imt, agg) in itertools.product(
         poe_levels, hazard_model_ids, vs30s, imts, aggs
     ):
@@ -153,6 +155,6 @@ def distribute_gridded_hazard(
     ):
         print('AWS_CONFIG: ', job_config)
         print()
-        res = batch_client.submit_job(**job_config)
-        print(res)
-        print()
+        # res = batch_client.submit_job(**job_config)
+        # print(res)
+        # print()

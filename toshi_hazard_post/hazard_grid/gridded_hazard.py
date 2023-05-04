@@ -125,6 +125,7 @@ def calc_gridded_hazard(
     aggs: Iterable[str],
     num_workers: int,
     filter_locations: Iterable[CodedLocation] = None,
+    iter_method: str = 'product',
 ):
 
     log.debug(
@@ -153,9 +154,11 @@ def calc_gridded_hazard(
     for w in workers:
         w.start()
 
-    for (hazard_model_id, vs30, imt, agg) in itertools.product(
-        hazard_model_ids, vs30s, imts, aggs
-    ):
+    if iter_method == 'product':
+        iterator = itertools.product(hazard_model_ids, vs30s, imts, aggs)
+    elif iter_method == 'zip':
+        iterator = zip(hazard_model_ids, vs30s, imts, aggs)
+    for (hazard_model_id, vs30, imt, agg) in iterator:
 
         t = GridHazTaskArgs(location_keys, poe_levels, location_grid_id, hazard_model_id, vs30, imt, agg)
         task_queue.put(t)
