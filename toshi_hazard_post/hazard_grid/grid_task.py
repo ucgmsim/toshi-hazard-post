@@ -12,7 +12,7 @@ from toshi_hazard_post.util import decompress_config
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('toshi_hazard_store').setLevel(logging.ERROR)
-logging.getLogger('toshi_hazard_post').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)
 
 
 def process_args(args: DistributedGridTaskArguments) -> None:
