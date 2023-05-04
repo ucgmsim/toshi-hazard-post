@@ -1,4 +1,4 @@
-"""Handler for aggregation task."""
+"""Handler for deaggregation task."""
 import argparse
 import json
 import logging

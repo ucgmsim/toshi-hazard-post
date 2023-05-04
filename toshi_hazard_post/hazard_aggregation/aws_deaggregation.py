@@ -34,7 +34,7 @@ def chunks(lst, n):
 
 def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int) -> Dict[str, Any]:
     """Create an AWS Batch job configuration."""
-    job_name = f"ToshiHazardPost-HazardAggregation-{task_id}"
+    job_name = f"ToshiHazardPost-HazardDeAggregation-{task_id}"
     config_data = dict(task_arguments=task_arguments, job_arguments=job_arguments)
     extra_env = [
         BatchEnvironmentSetting(name="NZSHM22_HAZARD_STORE_STAGE", value="PROD"),
