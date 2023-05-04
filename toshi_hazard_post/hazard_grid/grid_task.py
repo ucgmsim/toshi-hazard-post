@@ -22,7 +22,7 @@ from toshi_hazard_post.hazard_grid.gridded_hazard import DistributedGridTaskArgu
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('toshi_hazard_store').setLevel(logging.ERROR)
-logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)
+logging.getLogger('toshi_hazard_post').setLevel(logging.DEBUG)
 
 def process_args(args: DistributedGridTaskArguments) -> None:
     

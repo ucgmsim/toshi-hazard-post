@@ -155,6 +155,6 @@ def distribute_gridded_hazard(
     ):
         print('AWS_CONFIG: ', job_config)
         print()
-        # res = batch_client.submit_job(**job_config)
-        # print(res)
-        # print()
+        res = batch_client.submit_job(**job_config)
+        print(res)
+        print()
