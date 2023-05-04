@@ -5,14 +5,14 @@ import logging
 import multiprocessing
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Iterable, Dict, List
+from typing import Dict, Iterable, List
 
 import numpy as np
 from nzshm_common.grids import RegionGrid
 from nzshm_common.location import CodedLocation
+from pynamodb.exceptions import PutError
 from toshi_hazard_store import model, query_v3
 from toshi_hazard_store.query.gridded_hazard_query import get_gridded_hazard
-from pynamodb.exceptions import PutError
 
 from .gridded_poe import compute_hazard_at_poe
 
@@ -22,7 +22,10 @@ INVESTIGATION_TIME = 50
 SPOOF_SAVE = False
 COV_AGG_KEY = 'cov'
 
-GridHazTaskArgs = namedtuple("GridHazTaskArgs", "location_keys poe_levels location_grid_id hazard_model_id vs30 imt agg")
+GridHazTaskArgs = namedtuple(
+    "GridHazTaskArgs", "location_keys poe_levels location_grid_id hazard_model_id vs30 imt agg"
+)
+
 
 @dataclass
 class DistributedGridTaskArguments:
@@ -34,6 +37,7 @@ class DistributedGridTaskArguments:
     aggs: List[str]
     filter_locations: List[CodedLocation]
 
+
 def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_model_id, vs30, imt, agg):
     grid_accel_levels: Dict[float, List] = {poe: [None for i in range(len(location_keys))] for poe in poe_levels}
     for haz in query_v3.get_hazard_curves(location_keys, [vs30], [hazard_model_id], imts=[imt], aggs=[agg]):
@@ -42,7 +46,9 @@ def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_m
         index = location_keys.index(haz.nloc_001)
         for poe_lvl in poe_levels:
             try:
-                grid_accel_levels[poe_lvl][index] = compute_hazard_at_poe(poe_lvl, accel_levels, poe_values, INVESTIGATION_TIME)
+                grid_accel_levels[poe_lvl][index] = compute_hazard_at_poe(
+                    poe_lvl, accel_levels, poe_values, INVESTIGATION_TIME
+                )
             except ValueError as err:
                 log.warning(
                     'Error in compute_hazard_at_poe: %s, poe_lvl %s, haz_mod %s, vs30 %s, imt %s, agg %s'
@@ -54,7 +60,9 @@ def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_m
     if agg == 'mean':
         for poe_lvl in poe_levels:
             grid_covs: List = [None for i in range(len(location_keys))]
-            for cov in query_v3.get_hazard_curves(location_keys, [vs30], [hazard_model_id], imts=[imt], aggs=[COV_AGG_KEY]):
+            for cov in query_v3.get_hazard_curves(
+                location_keys, [vs30], [hazard_model_id], imts=[imt], aggs=[COV_AGG_KEY]
+            ):
                 # cov_accel_levels = [val.lvl for val in cov.values]
                 cov_values = [val.val for val in cov.values]
                 index = location_keys.index(cov.nloc_001)
@@ -164,9 +172,12 @@ def calc_gridded_hazard(
             if (ghaz.hazard_model_id == hazard_model_id) & (ghaz.vs30 == vs30) & (ghaz.imt == imt) & (ghaz.agg == agg):
                 existing_poes.append(ghaz.poe)
         if set(existing_poes) == set(poe_levels):
-            log.info('griddded hazard for %s, %s, %s, %s %s already exists, skipping.' % (hazard_model_id, vs30, imt, agg, poe_levels))
+            log.info(
+                'griddded hazard for %s, %s, %s, %s %s already exists, skipping.'
+                % (hazard_model_id, vs30, imt, agg, poe_levels)
+            )
             continue
-        log.info('putting task for %s, %s, %s, %s %s.' (hazard_model_id, vs30, imt, agg, poe_levels))
+        log.info('putting task for %s, %s, %s, %s %s.' % (hazard_model_id, vs30, imt, agg, poe_levels))
         t = GridHazTaskArgs(location_keys, poe_levels, location_grid_id, hazard_model_id, vs30, imt, agg)
         task_queue.put(t)
         count += 1

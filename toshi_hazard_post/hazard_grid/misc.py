@@ -1,15 +1,16 @@
 from nzshm_common.grids import RegionGrid
-from toshi_hazard_store import model
 from nzshm_common.location import CodedLocation
-
+from toshi_hazard_store import model
 
 
 def get_site_lists():
     for rg in RegionGrid:
         yield rg
 
+
 def migrate():
     model.migrate()
+
 
 def get_filter_locations(filter_sites):
     filter_locations = (
@@ -17,3 +18,4 @@ def get_filter_locations(filter_sites):
         if filter_sites
         else []
     )
+    return filter_locations

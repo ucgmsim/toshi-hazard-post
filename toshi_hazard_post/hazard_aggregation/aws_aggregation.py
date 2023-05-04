@@ -34,10 +34,7 @@ TIME_LIMIT = 1 * 60  # minutes
 
 
 def batch_job_config(
-        task_arguments: Dict=None,
-        job_arguments: Dict=None,
-        task_id: int=0,
-        config_data: Any = None
+    task_arguments: Dict = None, job_arguments: Dict = None, task_id: int = 0, config_data: Any = None
 ) -> Dict[str, Any]:
     """Create an AWS Batch job configuration."""
 

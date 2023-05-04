@@ -1,8 +1,8 @@
 import ast
 import logging
+import time
 from pathlib import Path
 from typing import Dict, Iterable, List, Union
-import time
 
 # from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
 import toshi_hazard_store
@@ -39,7 +39,7 @@ def preload_meta(ids: Iterable[str], vs30: int) -> Dict[str, dict]:
         metadata[hazard_id] = gsim_lt
         toc = time.perf_counter()
         print(f'time to load metadata for {hazard_id}: {toc-tic} seconds.')
-        if i==len(ids)-1:
+        if i == len(ids) - 1:
             break
 
     print(len(ids))

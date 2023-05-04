@@ -3,29 +3,20 @@ import argparse
 import json
 import logging
 import logging.config
-import os
-import sys
 import time
-from pathlib import Path, PurePath
-from typing import Union
-from zipfile import ZipFile
-
-import requests
-import yaml
-from nshm_toshi_client.toshi_file import ToshiFile
-
-from toshi_hazard_post.local_config import API_KEY, NUM_WORKERS
-from toshi_hazard_post.util import decompress_config
 
 from toshi_hazard_post.hazard_grid.gridded_hazard import DistributedGridTaskArguments, calc_gridded_hazard
+from toshi_hazard_post.local_config import API_KEY, NUM_WORKERS
+from toshi_hazard_post.util import decompress_config
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('toshi_hazard_store').setLevel(logging.ERROR)
 logging.getLogger('toshi_hazard_post').setLevel(logging.DEBUG)
 
+
 def process_args(args: DistributedGridTaskArguments) -> None:
-    
+
     log.info("args: %s" % args)
     log.debug("using API_KEY with len: %s" % len(API_KEY))
 
@@ -36,13 +27,12 @@ def process_args(args: DistributedGridTaskArguments) -> None:
         vs30s=args.vs30s,
         imts=args.imts,
         aggs=args.aggs,
-        num_workers = NUM_WORKERS,
+        num_workers=NUM_WORKERS,
         filter_locations=args.filter_locations,
         iter_method='zip',
     )
 
     log.info(results)
-
 
 
 # _ __ ___   __ _(_)_ __

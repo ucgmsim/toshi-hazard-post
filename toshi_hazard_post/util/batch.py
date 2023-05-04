@@ -89,7 +89,6 @@ def get_ecs_job_config(
         else:
             task_config_json_quoted = urllib.parse.quote(json.dumps(config))
 
-
     config = {
         "jobName": job_name,
         "jobQueue": job_queue,
@@ -100,7 +99,7 @@ def get_ecs_job_config(
             "environment": [
                 {
                     "name": "TASK_CONFIG_JSON_QUOTED",
-                    "value": task_config_json_quoted, 
+                    "value": task_config_json_quoted,
                 },
                 {"name": "NZSHM22_TOSHI_S3_URL", "value": toshi_s3_url},
                 {"name": "NZSHM22_TOSHI_API_URL", "value": toshi_api_url},

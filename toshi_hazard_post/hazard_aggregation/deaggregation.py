@@ -219,19 +219,19 @@ def process_deaggregation(config: AggregationConfig) -> None:
     locations = get_locations(config)
 
     args = DeaggProcessArgs(
-        lt_config_id = '',
-        lt_config = config.lt_config,
+        lt_config_id='',
+        lt_config=config.lt_config,
         source_branches_truncate=config.source_branches_truncate,
         hazard_model_id=config.hazard_model_id,
-        aggs = config.aggs,
+        aggs=config.aggs,
         deagg_dimensions=config.deagg_dimensions,
-        stride = config.stride,
+        stride=config.stride,
         skip_save=config.skip_save,
-        hazard_gts = config.hazard_gts,
+        hazard_gts=config.hazard_gts,
         locations=locations,
         deagg_agg_targets=config.deagg_agg_targets,
-        poes = config.poes,
-        imts = config.imts,
+        poes=config.poes,
+        imts=config.imts,
         vs30s=config.vs30s,
         deagg_hazard_model_target=config.deagg_hazard_model_target,
         inv_time=config.inv_time,
@@ -274,13 +274,14 @@ def process_deaggregation_local(args: DeaggProcessArgs) -> List[str]:
 
     for gtid in gtids:
         t = DeaggTaskArgs(
-            gtid, args.lt_config,
+            gtid,
+            args.lt_config,
             args.source_branches_truncate,
             args.hazard_model_id,
             args.aggs,
             args.deagg_dimensions,
             args.stride,
-            args.skip_save
+            args.skip_save,
         )
 
         task_queue.put(t)
@@ -346,13 +347,17 @@ def process_single_deagg(
     hazard_model_id: str,
     aggs: List[str],
     deagg_dimensions: List[str],
-    stride: int, 
+    stride: int,
     skip_save: bool,
 ) -> None:
 
-    log.info(f'gtid: {gtid}, lt_config: {lt_config}, source_branches_truncate: {source_branches_truncate}, hazard_model_id {hazard_model_id}, aggs: {aggs}, deagg_dimensions: {deagg_dimensions}, stride: {stride}, skip_save: {skip_save}')
+    log.info(
+        f'gtid: {gtid}, lt_config: {lt_config}, source_branches_truncate: {source_branches_truncate}, '
+        f'hazard_model_id {hazard_model_id}, aggs: {aggs}, deagg_dimensions: {deagg_dimensions}, '
+        f'stride: {stride}, skip_save: {skip_save}'
+    )
 
-    # TODO: running 2 toshiAPI quieries on each GT ID, could we remove the redundancy?finishedfinished  
+    # TODO: running 2 toshiAPI quieries on each GT ID, could we remove the redundancy?finishedfinished
     log.info('start get_disagg_gt()')
     gtdata = toshi_api.get_disagg_gt(gtid)
     log.info('finish get_disagg_gt()')

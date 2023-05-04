@@ -133,6 +133,7 @@ def get_bin_widths(header):
 
     return bin_widths
 
+
 def load_file(disagg_file, deagg_dimensions, csv_archive):
 
     disagg_reader = csv.reader(disagg_file)
@@ -181,15 +182,18 @@ def get_disagg(csv_archive, deagg_dimensions):
             ddims = ['mag', 'dist', 'eps', 'trt']
             filename_fallback = '_'.join([d.value for d in Dimension]) + '-0_1.csv'
             with io.TextIOWrapper(zipf.open(filename_fallback), encoding="utf-8") as disagg_file:
-                log.info(f'file requested {filename} missing from archive {csv_archive} falling back to loading {filename_fallback}')
+                log.info(
+                    f'file requested {filename} missing from archive {csv_archive} '
+                    f'falling back to loading {filename_fallback}'
+                )
                 disaggs, bins, location, imt, rlz_names = load_file(disagg_file, ddims, csv_archive)
-                if not (disaggs[rlz_names]==0).all().all():
+                if not (disaggs[rlz_names] == 0).all().all():
                     raise Exception(f'{deagg_dimensions} file missing, but not all values are 0 in file {csv_archive}')
-                disaggs = disaggs.drop(labels=set(ddims)\
-                    .difference(set(deagg_dimensions)), axis=1)\
-                    .drop_duplicates(subset=deagg_dimensions)
-                bins = {k:v for k,v in bins.items() if k in deagg_dimensions}
-                
+                disaggs = disaggs.drop(labels=set(ddims).difference(set(deagg_dimensions)), axis=1).drop_duplicates(
+                    subset=deagg_dimensions
+                )
+                bins = {k: v for k, v in bins.items() if k in deagg_dimensions}
+
     disaggs_dict = {}
     for rlz in rlz_names:
         disaggs_dict[rlz[3:]] = disaggs[rlz].to_numpy(dtype='float64')
