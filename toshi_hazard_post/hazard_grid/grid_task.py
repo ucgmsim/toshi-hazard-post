@@ -20,7 +20,7 @@ from toshi_hazard_post.util import decompress_config
 from .gridded_hazard import DistributedGridTaskArguments, calc_gridded_hazard
 
 log = logging.getLogger(__name__)
-
+logging.getLogger('toshi_hazard_store').setLevel(logging.ERROR)
 
 def process_args(args: DistributedGridTaskArguments) -> None:
     

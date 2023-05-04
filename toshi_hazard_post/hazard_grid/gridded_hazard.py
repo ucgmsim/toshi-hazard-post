@@ -16,6 +16,7 @@ from pynamodb.exceptions import PutError
 from .gridded_poe import compute_hazard_at_poe
 
 log = logging.getLogger(__name__)
+
 INVESTIGATION_TIME = 50
 SPOOF_SAVE = False
 COV_AGG_KEY = 'cov'
