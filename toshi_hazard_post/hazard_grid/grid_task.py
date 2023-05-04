@@ -17,10 +17,12 @@ from nshm_toshi_client.toshi_file import ToshiFile
 from toshi_hazard_post.local_config import API_KEY, NUM_WORKERS
 from toshi_hazard_post.util import decompress_config
 
-from .gridded_hazard import DistributedGridTaskArguments, calc_gridded_hazard
+from toshi_hazard_post.hazard_grid.gridded_hazard import DistributedGridTaskArguments, calc_gridded_hazard
 
 log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 logging.getLogger('toshi_hazard_store').setLevel(logging.ERROR)
+logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)
 
 def process_args(args: DistributedGridTaskArguments) -> None:
     
