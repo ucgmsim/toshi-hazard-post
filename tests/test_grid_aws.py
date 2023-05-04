@@ -22,7 +22,7 @@ def test_tasks_by_chunk():
     ):
         num_chunks += 1
     
-    assert num_chunks == math.ceil(len(poe_levels)*len(hazard_model_ids)*len(vs30s)*len(imts)*len(aggs)/4)
+    assert num_chunks == math.ceil(len(hazard_model_ids)*len(vs30s)*len(imts)*len(aggs)/4)
 
 
 def test_tasks_by_chunk_tasks():

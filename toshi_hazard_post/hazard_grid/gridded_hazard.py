@@ -11,6 +11,7 @@ import numpy as np
 from nzshm_common.grids import RegionGrid
 from nzshm_common.location import CodedLocation
 from toshi_hazard_store import model, query_v3
+from toshi_hazard_store.query.gridded_hazard_query import get_gridded_hazard
 from pynamodb.exceptions import PutError
 
 from .gridded_poe import compute_hazard_at_poe
@@ -36,8 +37,8 @@ class DistributedGridTaskArguments:
 def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_model_id, vs30, imt, agg):
     grid_accel_levels: Dict[float, List] = {poe: [None for i in range(len(location_keys))] for poe in poe_levels}
     for haz in query_v3.get_hazard_curves(location_keys, [vs30], [hazard_model_id], imts=[imt], aggs=[agg]):
-        accel_levels = [val.lvl for val in haz.values]
-        poe_values = [val.val for val in haz.values]
+        accel_levels = [float(val.lvl) for val in haz.values]
+        poe_values = [float(val.val) for val in haz.values]
         index = location_keys.index(haz.nloc_001)
         for poe_lvl in poe_levels:
             try:
@@ -102,10 +103,8 @@ class GriddedHAzardWorkerMP(multiprocessing.Process):
                 log.info('%s: Exiting' % proc_name)
                 break
 
-            # with model.GriddedHazard.batch_write() as batch:
             for ghaz in process_gridded_hazard(*nt):
                 if SPOOF_SAVE is False:
-                    # batch.save(ghaz)
                     try:
                         ghaz.save()
                         log.info('save %s' % ghaz)
@@ -128,7 +127,7 @@ def calc_gridded_hazard(
     iter_method: str = 'product',
 ):
 
-    log.debug(
+    log.info(
         'calc_gridded_hazard( grid: %s poes: %s models: %s vs30s: %s imts: %s aggs: %s'
         % (location_grid_id, poe_levels, hazard_model_ids, vs30s, imts, aggs)
     )
@@ -149,7 +148,7 @@ def calc_gridded_hazard(
 
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
 
-    log.debug('Creating %d workers' % num_workers)
+    log.info('Creating %d workers' % num_workers)
     workers = [GriddedHAzardWorkerMP(task_queue) for i in range(num_workers)]
     for w in workers:
         w.start()
@@ -160,6 +159,14 @@ def calc_gridded_hazard(
         iterator = zip(hazard_model_ids, vs30s, imts, aggs)
     for (hazard_model_id, vs30, imt, agg) in iterator:
 
+        existing_poes = []
+        for ghaz in get_gridded_hazard([hazard_model_id], [location_grid_id], [vs30], [imt], [agg], poe_levels):
+            if (ghaz.hazard_model_id == hazard_model_id) & (ghaz.vs30 == vs30) & (ghaz.imt == imt) & (ghaz.agg == agg):
+                existing_poes.append(ghaz.poe)
+        if set(existing_poes) == set(poe_levels):
+            log.info('griddded hazard for %s, %s, %s, %s %s already exists, skipping.' % (hazard_model_id, vs30, imt, agg, poe_levels))
+            continue
+        log.info('putting task for %s, %s, %s, %s %s.' (hazard_model_id, vs30, imt, agg, poe_levels))
         t = GridHazTaskArgs(location_keys, poe_levels, location_grid_id, hazard_model_id, vs30, imt, agg)
         task_queue.put(t)
         count += 1

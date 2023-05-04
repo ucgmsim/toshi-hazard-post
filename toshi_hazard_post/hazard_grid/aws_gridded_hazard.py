@@ -14,7 +14,7 @@ from toshi_hazard_post.local_config import API_URL, S3_URL
 
 NUM_MACHINES = 300
 NUM_WORKERS = 4
-TIME_LIMIT = 10*60
+TIME_LIMIT = 7*60
 MEMORY = 15360
 
 def batch_job_config( task_arguments: Dict, job_arguments: Dict, task_id: int):
@@ -63,18 +63,17 @@ def tasks_by_chunk(
         filter_locations = [],
     )
 
-    p, h, v, i, a = [], [], [], [], []
-    for (poe, hazard_model_id, vs30, imt, agg) in itertools.product(
-        poe_levels, hazard_model_ids, vs30s, imts, aggs
+    for (hazard_model_id, vs30, imt, agg) in itertools.product(
+        hazard_model_ids, vs30s, imts, aggs
     ):
         count += 1
         total += 1
-        task_chunk.poe_levels.append(poe)
         task_chunk.hazard_model_ids.append(hazard_model_id)
         task_chunk.vs30s.append(vs30)
         task_chunk.imts.append(imt)
         task_chunk.aggs.append(agg)
         if count == chunk_size:
+            task_chunk.poe_levels = poe_levels
             yield task_chunk
             count = 0
             task_chunk = DistributedGridTaskArguments(
@@ -86,7 +85,8 @@ def tasks_by_chunk(
                 aggs = [],
                 filter_locations = [],
             )
-        elif total == len(poe_levels) * len(hazard_model_ids) * len(vs30s) * len(imts) * len(aggs):
+        elif total == len(hazard_model_ids) * len(vs30s) * len(imts) * len(aggs):
+            task_chunk.poe_levels = poe_levels
             yield task_chunk
 
 
@@ -111,6 +111,8 @@ def batch_job_configs(
         aggs,
         chunk_size=NUM_WORKERS
     ):
+
+        print(task_chunk)
 
         data = DistributedGridTaskArguments(
             location_grid_id=location_grid_id,
