@@ -10,7 +10,7 @@ from typing import Dict, Iterable, List
 import numpy as np
 from nzshm_common.grids import RegionGrid
 from nzshm_common.location import CodedLocation
-from pynamodb.exceptions import PutError
+from pynamodb.exceptions import PutError, QueryError
 from toshi_hazard_store import model, query_v3
 from toshi_hazard_store.query.gridded_hazard_query import get_gridded_hazard
 
@@ -111,13 +111,18 @@ class GriddedHAzardWorkerMP(multiprocessing.Process):
                 log.info('%s: Exiting' % proc_name)
                 break
 
-            for ghaz in process_gridded_hazard(*nt):
-                if SPOOF_SAVE is False:
-                    try:
-                        ghaz.save()
-                        log.info('save %s' % ghaz)
-                    except PutError:
-                        log.warn('could not save %s, likely item already exists' % ghaz)
+            try:
+                for ghaz in process_gridded_hazard(*nt):
+                    if SPOOF_SAVE is False:
+                        try:
+                            ghaz.save()
+                            log.info('save %s' % ghaz)
+                        except PutError:
+                            log.warn('could not save %s, likely item already exists' % ghaz)
+            except QueryError as e:
+                log.warn('QueryError, queries likely being throttled, skipping task: %s' % nt)
+                log.warn(e)
+
 
             self.task_queue.task_done()
             log.info('%s task done.' % self.name)

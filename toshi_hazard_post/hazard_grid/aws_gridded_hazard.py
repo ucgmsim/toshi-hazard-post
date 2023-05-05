@@ -36,7 +36,7 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
         memory=MEMORY,
         vcpu=NUM_WORKERS,
         job_definition="BigLeverOnDemandEC2-THP-HazardAggregation",
-        job_queue="ToshiHazardPost_HazAgg_JQ",  # "BigLever_32GB_8VCPU_v2_JQ", #"BigLeverOnDemandEC2-job-queue"
+        job_queue="ToshiHazardPost_GriddedHaz_JQ",  # "BigLever_32GB_8VCPU_v2_JQ", #"BigLeverOnDemandEC2-job-queue"
         extra_env=extra_env,
         use_compression=True,
     )
