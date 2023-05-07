@@ -12,7 +12,7 @@ from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 
 NUM_MACHINES = 300
 NUM_WORKERS = 4
-TIME_LIMIT = 7 * 60
+TIME_LIMIT = 12 * 60
 MEMORY = 15360
 
 
