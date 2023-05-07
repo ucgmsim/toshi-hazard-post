@@ -132,15 +132,29 @@ def requested_configs(
     vs30s: List[int],
     deagg_hazard_model_target: str,
     inv_time: int,
+    iter_method: str = ''
 ) -> Generator[DeaggConfig, None, None]:
-    for location, agg, poe, imt, vs30 in itertools.product(
-        # [CodedLocation(*loc, 0.001).code for loc in get_locations(config)],
-        map(coded_location, locations),
-        deagg_agg_targets,
-        poes,
-        imts,
-        vs30s,
-    ):
+
+    if not iter_method or iter_method.lower() == 'product':
+        iterator = itertools.product(
+            map(coded_location, locations),
+            deagg_agg_targets,
+            poes,
+            imts,
+            vs30s,
+        )
+    elif iter_method.lower() == 'zip':
+        iterator = zip(
+            map(coded_location, locations),
+            deagg_agg_targets,
+            poes,
+            imts,
+            vs30s,
+        )
+    else:
+        raise ValueError('iter_method must be empty, "product", or "zip", %s given.' % iter_method)
+
+    for location, agg, poe, imt, vs30 in iterator:
         yield DeaggConfig(
             hazard_model_id=deagg_hazard_model_target,
             location=location,
@@ -162,6 +176,7 @@ def get_deagg_gtids(
     vs30s: List[int],
     deagg_hazard_model_target: str,
     inv_time: int,
+    iter_method: str = '',
 ) -> List[str]:
     def extract_deagg_config(subtask):
         deagg_task_config = json.loads(subtask['arguments']['disagg_config'].replace("'", '"').replace('None', 'null'))
@@ -191,7 +206,7 @@ def get_deagg_gtids(
         slt = from_config(lt_config)
         nbranches = sum([len(fslt.branches) for fslt in slt.fault_system_lts])
         for deagg in requested_configs(
-            locations, deagg_agg_targets, poes, imts, vs30s, deagg_hazard_model_target, inv_time
+            locations, deagg_agg_targets, poes, imts, vs30s, deagg_hazard_model_target, inv_time, iter_method,
         ):
             gtids_tmp = []
             for gt, entry in index.items():
@@ -244,7 +259,7 @@ def process_deaggregation(config: AggregationConfig) -> None:
         process_deaggregation_local(args)
 
 
-def process_deaggregation_local(args: DeaggProcessArgs) -> List[str]:
+def process_deaggregation_local(args: DeaggProcessArgs, iter_method: str = '') -> List[str]:
     """Aggregate the Deaggregations in parallel."""
 
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
@@ -270,6 +285,7 @@ def process_deaggregation_local(args: DeaggProcessArgs) -> List[str]:
         args.vs30s,
         args.deagg_hazard_model_target,
         args.inv_time,
+        iter_method,
     )
 
     for gtid in gtids:

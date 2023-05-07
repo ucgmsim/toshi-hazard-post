@@ -78,7 +78,7 @@ def process_args(args: DeaggProcessArgs) -> None:
     lt_config = fetch_lt_config(args.lt_config_id)
     args.lt_config = lt_config
 
-    process_deaggregation_local(args)
+    process_deaggregation_local(args, iter_method='zip')
 
 
 #  _                     _ _             _                     _ _
@@ -126,6 +126,6 @@ if __name__ == "__main__":
         config = json.loads(decompress_config(args.config))
 
     # Wait for some more time, scaled by taskid to avoid S3 consistency issue
-    time.sleep(config['job_arguments']['task_id'])
+    time.sleep(config['job_arguments']['start_delay'])
 
     process_args(args=DeaggProcessArgs(**config['task_arguments']))

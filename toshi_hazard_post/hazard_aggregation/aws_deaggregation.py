@@ -1,9 +1,10 @@
 """Hazard aggregation task dispatch."""
+import itertools
 import logging
 import shutil
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict, Iterator
+from typing import Any, Dict, Iterator, List, Tuple, Generator
 
 import boto3
 
@@ -23,7 +24,9 @@ TEST_SIZE = None  # 16  # HOW many locations to run MAX (also see TOML limit)
 # NUM_WORKERS = 1  # noqa
 MEMORY = 15360  # 7168 #8192 #30720 #15360 # 10240
 NUM_WORKERS = 4  # noqa
-NUM_MACHINES = 300
+NUM_MACHINES = 150  # number of machines running simultaneously
+TASK_TIME = 20 * 60  # 20 min to read all csv files
+TASK_SPACING = 20  # number of machines running task (downloading csv files) simultaneously
 STRIDE = 100
 TIME_LIMIT = 10 * 60  # minutes
 
@@ -60,13 +63,55 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int) ->
     )
 
 
+def tasks_by_chunk(
+        locations: List[Tuple[float, float]],
+        aggs: List[str],
+        poes: List[float],
+        imts: List[str],
+        vs30s: List[int],
+        chunk_size: int,
+) -> Generator[Dict[str, List[Any]], None, None]:
+
+    keys = ['locations', 'deagg_agg_targets', 'poes', 'imts', 'vs30s']
+
+    count = 0
+    total = 0
+    task_chunk = {key: [] for key in keys}
+    n_combs = len(locations) * len(aggs) * len(poes) * len(imts) * len(vs30s)
+
+    for (location, agg, poe, imt, vs30) in itertools.product(
+        locations, aggs, poes, imts, vs30s
+    ):
+        count += 1
+        total += 1
+        task_chunk['locations'].append(location)
+        task_chunk['deagg_agg_targets'].append(agg)
+        task_chunk['poes'].append(poe)
+        task_chunk['imts'].append(imt)
+        task_chunk['vs30s'].append(vs30)
+        if count == chunk_size:
+            yield task_chunk
+            count = 0
+            task_chunk = {key: [] for key in keys}
+        elif total == n_combs:
+            yield task_chunk
+
+
 def batch_job_configs(config: AggregationConfig, lt_config_id: str) -> Iterator[Dict[str, Any]]:
 
     locations = get_locations(config)
 
     task_count = 0
     locs_processed = 0
-    for location_chunk in chunks(locations, NUM_WORKERS):
+    for task_chunk in tasks_by_chunk(
+        locations,
+        config.deagg_agg_targets,
+        config.poes,
+        config.imts,
+        config.vs30s,
+        NUM_WORKERS,
+    ):
+
         data = DeaggProcessArgs(
             lt_config_id=lt_config_id,
             lt_config='',
@@ -77,18 +122,23 @@ def batch_job_configs(config: AggregationConfig, lt_config_id: str) -> Iterator[
             stride=config.stride,
             skip_save=config.skip_save,
             hazard_gts=config.hazard_gts,
-            locations=location_chunk,
-            deagg_agg_targets=config.deagg_agg_targets,
-            poes=config.poes,
-            imts=config.imts,
-            vs30s=config.vs30s,
+            locations=task_chunk['locations'],
+            deagg_agg_targets=task_chunk['deagg_agg_targets'],
+            poes=task_chunk['poes'],
+            imts=task_chunk['imts'],
+            vs30s=task_chunk['vs30s'],
             deagg_hazard_model_target=config.deagg_hazard_model_target,
             inv_time=config.inv_time,
             num_workers=NUM_WORKERS,
         )
         locs_processed += NUM_WORKERS
         task_count += 1
-        yield batch_job_config(task_arguments=asdict(data), job_arguments=dict(task_id=task_count), task_id=task_count)
+        start_delay = (task_count - 1) % NUM_MACHINES * (TASK_TIME / TASK_SPACING)
+        yield batch_job_config(
+            task_arguments=asdict(data),
+            job_arguments=dict(task_id=task_count, start_delay=start_delay),
+            task_id=task_count
+        )
         if TEST_SIZE and locs_processed >= TEST_SIZE:
             break
 
