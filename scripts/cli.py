@@ -71,9 +71,9 @@ def cli_gridded_hazard(
     verbose,
     dry_run,
     migrate_tables,
+    force,
     mode,
     num_workers,
-    force,
 ):
     """Process gridded hazard for a given set of arguments."""
 
@@ -130,8 +130,8 @@ def cli_gridded_hazard(
                 imts=imts,
                 aggs=aggs,
                 num_workers=num_workers,
-                filter_locations=filter_locations,
                 force=force,
+                filter_locations=filter_locations,
             )
         except Exception as err:
             click.echo(err)

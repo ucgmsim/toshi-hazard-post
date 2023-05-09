@@ -138,9 +138,9 @@ def calc_gridded_hazard(
     imts: Iterable[str],
     aggs: Iterable[str],
     num_workers: int,
+    force: bool = False,
     filter_locations: Iterable[CodedLocation] = None,
     iter_method: str = 'product',
-    force: bool = False,
 ):
 
     log.info(
