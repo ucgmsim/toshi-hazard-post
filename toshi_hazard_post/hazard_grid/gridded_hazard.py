@@ -36,6 +36,7 @@ class DistributedGridTaskArguments:
     imts: List[str]
     aggs: List[str]
     filter_locations: List[CodedLocation]
+    force: bool
 
 
 def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_model_id, vs30, imt, agg):
@@ -58,18 +59,19 @@ def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_m
             log.debug('replaced %s with %s' % (index, grid_accel_levels[poe_lvl][index]))
 
     if agg == 'mean':
-        for poe_lvl in poe_levels:
-            grid_covs: List = [None for i in range(len(location_keys))]
-            for cov in query_v3.get_hazard_curves(
-                location_keys, [vs30], [hazard_model_id], imts=[imt], aggs=[COV_AGG_KEY]
-            ):
+        grid_covs: Dict[float, List] = {poe: [None for i in range(len(location_keys))] for poe in poe_levels}
+        for cov in query_v3.get_hazard_curves(
+            location_keys, [vs30], [hazard_model_id], imts=[imt], aggs=[COV_AGG_KEY]
+        ):
+            index = location_keys.index(cov.nloc_001)
+            cov_values = [val.val for val in cov.values]
+            for poe_lvl in poe_levels:
                 # cov_accel_levels = [val.lvl for val in cov.values]
-                cov_values = [val.val for val in cov.values]
-                index = location_keys.index(cov.nloc_001)
-                grid_covs[index] = np.exp(
+                grid_covs[poe_lvl][index] = np.exp(
                     np.interp(np.log(grid_accel_levels[poe_lvl][index]), np.log(accel_levels), np.log(cov_values))
                 )
 
+        for poe_lvl in poe_levels:
             yield model.GriddedHazard.new_model(
                 hazard_model_id=hazard_model_id,
                 location_grid_id=location_grid_id,
@@ -77,7 +79,7 @@ def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_m
                 imt=imt,
                 agg=COV_AGG_KEY,
                 poe=poe_lvl,
-                grid_poes=grid_covs,
+                grid_poes=grid_covs[poe_lvl],
             )
 
     for poe_lvl in poe_levels:
@@ -113,16 +115,16 @@ class GriddedHAzardWorkerMP(multiprocessing.Process):
 
             try:
                 for ghaz in process_gridded_hazard(*nt):
-                    if SPOOF_SAVE is False:
-                        try:
-                            ghaz.save()
-                            log.info('save %s' % ghaz)
-                        except PutError:
-                            log.warn('could not save %s, likely item already exists' % ghaz)
+                    try:
+                        ghaz_old = next(model.GriddedHazard.query(ghaz.partition_key, model.GriddedHazard.sort_key==ghaz.sort_key))
+                        ghaz_old.grid_poes = ghaz.grid_poes
+                        ghaz_old.save()
+                    except StopIteration:
+                        ghaz.save()
+                    log.info('save %s' % ghaz)
             except QueryError as e:
                 log.warn('QueryError, queries likely being throttled, skipping task: %s' % nt)
                 log.warn(e)
-
 
             self.task_queue.task_done()
             log.info('%s task done.' % self.name)
@@ -138,6 +140,7 @@ def calc_gridded_hazard(
     num_workers: int,
     filter_locations: Iterable[CodedLocation] = None,
     iter_method: str = 'product',
+    force: bool = False,
 ):
 
     log.info(
@@ -172,16 +175,17 @@ def calc_gridded_hazard(
         iterator = zip(hazard_model_ids, vs30s, imts, aggs)
     for (hazard_model_id, vs30, imt, agg) in iterator:
 
-        existing_poes = []
-        for ghaz in get_gridded_hazard([hazard_model_id], [location_grid_id], [vs30], [imt], [agg], poe_levels):
-            if (ghaz.hazard_model_id == hazard_model_id) & (ghaz.vs30 == vs30) & (ghaz.imt == imt) & (ghaz.agg == agg):
-                existing_poes.append(ghaz.poe)
-        if set(existing_poes) == set(poe_levels):
-            log.info(
-                'griddded hazard for %s, %s, %s, %s %s already exists, skipping.'
-                % (hazard_model_id, vs30, imt, agg, poe_levels)
-            )
-            continue
+        if not force:
+            existing_poes = []
+            for ghaz in get_gridded_hazard([hazard_model_id], [location_grid_id], [vs30], [imt], [agg], poe_levels):
+                if (ghaz.hazard_model_id == hazard_model_id) & (ghaz.vs30 == vs30) & (ghaz.imt == imt) & (ghaz.agg == agg):
+                    existing_poes.append(ghaz.poe)
+            if set(existing_poes) == set(poe_levels):
+                log.info(
+                    'griddded hazard for %s, %s, %s, %s %s already exists, skipping.'
+                    % (hazard_model_id, vs30, imt, agg, poe_levels)
+                )
+                continue
         log.info('putting task for %s, %s, %s, %s %s.' % (hazard_model_id, vs30, imt, agg, poe_levels))
         t = GridHazTaskArgs(location_keys, poe_levels, location_grid_id, hazard_model_id, vs30, imt, agg)
         task_queue.put(t)

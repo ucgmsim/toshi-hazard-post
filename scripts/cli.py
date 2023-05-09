@@ -51,6 +51,7 @@ def thp():
 @click.option('-v', '--verbose', is_flag=True)
 @click.option('-d', '--dry-run', is_flag=True)
 @click.option('-m', '--migrate-tables', is_flag=True)
+@click.option('-f', '--force', is_flag=True)
 @click.option(
     '--mode',
     '-m',
@@ -72,6 +73,7 @@ def cli_gridded_hazard(
     migrate_tables,
     mode,
     num_workers,
+    force,
 ):
     """Process gridded hazard for a given set of arguments."""
 
@@ -129,6 +131,7 @@ def cli_gridded_hazard(
                 aggs=aggs,
                 num_workers=num_workers,
                 filter_locations=filter_locations,
+                force=force,
             )
         except Exception as err:
             click.echo(err)
@@ -149,6 +152,7 @@ def cli_gridded_hazard(
                 imts=imts,
                 aggs=aggs,
                 filter_locations=filter_locations,
+                force=force,
             )
         except Exception as err:
             click.echo(err)

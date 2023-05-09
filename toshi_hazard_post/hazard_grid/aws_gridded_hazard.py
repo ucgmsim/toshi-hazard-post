@@ -12,7 +12,7 @@ from toshi_hazard_post.util import BatchEnvironmentSetting, get_ecs_job_config
 
 NUM_MACHINES = 300
 NUM_WORKERS = 4
-TIME_LIMIT = 12 * 60
+TIME_LIMIT = 24 * 60
 MEMORY = 15360
 
 
@@ -96,6 +96,7 @@ def batch_job_configs(
     imts: Iterable[str],
     aggs: Iterable[str],
     filter_locations: Iterable[CodedLocation] = None,
+    force: bool = False,
 ):
 
     task_count = 0
@@ -113,6 +114,7 @@ def batch_job_configs(
             imts=task_chunk.imts,
             aggs=task_chunk.aggs,
             filter_locations=filter_locations,
+            force=force,
         )
         items_processed += NUM_WORKERS
         task_count += 1
@@ -131,6 +133,7 @@ def distribute_gridded_hazard(
     imts: Iterable[str],
     aggs: Iterable[str],
     filter_locations: Iterable[CodedLocation] = None,
+    force: bool = False,
 ):
 
     batch_client = boto3.client(
@@ -145,6 +148,7 @@ def distribute_gridded_hazard(
         imts,
         aggs,
         filter_locations,
+        force,
     ):
         print('AWS_CONFIG: ', job_config)
         print()

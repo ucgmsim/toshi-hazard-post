@@ -181,6 +181,7 @@ def get_disagg(csv_archive, deagg_dimensions):
         else:
             ddims = ['mag', 'dist', 'eps', 'trt']
             filename_fallback = '_'.join([d.value for d in Dimension]) + '-0_1.csv'
+            breakpoint()
             with io.TextIOWrapper(zipf.open(filename_fallback), encoding="utf-8") as disagg_file:
                 log.info(
                     f'file requested {filename} missing from archive {csv_archive} '

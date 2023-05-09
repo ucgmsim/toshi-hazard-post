@@ -30,6 +30,7 @@ def process_args(args: DistributedGridTaskArguments) -> None:
         num_workers=NUM_WORKERS,
         filter_locations=args.filter_locations,
         iter_method='zip',
+        force=args.force,
     )
 
     log.info(results)
