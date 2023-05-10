@@ -58,6 +58,12 @@ def thp():
     default='LOCAL',
     type=click.Choice(['AWS_BATCH', 'LOCAL'], case_sensitive=True),
 )
+@click.option(
+    '--iter-method',
+    '-i',
+    default='product',
+    type=click.Choice(['product', 'zip'], case_sensitive = True),
+)
 @click.option('-w', '--num-workers', default=4, show_default=True)
 def cli_gridded_hazard(
     hazard_model_ids,
@@ -73,6 +79,7 @@ def cli_gridded_hazard(
     migrate_tables,
     force,
     mode,
+    iter_method,
     num_workers,
 ):
     """Process gridded hazard for a given set of arguments."""
@@ -132,6 +139,7 @@ def cli_gridded_hazard(
                 num_workers=num_workers,
                 force=force,
                 filter_locations=filter_locations,
+                iter_method=iter_method,
             )
         except Exception as err:
             click.echo(err)
@@ -151,8 +159,9 @@ def cli_gridded_hazard(
                 vs30s=vs30s,
                 imts=imts,
                 aggs=aggs,
-                filter_locations=filter_locations,
                 force=force,
+                filter_locations=filter_locations,
+                iter_method=iter_method,
             )
         except Exception as err:
             click.echo(err)

@@ -49,6 +49,7 @@ def tasks_by_chunk(
     imts: Iterable[str],
     aggs: Iterable[str],
     chunk_size: int,
+    iter_method: str,
 ) -> Generator[DistributedGridTaskArguments, None, None]:
 
     count = 0
@@ -61,9 +62,17 @@ def tasks_by_chunk(
         imts=[],
         aggs=[],
         filter_locations=[],
+        force=False,
     )
 
-    for (hazard_model_id, vs30, imt, agg) in itertools.product(hazard_model_ids, vs30s, imts, aggs):
+    if iter_method == 'product':
+        iterator = itertools.product(hazard_model_ids, vs30s, imts, aggs)
+        total_jobs = len(hazard_model_ids) * len(vs30s) * len(imts) * len(aggs)
+    elif iter_method == 'zip':
+        iterator = zip(hazard_model_ids, vs30s, imts, aggs)
+        total_jobs = min(len(hazard_model_ids), len(vs30s), len(imts), len(aggs))
+
+    for (hazard_model_id, vs30, imt, agg) in iterator:
         count += 1
         total += 1
         task_chunk.hazard_model_ids.append(hazard_model_id)
@@ -82,8 +91,9 @@ def tasks_by_chunk(
                 imts=[],
                 aggs=[],
                 filter_locations=[],
+                force=False,
             )
-        elif total == len(hazard_model_ids) * len(vs30s) * len(imts) * len(aggs):
+        elif total == total_jobs:
             task_chunk.poe_levels = poe_levels
             yield task_chunk
 
@@ -95,16 +105,17 @@ def batch_job_configs(
     vs30s: Iterable[float],
     imts: Iterable[str],
     aggs: Iterable[str],
-    filter_locations: Iterable[CodedLocation] = None,
     force: bool = False,
+    filter_locations: Iterable[CodedLocation] = None,
+    iter_method: str = 'product',
 ):
 
     task_count = 0
     items_processed = 0
 
-    for task_chunk in tasks_by_chunk(poe_levels, hazard_model_ids, vs30s, imts, aggs, chunk_size=NUM_WORKERS):
+    for task_chunk in tasks_by_chunk(poe_levels, hazard_model_ids, vs30s, imts, aggs, chunk_size=NUM_WORKERS, iter_method=iter_method):
 
-        print(task_chunk)
+        print('task chunk:', task_chunk)
 
         data = DistributedGridTaskArguments(
             location_grid_id=location_grid_id,
@@ -132,8 +143,9 @@ def distribute_gridded_hazard(
     vs30s: Iterable[float],
     imts: Iterable[str],
     aggs: Iterable[str],
-    filter_locations: Iterable[CodedLocation] = None,
     force: bool = False,
+    filter_locations: Iterable[CodedLocation] = None,
+    iter_method: str = 'product',
 ):
 
     batch_client = boto3.client(
@@ -147,8 +159,9 @@ def distribute_gridded_hazard(
         vs30s,
         imts,
         aggs,
-        filter_locations,
         force,
+        filter_locations,
+        iter_method,
     ):
         print('AWS_CONFIG: ', job_config)
         print()
