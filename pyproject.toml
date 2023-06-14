@@ -43,7 +43,7 @@ pandas = "^1.4.3"
 numba = "^0.56.0"
 dacite = "^1.7.0"
 nzshm-model = {git = "https://github.com/GNS-Science/nzshm-model.git"}
-toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "fix/update-nzshm-common"}
+toshi-hazard-store = "^0.7.2"
 
 
 [tool.poetry.dev-dependencies]
