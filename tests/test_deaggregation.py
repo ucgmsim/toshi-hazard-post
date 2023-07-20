@@ -12,8 +12,9 @@ index_filepath = Path(Path(__file__).parent, 'fixtures', 'deaggregation', 'index
 with open(index_filepath) as index_file:
     index = json.load(index_file)
 
-GtIdsArgs = namedtuple("GtIdsArgs",
-                       """
+GtIdsArgs = namedtuple(
+    "GtIdsArgs",
+    """
                        hazard_gts 
                        lt_config 
                        locations 
@@ -24,7 +25,9 @@ GtIdsArgs = namedtuple("GtIdsArgs",
                        deagg_hazard_model_target 
                        inv_time 
                        iter_method
-                       """)
+                       """,
+)
+
 
 @mock.patch('toshi_hazard_post.hazard_aggregation.deaggregation.urllib.request')
 @mock.patch('toshi_hazard_post.hazard_aggregation.deaggregation.get_index_from_s3', return_value=index)
@@ -47,10 +50,8 @@ class testGetGts(unittest.TestCase):
             "",
         )
 
-
-
     def test_get_deagg_gts(self, mock_index, mock_requests):
-    
+
         gt_ids = get_deagg_gtids(
             self._gt_ids_args.hazard_gts,
             self._gt_ids_args.lt_config,
