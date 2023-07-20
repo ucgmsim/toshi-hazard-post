@@ -414,8 +414,9 @@ def process_aggregation_local(
             )
 
             task_queue.put(t)
-            # log.info('sleeping 10 seconds before queuing next task')
-            # time.sleep(10)
+            sleep_time = 5
+            log.info('sleeping %s seconds before queuing next task' % sleep_time)
+            time.sleep(sleep_time)
             num_jobs += 1
 
     # Add a poison pill for each to signal we've done everything
