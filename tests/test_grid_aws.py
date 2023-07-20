@@ -20,6 +20,7 @@ def test_tasks_by_chunk():
         imts,
         aggs,
         chunk_size,
+        'product',
     ):
         num_chunks += 1
 
@@ -47,6 +48,7 @@ def test_tasks_by_chunk_tasks():
         imts,
         aggs,
         chunk_size,
+        'product',
     ):
         poe_levels_out += chunk.poe_levels
         hazard_model_ids_out += chunk.hazard_model_ids

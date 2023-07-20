@@ -87,7 +87,7 @@ class HazardBranch:
     def weight(self):
         return self.source_branch.weight
 
-    def set_gmcm_branches(self, metadata: Dict[str, dict], correlations: List[List[str]]) -> None:
+    def set_gmcm_branches(self, metadata: Dict[str, dict], correlations: List[List[str]]) -> None:  # noqa: C901
         """
         Build the table of ground motion combinations and weights for a single source branch.
         Assumes one source branch per run and the same gsim weights in every run. Can enforce correlations of ground

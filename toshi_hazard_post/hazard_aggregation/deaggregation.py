@@ -132,7 +132,7 @@ def requested_configs(
     vs30s: List[int],
     deagg_hazard_model_target: str,
     inv_time: int,
-    iter_method: str = ''
+    iter_method: str = '',
 ) -> Generator[DeaggConfig, None, None]:
 
     if not iter_method or iter_method.lower() == 'product':
@@ -206,7 +206,14 @@ def get_deagg_gtids(
         slt = from_config(lt_config)
         nbranches = sum([len(fslt.branches) for fslt in slt.fault_system_lts])
         for deagg in requested_configs(
-            locations, deagg_agg_targets, poes, imts, vs30s, deagg_hazard_model_target, inv_time, iter_method,
+            locations,
+            deagg_agg_targets,
+            poes,
+            imts,
+            vs30s,
+            deagg_hazard_model_target,
+            inv_time,
+            iter_method,
         ):
             gtids_tmp = []
             for gt, entry in index.items():

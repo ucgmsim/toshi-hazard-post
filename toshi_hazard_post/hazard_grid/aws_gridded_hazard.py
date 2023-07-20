@@ -113,7 +113,9 @@ def batch_job_configs(
     task_count = 0
     items_processed = 0
 
-    for task_chunk in tasks_by_chunk(poe_levels, hazard_model_ids, vs30s, imts, aggs, chunk_size=NUM_WORKERS, iter_method=iter_method):
+    for task_chunk in tasks_by_chunk(
+        poe_levels, hazard_model_ids, vs30s, imts, aggs, chunk_size=NUM_WORKERS, iter_method=iter_method
+    ):
 
         print('task chunk:', task_chunk)
 

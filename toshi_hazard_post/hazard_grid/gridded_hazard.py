@@ -10,7 +10,7 @@ from typing import Dict, Iterable, List
 import numpy as np
 from nzshm_common.grids import RegionGrid
 from nzshm_common.location import CodedLocation
-from pynamodb.exceptions import PutError, QueryError
+from pynamodb.exceptions import QueryError
 from toshi_hazard_store import model, query_v3
 from toshi_hazard_store.query.gridded_hazard_query import get_gridded_hazard
 
@@ -60,9 +60,7 @@ def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_m
 
     if agg == 'mean':
         grid_covs: Dict[float, List] = {poe: [None for i in range(len(location_keys))] for poe in poe_levels}
-        for cov in query_v3.get_hazard_curves(
-            location_keys, [vs30], [hazard_model_id], imts=[imt], aggs=[COV_AGG_KEY]
-        ):
+        for cov in query_v3.get_hazard_curves(location_keys, [vs30], [hazard_model_id], imts=[imt], aggs=[COV_AGG_KEY]):
             index = location_keys.index(cov.nloc_001)
             cov_values = [val.val for val in cov.values]
             for poe_lvl in poe_levels:
@@ -116,7 +114,9 @@ class GriddedHAzardWorkerMP(multiprocessing.Process):
             try:
                 for ghaz in process_gridded_hazard(*nt):
                     try:
-                        ghaz_old = next(model.GriddedHazard.query(ghaz.partition_key, model.GriddedHazard.sort_key==ghaz.sort_key))
+                        ghaz_old = next(
+                            model.GriddedHazard.query(ghaz.partition_key, model.GriddedHazard.sort_key == ghaz.sort_key)
+                        )
                         ghaz_old.grid_poes = ghaz.grid_poes
                         ghaz_old.save()
                     except StopIteration:
@@ -178,7 +178,12 @@ def calc_gridded_hazard(
         if not force:
             existing_poes = []
             for ghaz in get_gridded_hazard([hazard_model_id], [location_grid_id], [vs30], [imt], [agg], poe_levels):
-                if (ghaz.hazard_model_id == hazard_model_id) & (ghaz.vs30 == vs30) & (ghaz.imt == imt) & (ghaz.agg == agg):
+                if (
+                    (ghaz.hazard_model_id == hazard_model_id)
+                    & (ghaz.vs30 == vs30)
+                    & (ghaz.imt == imt)
+                    & (ghaz.agg == agg)
+                ):
                     existing_poes.append(ghaz.poe)
             if set(existing_poes) == set(poe_levels):
                 log.info(

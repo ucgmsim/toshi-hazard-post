@@ -4,7 +4,7 @@ import logging
 import shutil
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Tuple, Generator
+from typing import Any, Dict, Generator, Iterator, List, Tuple
 
 import boto3
 
@@ -64,12 +64,12 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int) ->
 
 
 def tasks_by_chunk(
-        locations: List[Tuple[float, float]],
-        aggs: List[str],
-        poes: List[float],
-        imts: List[str],
-        vs30s: List[int],
-        chunk_size: int,
+    locations: List[Tuple[float, float]],
+    aggs: List[str],
+    poes: List[float],
+    imts: List[str],
+    vs30s: List[int],
+    chunk_size: int,
 ) -> Generator[Dict[str, List[Any]], None, None]:
 
     keys = ['locations', 'deagg_agg_targets', 'poes', 'imts', 'vs30s']
@@ -79,9 +79,7 @@ def tasks_by_chunk(
     task_chunk = {key: [] for key in keys}
     n_combs = len(locations) * len(aggs) * len(poes) * len(imts) * len(vs30s)
 
-    for (location, agg, poe, imt, vs30) in itertools.product(
-        locations, aggs, poes, imts, vs30s
-    ):
+    for (location, agg, poe, imt, vs30) in itertools.product(locations, aggs, poes, imts, vs30s):
         count += 1
         total += 1
         task_chunk['locations'].append(location)
@@ -137,7 +135,7 @@ def batch_job_configs(config: AggregationConfig, lt_config_id: str) -> Iterator[
         yield batch_job_config(
             task_arguments=asdict(data),
             job_arguments=dict(task_id=task_count, start_delay=start_delay),
-            task_id=task_count
+            task_id=task_count,
         )
         if TEST_SIZE and locs_processed >= TEST_SIZE:
             break

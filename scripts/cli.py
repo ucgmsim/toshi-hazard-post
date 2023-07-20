@@ -62,7 +62,7 @@ def thp():
     '--iter-method',
     '-i',
     default='product',
-    type=click.Choice(['product', 'zip'], case_sensitive = True),
+    type=click.Choice(['product', 'zip'], case_sensitive=True),
 )
 @click.option('-w', '--num-workers', default=4, show_default=True)
 def cli_gridded_hazard(
