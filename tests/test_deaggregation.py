@@ -15,15 +15,15 @@ with open(index_filepath) as index_file:
 GtIdsArgs = namedtuple(
     "GtIdsArgs",
     """
-                       hazard_gts 
-                       lt_config 
-                       locations 
-                       deagg_agg_targets 
-                       poes 
-                       imts 
-                       vs30s 
-                       deagg_hazard_model_target 
-                       inv_time 
+                       hazard_gts
+                       lt_config
+                       locations
+                       deagg_agg_targets
+                       poes
+                       imts
+                       vs30s
+                       deagg_hazard_model_target
+                       inv_time
                        iter_method
                        """,
 )
