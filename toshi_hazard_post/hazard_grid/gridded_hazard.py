@@ -5,7 +5,7 @@ import logging
 import multiprocessing
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Dict, Iterable, List
+from typing import Any, Dict, Iterable, List
 
 import numpy as np
 from nzshm_common.grids import RegionGrid
@@ -169,6 +169,7 @@ def calc_gridded_hazard(
     for w in workers:
         w.start()
 
+    iterator: Iterable[Any] = []
     if iter_method == 'product':
         iterator = itertools.product(hazard_model_ids, vs30s, imts, aggs)
     elif iter_method == 'zip':

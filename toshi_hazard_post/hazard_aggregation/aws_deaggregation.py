@@ -76,7 +76,7 @@ def tasks_by_chunk(
 
     count = 0
     total = 0
-    task_chunk = {key: [] for key in keys}
+    task_chunk: Dict[str, Any] = {key: [] for key in keys}
     n_combs = len(locations) * len(aggs) * len(poes) * len(imts) * len(vs30s)
 
     for (location, agg, poe, imt, vs30) in itertools.product(locations, aggs, poes, imts, vs30s):

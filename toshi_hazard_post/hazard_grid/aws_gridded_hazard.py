@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import asdict
-from typing import Dict, Generator, Iterable
+from typing import Any, Collection, Dict, Generator, Iterable
 
 import boto3
 from nzshm_common.location import CodedLocation
@@ -44,10 +44,10 @@ def batch_job_config(task_arguments: Dict, job_arguments: Dict, task_id: int):
 
 def tasks_by_chunk(
     poe_levels: Iterable[float],
-    hazard_model_ids: Iterable[str],
-    vs30s: Iterable[float],
-    imts: Iterable[str],
-    aggs: Iterable[str],
+    hazard_model_ids: Collection[str],
+    vs30s: Collection[float],
+    imts: Collection[str],
+    aggs: Collection[str],
     chunk_size: int,
     iter_method: str,
 ) -> Generator[DistributedGridTaskArguments, None, None]:
@@ -65,6 +65,7 @@ def tasks_by_chunk(
         force=False,
     )
 
+    iterator: Iterable[Any] = []
     if iter_method == 'product':
         iterator = itertools.product(hazard_model_ids, vs30s, imts, aggs)
         total_jobs = len(hazard_model_ids) * len(vs30s) * len(imts) * len(aggs)
@@ -101,10 +102,10 @@ def tasks_by_chunk(
 def batch_job_configs(
     location_grid_id: str,
     poe_levels: Iterable[float],
-    hazard_model_ids: Iterable[str],
-    vs30s: Iterable[float],
-    imts: Iterable[str],
-    aggs: Iterable[str],
+    hazard_model_ids: Collection[str],
+    vs30s: Collection[float],
+    imts: Collection[str],
+    aggs: Collection[str],
     force: bool = False,
     filter_locations: Iterable[CodedLocation] = None,
     iter_method: str = 'product',
@@ -141,10 +142,10 @@ def batch_job_configs(
 def distribute_gridded_hazard(
     location_grid_id: str,
     poe_levels: Iterable[float],
-    hazard_model_ids: Iterable[str],
-    vs30s: Iterable[float],
-    imts: Iterable[str],
-    aggs: Iterable[str],
+    hazard_model_ids: Collection[str],
+    vs30s: Collection[float],
+    imts: Collection[str],
+    aggs: Collection[str],
     force: bool = False,
     filter_locations: Iterable[CodedLocation] = None,
     iter_method: str = 'product',

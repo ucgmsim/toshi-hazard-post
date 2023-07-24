@@ -2,7 +2,7 @@ import ast
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Iterable, List, Union
+from typing import Collection, Dict, List, Union
 
 # from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
 import toshi_hazard_store
@@ -16,7 +16,7 @@ DTOL = 1.0e-6
 log = logging.getLogger(__name__)
 
 
-def preload_meta(ids: Iterable[str], vs30: int) -> Dict[str, dict]:
+def preload_meta(ids: Collection[str], vs30: int) -> Dict[str, dict]:
     """Retreive the GMCM logic tree metadata from Toshi-Hazard-Store.
 
     Parameters

@@ -7,7 +7,7 @@ import urllib.request
 from collections import namedtuple
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Tuple, Union
+from typing import Any, Dict, Generator, Iterable, List, Tuple, Union
 
 from nzshm_common.location.code_location import CodedLocation
 from nzshm_common.util import decompress_string
@@ -135,6 +135,7 @@ def requested_configs(
     iter_method: str = '',
 ) -> Generator[DeaggConfig, None, None]:
 
+    iterator: Iterable[Any] = []
     if not iter_method or iter_method.lower() == 'product':
         iterator = itertools.product(
             map(coded_location, locations),
