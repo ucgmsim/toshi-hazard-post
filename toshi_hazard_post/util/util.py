@@ -6,7 +6,7 @@ from pathlib import Path, PurePath
 from typing import Union
 
 
-def archive(source_path: str, output_zip: Union[str, PurePath]) -> str:
+def archive(source_path: Union[str, Path], output_zip: Union[str, PurePath]) -> str:
     """Zip contents of source path and return the full archive path.
 
     Handles both single file and a folder.

@@ -1,54 +1,233 @@
+import logging
+import time
+from collections import namedtuple
+from typing import Any, Dict, List, Set
+
 import numpy as np
+import numpy.typing as npt
+import toshi_hazard_store
+
+# from toshi_hazard_post.logic_tree.branch_combinator import SourceBranchGroup
+from toshi_hazard_post.calculators import prob_to_rate
+from toshi_hazard_post.local_config import WORK_PATH
+from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
+from toshi_hazard_post.util.file_utils import get_disagg
+from toshi_hazard_post.util.toshi_client import download_csv
+
+INV_TIME = 1.0
+log = logging.getLogger(__name__)
 
 
-def weighted_quantile(values, quantiles, sample_weight=None, values_sorted=False, old_style=False):
-    """Very close to numpy.percentile, but supports weights.
-    NOTE: quantiles should be in [0, 1]!
-    :param values: numpy.array with data
-    :param quantiles: array-like with many quantiles needed. Can also be string 'mean' to calculate weighted mean
-    :param sample_weight: array-like of the same length as `array`
-    :param values_sorted: bool, if True, then will avoid sorting of
-        initial array
-    :param old_style: if True, will correct output to be consistent
-        with numpy.percentile.
-    :return: numpy.array with computed quantiles.
+# TODO: split rlz number from id rather than joining in key, could keep interface the same and then transition to
+# no longer using id:rlz keys later
+class ValueStore:
+    """storage class for individual oq data from THS. This results in ~15-20% performance hit when calculating
+    aggregations on a 44 element array, but the interface is far superior to 3x nested dicts"""
+
+    DictKey = namedtuple("DictKey", "key loc imt")
+
+    def __init__(self) -> None:
+        self._values: Dict[ValueStore.DictKey, npt.NDArray] = {}
+
+    def set_values(self, *, value: npt.NDArray, key: str, loc: str, imt: str) -> None:
+        self._values[ValueStore.DictKey(key=key, loc=loc, imt=imt)] = value
+
+    def values(self, *, key: str, loc: str, imt: str) -> npt.NDArray:
+        return self._values[ValueStore.DictKey(key=key, loc=loc, imt=imt)]
+
+    @property
+    def len_rate(self) -> int:
+        return len(next(iter(self._values.values())))
+
+    @property
+    def toshi_hazard_ids(self) -> Set[str]:
+        ids = []
+        for k in self._values.keys():
+            ids.append(k.key.split(':')[0])
+        return set(ids)
+
+    def locs(self, toshi_hazard_id: str) -> Set[str]:
+        lcs = []
+        for k in self._values.keys():
+            if k.key.split(':')[0] == toshi_hazard_id:
+                lcs.append(k.loc)
+        return set(lcs)
+
+
+def get_levels(logic_tree: HazardLogicTree, locs: List[str], vs30: int) -> Any:
+    """Get the values of the levels (shaking levels) for the hazard curve from Toshi-Hazard-Store
+
+    Parameters
+    ----------
+    source_branches : list
+        complete logic tree with Openquake Hazard Solutions Toshi IDs
+    locs : List[str]
+        coded locations
+    vs30 : int
+        vs30
+
+    Returns
+    -------
+    levels : List[float]
+        shaking levels of hazard curve"""
+
+    id = logic_tree.hazard_ids[0]
+
+    log.info(f"get_levels locs[0]: {locs[0]} vs30: {vs30}, id {id}")
+    hazard = next(toshi_hazard_store.query_v3.get_rlz_curves_v3([locs[0]], [vs30], None, [id], None))
+
+    return hazard.values[0].lvls
+
+
+def get_imts(logic_tree: HazardLogicTree, vs30: int) -> list:
+    """Get the intensity measure types (IMTs) for the hazard curve from Toshi-Hazard-Store
+
+    Parameters
+    ----------
+    source_branches : list
+        complete logic tree with Openquake Hazard Solutions Toshi IDs
+    locs : List[str]
+        coded locations
+    vs30 : int
+        vs30
+
+    Returns
+    -------
+    levels : List[str]
+        IMTs of hazard curve"""
+
+    meta = next(toshi_hazard_store.query_v3.get_hazard_metadata_v3(logic_tree.hazard_ids, [vs30]))
+    imts = list(meta.imts)
+    imts.sort()
+
+    return imts
+
+
+def check_values(values: ValueStore, toshi_hazard_ids: List[str], locs: List[str]) -> None:
+    """check that the correct number of ids and locations are stored in values
+
+    Parameters
+    ----------
+    values
+        keys to be checked
+    toshi_hazard_ids
+        ids that should be present
+    locs
+        locations that should be present
     """
 
-    values = np.array(values)
-    if sample_weight is None:
-        sample_weight = np.ones(len(values))
-    sample_weight = np.array(sample_weight)
-    sample_weight = sample_weight / sum(sample_weight)
+    diff_ids = set(toshi_hazard_ids) - values.toshi_hazard_ids
+    if diff_ids:
+        log.warn('missing ids: %s' % diff_ids)
 
-    get_mean = False
-    if 'mean' in quantiles:
-        get_mean = True
-        mean_ind = quantiles.index('mean')
-        quantiles = quantiles[0:mean_ind] + quantiles[mean_ind + 1 :]
-        mean = np.sum(sample_weight * values)
+    for id in toshi_hazard_ids:
+        diff_locs = set(locs) - values.locs(id)
+        if diff_locs:
+            log.warn('missing locations: %s for id %s' % (diff_locs, id))
 
-    quantiles = np.array(
-        [float(q) for q in quantiles]
-    )  # TODO this section is hacky, need to tighten up API with typing
-    # print(f'QUANTILES: {quantiles}')
 
-    assert np.all(quantiles >= 0) and np.all(quantiles <= 1), 'quantiles should be in [0, 1]'
+def get_site_vs30(toshi_ids: List[str], loc: str) -> float:
 
-    if not values_sorted:
-        sorter = np.argsort(values)
-        values = values[sorter]
-        sample_weight = sample_weight[sorter]
+    vs30 = 0
+    for res in toshi_hazard_store.query_v3.get_rlz_curves_v3([loc], [0], None, toshi_ids, None):
+        if not (vs30):
+            vs30 = res.site_vs30
+        elif res.site_vs30 != vs30:
+            raise Exception(f'not all Hazard Solutions have teh samve site_vs30. HazardSolution IDs: {toshi_ids}')
 
-    weighted_quantiles = np.cumsum(sample_weight) - 0.5 * sample_weight
-    if old_style:
-        # To be convenient with numpy.percentile
-        weighted_quantiles -= weighted_quantiles[0]
-        weighted_quantiles /= weighted_quantiles[-1]
-    else:
-        weighted_quantiles /= np.sum(sample_weight)
+    return res.site_vs30
 
-    wq = np.interp(quantiles, weighted_quantiles, values)
-    if get_mean:
-        wq = np.append(np.append(wq[0:mean_ind], np.array([mean])), wq[mean_ind:])
 
-    return wq
+def load_realization_values(toshi_ids: List[str], locs: List[str], vs30s: List[int]) -> ValueStore:
+    """Load hazard curves from Toshi-Hazard-Store.
+
+    Parameters
+    ----------
+    toshi_ids
+        Openquake Hazard Solutions Toshi IDs
+    locs
+        coded location strings
+    vs30s
+        vs30s
+
+    Returns
+    values
+        hazard curve values (probabilities) keyed by Toshi ID and gsim realization number
+    """
+
+    tic = time.perf_counter()
+    log.info('loading %s hazard IDs ... ' % len(toshi_ids))
+
+    values = ValueStore()
+    try:
+        for res in toshi_hazard_store.query_v3.get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
+            key = ':'.join((res.hazard_solution_id, str(res.rlz)))
+            for val in res.values:
+                values.set_values(
+                    value=prob_to_rate(np.array(val.vals), INV_TIME), key=key, loc=res.nloc_001, imt=val.imt
+                )
+                # for i, v in enumerate(val.vals):
+                #     if not v:  # TODO: not sure what this is for
+                #         log.debug(
+                #             '%s th value at location: %s, imt: %s, hazard key %s is %s'
+                #             % (i, res.nloc_001, val.imt, key, v)
+                #         )
+    except Exception as err:
+        logging.warning(
+            'load_realization_values() got exception %s with toshi_ids: %s , locs: %s vs30s: %s'
+            % (err, toshi_ids, locs, vs30s)
+        )
+        raise
+
+    # check that the correct number of records came back
+    check_values(values, toshi_ids, locs)
+
+    toc = time.perf_counter()
+    print(f'time to load realizations: {toc-tic:.1f} seconds')
+
+    return values
+
+
+def load_realization_values_deagg(toshi_ids, locs, vs30s, deagg_dimensions):
+    """Load deagg matricies from oq-engine csv archives. Temporoary until deaggs are stored in THS.
+
+    Parameters
+    ----------
+    toshi_ids : List[str]
+        Openquake Hazard Solutions Toshi IDs
+    locs : List[str]
+        coded locations
+    vs30s : List[int]
+        not used
+
+    Returns
+    values : dict
+        hazard curve values (probabilities) keyed by Toshi ID and gsim realization number
+    bins : dict
+        bin centers for each deagg dimension
+    """
+
+    tic = time.perf_counter()
+    log.info('loading %s hazard IDs ... ' % len(toshi_ids))
+
+    values = ValueStore()
+
+    # download csv archives
+    downloads = download_csv(toshi_ids, WORK_PATH)
+    log.info('finished downloading csv archives')
+    for i, download in enumerate(downloads.values()):
+        csv_archive = download['filepath']
+        hazard_solution_id = download['hazard_id']
+        disaggs, bins, location, imt = get_disagg(csv_archive, deagg_dimensions)
+        log.info(f'finished loading data from csv archive {i+1} of {len(downloads)}')
+        for rlz in disaggs.keys():
+            key = ':'.join((hazard_solution_id, rlz))
+            values.set_values(value=prob_to_rate(np.array(disaggs[rlz]), INV_TIME), key=key, loc=location, imt=imt)
+
+    # check that the correct number of records came back
+    check_values(values, toshi_ids, locs)
+
+    toc = time.perf_counter()
+    print(f'time to load realizations: {toc-tic:.1f} seconds')
+
+    return values, bins

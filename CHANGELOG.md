@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0] - 2023-07-24
+
+### Added
+ * Disaggregation- local and AWS
+ * Gridded Hazard - local and AWS
+
+### Changed
+ * Reduced number of conversions from probability to rate and back
+ * Improved parallelization
+ * Use nzhsm-model classes
+ * 100s of other updates
 ## [0.2.0] - 2022-08-03
 
 ### Added
@@ -10,4 +21,4 @@
 
 ## [0.1.0] - 2022-07-20
 
-* First release on PyPI.
+* First version

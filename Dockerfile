@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=100 \
-    POETRY_VERSION=1.1.14 \
+    POETRY_VERSION=1.2.2 \
     POETRY_HOME="/opt/poetry" \
     POETRY_VIRTUALENVS_IN_PROJECT=true \
     PYTHONPATH=/application_root \
@@ -32,7 +32,7 @@ RUN apt-get update \
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=$POETRY_HOME python3 - --version $POETRY_VERSION
 ENV PATH "$PATH:/root/.local/bin/:$POETRY_HOME/bin"
 
-RUN apt-get install --no-install-recommends -y git   # deps for poetry seems 1.1.14 needs git !
+# RUN apt-get install --no-install-recommends -y git   # deps for poetry seems 1.1.14 needs git !
 
 WORKDIR /app
 
@@ -46,13 +46,18 @@ ADD demo demo
 ADD dist dist
 ADD README.md ./
 
-RUN poetry install --no-interaction --no-dev
+# RUN poetry install --no-interaction --no-dev
+RUN poetry install --no-interaction --only main
 
 # Clean up project files. You can add them with a Docker mount later.
 # RUN rm pyproject.toml poetry.lock
 
 ADD scripts scripts
+ADD pynamodb_settings.py pynamodb_settings.py
+ENV PYNAMODB_CONFIG=/app/pynamodb_settings.py
 RUN chmod +x /app/scripts/container_task.sh
+
+WORKDIR /WORKING
 
 # Hide virtual env prompt
 # ENV VIRTUAL_ENV_DISABLE_PROMPT 1

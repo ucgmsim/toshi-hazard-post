@@ -1,144 +1,214 @@
 """Test aggregatio core binning aggregation. """
 
 import json
-import sys
 import unittest
-import pytest
 from pathlib import Path
+import numpy as np
+import pytest
 
-# from toshi_hazard_store.aggregate_rlzs import get_imts, get_levels, process_location_list
-# from toshi_hazard_store.branch_combinator.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
-from toshi_hazard_post.branch_combinator import get_weighted_branches, grouped_ltbs, merge_ltbs
-from toshi_hazard_store.locations import locations_nzpt2_and_nz34_binned, locations_nzpt2_and_nz34_chunked
+from dacite import from_dict
 
-# from toshi_hazard_store.branch_combinator.SLT_37_GRANULAR_RELEASE_1 import logic_tree_permutations
-# from toshi_hazard_store.branch_combinator.SLT_37_GT_VS400_gsim_DATA import data as gtdata
+from toshi_hazard_post.logic_tree.logic_tree import GMCMBranch, HazardLogicTree
 
-from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import build_rlz_table
+from toshi_hazard_post.calculators import prob_to_rate, rate_to_prob
+from toshi_hazard_post.data_functions import ValueStore
+from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import (
+    weighted_stats,
+    calc_weighted_sum,
+    get_branch_weights,
+    build_branches,
+    calculate_aggs,
+)
+
+INV_TIME = 1.0
 
 
-class TestBuildAggregation(unittest.TestCase):
-    """This test class disables openquake for testing, even if it's actually installed."""
+def convert_values(values_dict):
+    values = ValueStore()
+    for key, vd1 in values_dict.items():
+        for loc, vd2 in vd1.items():
+            for imt, vals in vd2.items():
+                values.set_values(value=vals, key=key, loc=loc, imt=imt)
+    return values
 
+
+class TestAggStats(unittest.TestCase):
     def setUp(self):
-        self._sb_file = Path(Path(__file__).parent, 'fixtures/aggregation', 'source_branches.json')
-        self._ltb_file = Path(Path(__file__).parent, 'fixtures/aggregation', 'SLT_TAG_FINAL.json')
+        self._stats_file = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'quantiles_expected.npy')
+        self._probs = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+        self._aggs = ["0.1", "0.5", "mean", "cov", "std", "0.9"]
+        self._weights = np.array([1, 2, 1, 4, 1, 2, 2, 3, 3])
 
-    def tearDown(self):
-        if self._temp_oq:
-            sys.modules['openquake'] = self._temp_oq
-        else:
-            del sys.modules['openquake']
+    def test_weighted_stats(self):
 
-    @unittest.skip("THis is actually pulling down realizations")
-    def test_core_function(self):
-        """Based on aggregate_rlzs:main."""
+        stats = weighted_stats(self._probs, self._aggs, self._weights)
+        stats_expected = np.load(self._stats_file)
 
-        ltb_data = json.load(open(self._ltb_file, 'r'))
-        logic_tree_permutations = ltb_data['logic_tree_permutations']
-        gtdata = ltb_data['hazard_solutions']
-
-        vs30 = 400
-        aggs = ['mean', 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95]
-
-        omit: List[str] = []
-        toshi_ids = [b.hazard_solution_id for b in merge_ltbs(logic_tree_permutations, gtdata=gtdata, omit=omit)]
-
-        # grouped = grouped_ltbs(merge_ltbs(logic_tree_permutations, gtdata=gtdata, omit=omit))
-
-        weighted_source_branches = json.load(open(self._sb_file, 'r'))
-
-        binned_locs = locations_nzpt2_and_nz34_chunked(grid_res=1.0, point_res=0.001)
-        levels = get_levels(
-            weighted_source_branches, list(binned_locs.values())[0], vs30
-        )  # TODO: get seperate levels for every IMT
-
-        imts = ['PGA']
-        # imts = get_imts(weighted_source_branches, vs30)
-        levels = get_levels(
-            weighted_source_branches, list(binned_locs.values())[0], vs30
-        )  # TODO: get seperate levels for every IMT
-
-        columns = ['lat', 'lon', 'imt', 'agg', 'level', 'hazard']
-        # index = range(len(locs)*len(imts)*len(aggs)*len(levels))
-        # hazard_curves = pd.DataFrame(columns=columns)
-
-        # # tic = time.perf_counter()
-        # for i in range(len(source_branches)):
-        #     rlz_combs, weight_combs = build_rlz_table(source_branches[i], vs30)
-        #     source_branches[i]['rlz_combs'] = rlz_combs
-        #     source_branches[i]['weight_combs'] = weight_combs
-        # toc = time.perf_counter()
-        # print(f'time to build all realization tables {toc-tic:.1f} seconds')
-
-        for key, locs in locations_nzpt2_and_nz34_binned(grid_res=1.0, point_res=0.001).items():
-            binned_hazard_curves = process_location_list(
-                locs[:1], toshi_ids, weighted_source_branches, aggs, imts[:1], levels, vs30
-            )
-            break
-            # binned_hazard_curves.to_json(f"./df_{key}_aggregates.json")
-            # hazard_curves = pd.concat([hazard_curves, binned_hazard_curves])
-
-        assert 0
+        assert np.allclose(stats, stats_expected)
 
 
-class TestBuldRealizationTable(unittest.TestCase):
-    def setUp(self):
-        self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
-        self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'rlz_combs.json')
-        self._weight_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'weight_combs.json')
+def generate_values():
+    import numpy as np
 
-    def test_build_rlz_table(self):
+    rng = np.random.default_rng(12345)
 
-        source_branches = json.load(open(self._sb_file, 'r'))
-        rlz_combs, weight_combs = build_rlz_table(source_branches[0], 400)
-
-        rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
-        weight_combs_expected = json.load(open(self._weight_combs_filepath, 'r'))
-
-        assert rlz_combs == rlz_combs_expected
-        assert weight_combs == weight_combs_expected
-
-        assert sum(weight_combs) == pytest.approx(1.0)
-
-
-class TestCorrelatiedRealizationTable(unittest.TestCase):
-    def setUp(self):
-        self._sb_file = Path(Path(__file__).parent, 'fixtures/branch_combinator', 'source_branches_correlated.json')
-        self._rlz_combs_filepath = Path(Path(__file__).parent, 'fixtures/aggregation', 'rlz_combs_corr.json')
-
-    def test_build_correlated_rlz_table(self):
-
-        correlations = [
-            (
-                '[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = -1.28155',
-                '[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = -1.28155',
+    values = ValueStore()
+    values.set_values(
+        value=prob_to_rate(
+            rng.random(
+                10,
             ),
-            (
-                '[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
-                '[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
+            INV_TIME,
+        ),
+        key="hazsol_0:0",
+        loc='WLG',
+        imt='PGA',
+    )
+    values.set_values(
+        value=prob_to_rate(
+            rng.random(
+                10,
             ),
-            (
-                '[AbrahamsonGulerce2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 1.28155',
-                '[AbrahamsonGulerce2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 1.28155',
+            INV_TIME,
+        ),
+        key="hazsol_0:1",
+        loc='WLG',
+        imt='PGA',
+    )
+    values.set_values(
+        value=prob_to_rate(
+            rng.random(
+                10,
             ),
-            ('[Atkinson2022SInter]\nepistemic = "Central"', '[Atkinson2022SSlab]\nepistemic = "Central"'),
-            ('[Atkinson2022SInter]\nepistemic = "Lower"', '[Atkinson2022SSlab]\nepistemic = "Lower"'),
-            ('[Atkinson2022SInter]\nepistemic = "Upper"', '[Atkinson2022SSlab]\nepistemic = "Upper"'),
-            (
-                '[KuehnEtAl2020SInter]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
-                '[KuehnEtAl2020SSlab]\nregion = "GLO"\nsigma_mu_epsilon = 0.0',
+            INV_TIME,
+        ),
+        key="hazsol_0:2",
+        loc='WLG',
+        imt='PGA',
+    )
+    values.set_values(
+        value=prob_to_rate(
+            rng.random(
+                10,
             ),
-            ('[ParkerEtAl2020SInter]', '[ParkerEtAl2020SSlab]'),
+            INV_TIME,
+        ),
+        key="hazsol_1:0",
+        loc='WLG',
+        imt='PGA',
+    )
+    values.set_values(
+        value=prob_to_rate(
+            rng.random(
+                10,
+            ),
+            INV_TIME,
+        ),
+        key="hazsol_1:1",
+        loc='WLG',
+        imt='PGA',
+    )
+
+    values.set_values(
+        value=prob_to_rate(
+            rng.random(
+                10,
+            ),
+            INV_TIME,
+        ),
+        key="hazsol_3:0",
+        loc='WLG',
+        imt='PGA',
+    )
+    values.set_values(
+        value=prob_to_rate(
+            rng.random(
+                10,
+            ),
+            INV_TIME,
+        ),
+        key="hazsol_3:1",
+        loc='WLG',
+        imt='PGA',
+    )
+
+    return values
+
+
+def generate_gmcm_branches():
+
+    gmcm_branches = []
+    realizations = [
+        ["hazsol_0:0", "hazsol_1:0"],
+        ["hazsol_0:0", "hazsol_1:1"],
+    ]
+
+    weights = np.array(
+        [
+            0.1,
+            0.2,
         ]
+    )
 
-        source_branches = json.load(open(self._sb_file, 'r'))
-        rlz_combs, weight_combs = build_rlz_table(source_branches[0], 400, correlations)
+    for rlz, weight in zip(realizations, weights):
+        gmcm_branches.append(GMCMBranch(rlz, weight))
 
-        rlz_combs_expected = json.load(open(self._rlz_combs_filepath, 'r'))
+    return gmcm_branches
 
-        assert rlz_combs == rlz_combs_expected
 
-        assert sum(weight_combs) == pytest.approx(1.0)
+class TestProb(unittest.TestCase):
+    def setUp(self):
+        self._weighted_sum_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'weighted_sum.npy')
 
-        assert len(weight_combs) == len(rlz_combs)
+    def test_calc_weighted_sum(self):
+
+        values = generate_values()
+        gmcm_branches = generate_gmcm_branches()
+        prob_sum = calc_weighted_sum(gmcm_branches, values, 'WLG', 'PGA', 2, 8)
+        expected = prob_to_rate(np.load(self._weighted_sum_filepath), INV_TIME)
+
+        assert np.allclose(prob_sum, expected)
+
+        start_ind = 3
+        end_ind = 7
+        prob_sum = calc_weighted_sum(gmcm_branches, values, 'WLG', 'PGA', start_ind, end_ind)
+        assert prob_sum.shape[1] == (end_ind - start_ind)
+
+
+class TestBranchFunctions(unittest.TestCase):
+    def setUp(self):
+        logic_tree_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'logic_tree.json')
+        branch_probs_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'branch_probs.npy')
+        self._hazard_aggs_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'hazard_agg.npy')
+        self._branch_weights_filepath = Path(Path(__file__).parent, 'fixtures/aggregate_rlz', 'branch_weights.npy')
+
+        self._logic_tree = from_dict(data_class=HazardLogicTree, data=json.load(open(logic_tree_filepath)))
+        self._branch_probs = prob_to_rate(np.load(branch_probs_filepath), INV_TIME)
+
+    def test_build_branches(self):
+
+        values = generate_values()
+        imt = 'PGA'
+        loc = 'WLG'
+        start_ind = 2
+        end_ind = 7
+        branch_probs = build_branches(self._logic_tree, values, imt, loc, start_ind, end_ind)
+
+        assert branch_probs.shape[1] == end_ind - start_ind
+        assert np.allclose(branch_probs, self._branch_probs)
+
+    def test_calculate_aggs(self):
+
+        weights = np.array([0.1, 0.1, 0.2, 0.3, 0.1, 0.2])
+        aggs = ['mean', 'std', 'cov', '0.6']
+        hazard_agg = calculate_aggs(self._branch_probs, aggs, weights)
+        expected = prob_to_rate(np.load(self._hazard_aggs_filepath), INV_TIME)
+
+        assert np.allclose(hazard_agg, expected)
+
+    def test_get_branch_weights(self):
+
+        branch_weights = get_branch_weights(self._logic_tree)
+        expected = np.load(self._branch_weights_filepath)
+
+        assert np.allclose(branch_weights, expected)

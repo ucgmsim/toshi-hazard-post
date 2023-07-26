@@ -3,7 +3,7 @@
 import collections
 import json
 import urllib.parse
-from typing import List
+from typing import Any, Dict, List
 
 from .util import compress_config
 
@@ -23,7 +23,8 @@ def get_ecs_job_config(
     job_queue="BasicFargate_Q",
     extra_env: List[BatchEnvironmentSetting] = None,
     use_compression=False,
-):
+    quote_config_string=False,
+) -> Dict[str, Any]:
     """Build a config for batch."""
     if "Fargate" in job_definition:
         assert vcpu in [0.25, 0.5, 1, 2, 4]
@@ -80,6 +81,14 @@ def get_ecs_job_config(
             30720,  # value = 4
         ]
 
+    if quote_config_string:
+        task_config_json_quoted = config
+    else:
+        if use_compression:
+            task_config_json_quoted = compress_config(json.dumps(config))
+        else:
+            task_config_json_quoted = urllib.parse.quote(json.dumps(config))
+
     config = {
         "jobName": job_name,
         "jobQueue": job_queue,
@@ -90,9 +99,7 @@ def get_ecs_job_config(
             "environment": [
                 {
                     "name": "TASK_CONFIG_JSON_QUOTED",
-                    "value": compress_config(json.dumps(config))
-                    if use_compression
-                    else urllib.parse.quote(json.dumps(config)),
+                    "value": task_config_json_quoted,
                 },
                 {"name": "NZSHM22_TOSHI_S3_URL", "value": toshi_s3_url},
                 {"name": "NZSHM22_TOSHI_API_URL", "value": toshi_api_url},
