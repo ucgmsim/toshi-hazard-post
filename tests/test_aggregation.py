@@ -44,7 +44,8 @@ class TestAggregation(unittest.TestCase):
         task_args = AggTaskArgs(*json.load(open(self._task_args_file)))
 
         source_branches_old = task_args.source_branches
-        source_branches = convert_source_branches(source_branches_old)
+        # source_branches = convert_source_branches(source_branches_old)
+        source_branches = source_branches_old
         # for i, sb in enumerate(source_branches_old):
         #     source_branches[i].gmcm_branches = convert_gmcm_branches(sb['rlz_combs'], sb['weight_combs'])
         task_args = AggTaskArgs(
