@@ -11,11 +11,11 @@ homepage = "https://github.com/chrisbc/toshi-hazard-post"
 description = "Hazard post-processing pipeline as serverless AWS infrastructure."
 authors = ["GNS Science New Zealand <chrisbc@artisan.co.nz>"]
 readme = "README.md"
-license =  "AGPL-3.0"
+license = "GPL-3.0-only"
 classifiers=[
     'Development Status :: 2 - Pre-Alpha',
     'Intended Audience :: Developers',
-    'License :: OSI Approved :: MIT License',
+    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
     'Natural Language :: English',
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.8',
