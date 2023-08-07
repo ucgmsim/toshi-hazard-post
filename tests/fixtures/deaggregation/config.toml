@@ -14,7 +14,7 @@ dimensions = ['eps','dist','mag','trt']
 inv_time = 50
 
 agg_targets = ["mean"]
-poes = [0.05]
+poes = [0.1]
 
 
 [debug]
