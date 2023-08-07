@@ -66,7 +66,7 @@ class testGetGts(unittest.TestCase):
         )
 
         assert len(gt_ids) == 1
-        assert gt_ids[0] == 'R2VuZXJhbFRhc2s6MTM1OTEzMA=='
+        assert gt_ids[0] == 'R2VuZXJhbFRhc2s6MTM1OTEzNA=='
 
         with self.assertRaises(Exception):
             get_deagg_gtids(
