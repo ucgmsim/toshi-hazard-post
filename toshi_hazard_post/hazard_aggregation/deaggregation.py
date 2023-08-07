@@ -179,25 +179,21 @@ def get_deagg_gtids(
     inv_time: int,
     iter_method: str = '',
 ) -> List[str]:
-    def extract_deagg_config(subtask):
-        deagg_task_config = json.loads(subtask['arguments']['disagg_config'].replace("'", '"').replace('None', 'null'))
+    def extract_deagg_config(deagg_entry):
+        deagg_task_config = json.loads(deagg_entry['arguments']['disagg_config'].replace("'", '"').replace('None', 'null'))
 
         return DeaggConfig(
-            hazard_model_id=subtask['arguments']['hazard_model_id'],
+            hazard_model_id=deagg_entry['arguments']['hazard_model_id'],
             location=deagg_task_config['location'],
             inv_time=deagg_task_config['inv_time'],
-            agg=subtask['arguments']['hazard_agg_target'],
+            agg=deagg_entry['arguments']['hazard_agg_target'],
             poe=deagg_task_config['poe'],
             imt=deagg_task_config['imt'],
             vs30=deagg_task_config['vs30'],
         )
 
     def num_success(gt):
-        count = 0
-        for subtask in gt['subtasks']:
-            if subtask['result'] == 'SUCCESS':
-                count += 1
-        return count
+        return gt['num_success']
 
     if hazard_gts:
         return hazard_gts
@@ -217,10 +213,10 @@ def get_deagg_gtids(
             iter_method,
         ):
             gtids_tmp = []
-            for gt, entry in index.items():
+            for gt_id, entry in index.items():
                 if entry['subtask_type'] == 'OpenquakeHazardTask' and entry['hazard_subtask_type'] == 'DISAGG':
-                    if deagg == extract_deagg_config(entry['subtasks'][0]) and num_success(entry) == nbranches:
-                        gtids_tmp.append(entry['id'])
+                    if deagg == extract_deagg_config(entry) and num_success(entry) == nbranches:
+                        gtids_tmp.append(gt_id)
             if not gtids_tmp:
                 raise Exception("no general task found for deagg {}".format(deagg))
             if len(gtids_tmp) > 1:
