@@ -1,3 +1,4 @@
-{%
-    include-markdown "../README.md"
-%}
+# Overview
+toshi-hazard-post performs the final step of seismic hazard calculation and disaggregation for models with large seismicity rate logic trees as described in [DiCaprio, et. al. 2024](https://doi.org/xxx/xxx).
+
+The calculation works by building a logic tree structure comprised of smaller component parts and assembling final realizations of hazard curves or disaggregation matrices. It is designed to work with component realizations expressed in annual probability; the probabilities are converted to rate using the Poissonian assumption and then summed. Once the composite realizations for the complete logic tree have been created, aggregate statistics such as mean, standard deviation, and quantiles are calculated and stored in [toshi-hazard-store](https://github.com/GNS-Science/toshi-hazard-store). Component realizations which form the raw input for toshi-hazard-post are provided by toshi-hazard-store. Additional metadata for the pre-calculated components are provided by [toshiAPI](https://github.com/GNS-Science/nshm-toshi-api).
