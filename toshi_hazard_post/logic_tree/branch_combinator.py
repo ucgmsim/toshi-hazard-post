@@ -31,17 +31,17 @@ def preload_meta(ids: Collection[str], vs30: int) -> Dict[str, dict]:
         dictionary of ground motion logic tree metadata dictionaries
     """
     metadata = {}
+    tic = time.perf_counter()
     for i, meta in enumerate(toshi_hazard_store.query_v3.get_hazard_metadata_v3(ids, [vs30])):
-        tic = time.perf_counter()
         hazard_id = meta.hazard_solution_id
         # log.info(f'loaded metadata for {hazard_id}')
         gsim_lt = ast.literal_eval(meta.gsim_lt)
         metadata[hazard_id] = gsim_lt
-        toc = time.perf_counter()
-        print(f'time to load metadata for {hazard_id}: {toc-tic} seconds.')
         if i == len(ids) - 1:
             break
 
+    toc = time.perf_counter()
+    log.debug(f'time to load metadata from THS: {toc-tic} seconds.')
     print(len(ids))
     print(len(metadata))
     return metadata
@@ -68,7 +68,7 @@ def get_logic_tree(
 
     tic = time.perf_counter()
     for branch in logic_tree.branches:
-        log.info('set one gmcm branch')
+        # log.info('set one gmcm branch')
         branch.set_gmcm_branches(metadata, gmm_correlations)
     log.info('set gmcm branches')
     toc = time.perf_counter()
