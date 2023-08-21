@@ -75,6 +75,7 @@ def get_levels(logic_tree: HazardLogicTree, locs: List[str], vs30: int, imts: Li
 
     log.info(f"get_levels locs[0]: {locs[0]} vs30: {vs30}, id {id}")
     tic = time.perf_counter()
+    # TODO: currently the max realizations is hardcoded as 21
     hazard = next(toshi_hazard_store.query_v3.get_rlz_curves_v3([locs[0]], [vs30], list(range(21)), [id], imts))
     toc = time.perf_counter()
     log.debug(f'time to get levels from THS: {toc-tic:.1f} seconds')
