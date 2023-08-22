@@ -54,7 +54,7 @@ class ValueStore:
         return set(lcs)
 
 
-def get_levels(logic_tree: HazardLogicTree, locs: List[str], vs30: int) -> Any:
+def get_levels(logic_tree: HazardLogicTree, locs: List[str], vs30: int, imts: List[str]) -> Any:
     """Get the values of the levels (shaking levels) for the hazard curve from Toshi-Hazard-Store
 
     Parameters
@@ -74,7 +74,11 @@ def get_levels(logic_tree: HazardLogicTree, locs: List[str], vs30: int) -> Any:
     id = logic_tree.hazard_ids[0]
 
     log.info(f"get_levels locs[0]: {locs[0]} vs30: {vs30}, id {id}")
-    hazard = next(toshi_hazard_store.query_v3.get_rlz_curves_v3([locs[0]], [vs30], None, [id], None))
+    tic = time.perf_counter()
+    # TODO: currently the max realizations is hardcoded as 21
+    hazard = next(toshi_hazard_store.query_v3.get_rlz_curves_v3([locs[0]], [vs30], list(range(21)), [id], imts))
+    toc = time.perf_counter()
+    log.debug(f'time to get levels from THS: {toc-tic:.1f} seconds')
 
     return hazard.values[0].lvls
 
@@ -96,7 +100,10 @@ def get_imts(logic_tree: HazardLogicTree, vs30: int) -> list:
     levels : List[str]
         IMTs of hazard curve"""
 
+    tic = time.perf_counter()
     meta = next(toshi_hazard_store.query_v3.get_hazard_metadata_v3(logic_tree.hazard_ids, [vs30]))
+    toc = time.perf_counter()
+    log.debug(f'time to get imts from THS: {toc-tic:.1f} seconds')
     imts = list(meta.imts)
     imts.sort()
 
@@ -127,18 +134,23 @@ def check_values(values: ValueStore, toshi_hazard_ids: List[str], locs: List[str
 
 
 def get_site_vs30(toshi_ids: List[str], loc: str) -> float:
+    # TODO fix for new version of THS
 
     vs30 = 0
-    for res in toshi_hazard_store.query_v3.get_rlz_curves_v3([loc], [0], None, toshi_ids, None):
+    tic = time.perf_counter()
+    for res in toshi_hazard_store.query_v3.get_rlz_curves_v3([loc], [0], [], toshi_ids, []):
         if not (vs30):
             vs30 = res.site_vs30
         elif res.site_vs30 != vs30:
             raise Exception(f'not all Hazard Solutions have teh samve site_vs30. HazardSolution IDs: {toshi_ids}')
+    
+    toc = time.perf_counter()
+    log.debug(f'time to get site vs30 from THS: {toc-tic:.1f} seconds')
 
     return res.site_vs30
 
 
-def load_realization_values(toshi_ids: List[str], locs: List[str], vs30s: List[int]) -> ValueStore:
+def load_realization_values(toshi_ids: List[str], locs: List[str], vs30s: List[int], imts: List[str]) -> ValueStore:
     """Load hazard curves from Toshi-Hazard-Store.
 
     Parameters
@@ -155,35 +167,28 @@ def load_realization_values(toshi_ids: List[str], locs: List[str], vs30s: List[i
         hazard curve values (probabilities) keyed by Toshi ID and gsim realization number
     """
 
-    tic = time.perf_counter()
     log.info('loading %s hazard IDs ... ' % len(toshi_ids))
-
     values = ValueStore()
+    tic = time.perf_counter()
     try:
-        for res in toshi_hazard_store.query_v3.get_rlz_curves_v3(locs, vs30s, None, toshi_ids, None):
+        for res in toshi_hazard_store.query_v3.get_rlz_curves_v3(locs, vs30s, list(range(21)), toshi_ids, imts):
             key = ':'.join((res.hazard_solution_id, str(res.rlz)))
             for val in res.values:
                 values.set_values(
                     value=prob_to_rate(np.array(val.vals), INV_TIME), key=key, loc=res.nloc_001, imt=val.imt
                 )
-                # for i, v in enumerate(val.vals):
-                #     if not v:  # TODO: not sure what this is for
-                #         log.debug(
-                #             '%s th value at location: %s, imt: %s, hazard key %s is %s'
-                #             % (i, res.nloc_001, val.imt, key, v)
-                #         )
     except Exception as err:
         logging.warning(
             'load_realization_values() got exception %s with toshi_ids: %s , locs: %s vs30s: %s'
             % (err, toshi_ids, locs, vs30s)
         )
         raise
+    
+    toc = time.perf_counter()
+    log.debug(f'time to load realizations from THS: {toc-tic:.1f} seconds')
 
     # check that the correct number of records came back
     check_values(values, toshi_ids, locs)
-
-    toc = time.perf_counter()
-    print(f'time to load realizations: {toc-tic:.1f} seconds')
 
     return values
 

@@ -130,7 +130,7 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     if deagg_dimensions:
         values, bins = load_realization_values_deagg(toshi_ids, locs, [vs30], deagg_dimensions[0])
     else:
-        values = load_realization_values(toshi_ids, locs, [vs30])
+        values = load_realization_values(toshi_ids, locs, [vs30], imts)
 
     if not values:
         log.info('missing values: %s' % (values))
@@ -464,11 +464,14 @@ def process_aggregation(config: AggregationConfig) -> None:
     example_loc_code = coded_locations[0].downsample(0.001).code
 
     levels = get_levels(
-        logic_trees[config.vs30s[0]], [example_loc_code], config.vs30s[0]
+        logic_trees[config.vs30s[0]],
+        [example_loc_code],
+        config.vs30s[0],
+        config.imts,
     )  # TODO: get seperate levels for every IMT
-    avail_imts = get_imts(logic_trees[config.vs30s[0]], config.vs30s[0])  # TODO: equiv check for deaggs
-    for imt in config.imts:
-        assert imt in avail_imts
+    # avail_imts = get_imts(logic_trees[config.vs30s[0]], config.vs30s[0])  # TODO: equiv check for deaggs
+    # for imt in config.imts:
+    #     assert imt in avail_imts
 
     if config.run_serial:
         process_aggregation_local_serial(

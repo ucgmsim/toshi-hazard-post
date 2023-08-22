@@ -117,12 +117,15 @@ def distribute_aggregation(config: AggregationConfig, process_mode: str) -> None
     log.debug('example_loc_code code: %s obj: %s' % (example_loc_code, example_loc_code))
 
     levels = get_levels(
-        logic_trees[config.vs30s[0]], [example_loc_code.code], config.vs30s[0]
+        logic_trees[config.vs30s[0]],
+        [example_loc_code.code],
+        config.vs30s[0],
+        config.imts,
     )  # TODO: get separate levels for every IMT ?
-    avail_imts = get_imts(logic_trees[config.vs30s[0]], config.vs30s[0])
-    log.info(f'available imts: {avail_imts}')
-    for imt in config.imts:
-        assert imt in avail_imts
+    # avail_imts = get_imts(logic_trees[config.vs30s[0]], config.vs30s[0])
+    # log.info(f'available imts: {avail_imts}')
+    # for imt in config.imts:
+    #     assert imt in avail_imts
 
     if process_mode == 'AWS_BATCH':
 
