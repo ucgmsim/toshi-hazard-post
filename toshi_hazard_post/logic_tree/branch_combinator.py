@@ -42,8 +42,10 @@ def preload_meta(ids: Collection[str], vs30: int) -> Dict[str, dict]:
 
     toc = time.perf_counter()
     log.debug(f'time to load metadata from THS: {toc-tic} seconds.')
-    print(len(ids))
-    print(len(metadata))
+    if len(metadata) != len(ids):
+        raise Exception("not all hazard ids returned meta data. len(ids): %s, len(metadata) %s" % (len(ids), len(metadata)))
+    # print(len(ids))
+    # print(len(metadata))
     return metadata
 
 
