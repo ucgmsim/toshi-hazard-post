@@ -1634,8 +1634,10 @@ test = []
 toshi = ["boto3[toshi] (>=1.26.28,<2.0.0)", "nshm-toshi-client[toshi] (>=1.0.0)"]
 
 [package.source]
-type = "directory"
-url = "../../nzshm-model"
+type = "git"
+url = "https://github.com/GNS-Science/nzshm-model.git"
+reference = "fix/correlations"
+resolved_reference = "4cbc82c2f194426534b9a6d8ea82c4abadc0e26a"
 
 [[package]]
 name = "packaging"
@@ -2617,4 +2619,4 @@ test = []
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "2b2e7326d7db831de04a606971bfa4b0d8f248dc1a30a713a37d37d94b1b6518"
+content-hash = "d12ec14b1d389988bc4970691aa46d57531007816bdf15e8ff5a8b7733e76a77"
