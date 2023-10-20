@@ -46,6 +46,11 @@ class TestAggStats(unittest.TestCase):
 
         assert np.allclose(stats, stats_expected)
 
+    def test_zero_mean(self):
+        probs = np.zeros(self._probs.shape)
+        stats = weighted_stats(probs, self._aggs, self._weights)
+        assert stats[self._aggs.index("cov")] == 0
+
 
 def generate_values():
     import numpy as np

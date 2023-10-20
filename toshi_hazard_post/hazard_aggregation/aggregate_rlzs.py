@@ -61,7 +61,7 @@ def weighted_stats(values: npt.NDArray, quantiles: List[str], sample_weight: npt
             get_cov = True
             cov_ind = quantiles.index('cov')
             quantiles = quantiles[0:cov_ind] + quantiles[cov_ind + 1 :]
-            cov = std / mean
+            cov = std / mean if mean > 0.0 else 0.0
 
     quants = np.array([float(q) for q in quantiles])  # TODO this is hacky, need to tighten up API with typing
     # print(f'QUANTILES: {quantiles}')
