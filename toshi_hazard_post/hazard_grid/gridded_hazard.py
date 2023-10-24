@@ -62,12 +62,15 @@ def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_m
         grid_covs: Dict[float, List] = {poe: [None for i in range(len(location_keys))] for poe in poe_levels}
         for cov in query_v3.get_hazard_curves(location_keys, [vs30], [hazard_model_id], imts=[imt], aggs=[COV_AGG_KEY]):
             index = location_keys.index(cov.nloc_001)
-            cov_values = [val.val for val in cov.values]
+            cov_values = [float(val.val) for val in cov.values]
             for poe_lvl in poe_levels:
+                if grid_accel_levels[poe_lvl][index] == 0.0:
+                    grid_covs[poe_lvl][index] = 0.0
+                else:
                 # cov_accel_levels = [val.lvl for val in cov.values]
-                grid_covs[poe_lvl][index] = np.exp(
-                    np.interp(np.log(grid_accel_levels[poe_lvl][index]), np.log(accel_levels), np.log(cov_values))
-                )
+                    grid_covs[poe_lvl][index] = np.exp(
+                        np.interp(np.log(grid_accel_levels[poe_lvl][index]), np.log(accel_levels), np.log(cov_values))
+                    )
 
         for poe_lvl in poe_levels:
             yield model.GriddedHazard.new_model(
@@ -92,7 +95,7 @@ def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_m
         )
 
 
-class GriddedHAzardWorkerMP(multiprocessing.Process):
+class GriddedHazardWorkerMP(multiprocessing.Process):
     """A worker that batches and saves records to DynamoDB."""
 
     def __init__(self, task_queue):
@@ -130,6 +133,39 @@ class GriddedHAzardWorkerMP(multiprocessing.Process):
             log.info('%s task done.' % self.name)
 
 
+class SerialQueue():
+
+    def __init__(self):
+        self.queue = []
+
+    def put(self, task_args: GridHazTaskArgs):
+        self.queue.append(task_args)
+
+    def join(self):
+        for task in self.queue:
+            if task:
+                try:
+                    for ghaz in process_gridded_hazard(*task):
+                        try:
+                            ghaz_old = next(
+                                model.GriddedHazard.query(ghaz.partition_key, model.GriddedHazard.sort_key == ghaz.sort_key)
+                            )
+                            ghaz_old.grid_poes = ghaz.grid_poes
+                            ghaz_old.save()
+                        except StopIteration:
+                            ghaz.save()
+                        log.info('save %s' % ghaz)
+                except QueryError as e:
+                    log.warn('QueryError, queries likely being throttled, skipping task: %s' % task)
+                    log.warn(e)
+
+
+class GriddedHazardWorkerS():
+
+    def start(self):
+        pass
+
+
 def calc_gridded_hazard(
     location_grid_id: str,
     poe_levels: Iterable[float],
@@ -162,10 +198,16 @@ def calc_gridded_hazard(
 
     log.debug('location_keys: %s' % location_keys)
 
-    task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
+    if num_workers > 1:
+        task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
+    else:
+        task_queue: SerialQueue = SerialQueue()
 
-    log.info('Creating %d workers' % num_workers)
-    workers = [GriddedHAzardWorkerMP(task_queue) for i in range(num_workers)]
+    if num_workers > 1:
+        log.info('Creating %d workers' % num_workers)
+        workers = [GriddedHazardWorkerMP(task_queue) for i in range(num_workers)]
+    else:
+        workers = [GriddedHazardWorkerS()]
     for w in workers:
         w.start()
 
