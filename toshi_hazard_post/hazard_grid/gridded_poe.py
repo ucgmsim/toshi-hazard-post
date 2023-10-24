@@ -35,6 +35,9 @@ def compute_hazard_at_poe(
 
     see https://numpy.org/doc/stable/reference/generated/numpy.interp.html?highlight=interp
     """
+    if (np.array(annual_poes).min() == 0) and (np.array(annual_poes).max() == 0):
+        return 0.0
+
     ground_accels, annual_poes = trim_poes(1e-10, 0.632, ground_accels, annual_poes)
     return_period = -investigation_time / np.log(1 - poe)
 
