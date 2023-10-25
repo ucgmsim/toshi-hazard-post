@@ -14,7 +14,6 @@ from toshi_hazard_store import model
 
 from toshi_hazard_post.calculators import rate_to_prob
 from toshi_hazard_post.data_functions import (
-    get_imts,
     get_levels,
     get_site_vs30,
     load_realization_values,

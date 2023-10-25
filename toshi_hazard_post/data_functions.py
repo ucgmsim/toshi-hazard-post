@@ -143,7 +143,7 @@ def get_site_vs30(toshi_ids: List[str], loc: str) -> float:
             vs30 = res.site_vs30
         elif res.site_vs30 != vs30:
             raise Exception(f'not all Hazard Solutions have teh samve site_vs30. HazardSolution IDs: {toshi_ids}')
-    
+
     toc = time.perf_counter()
     log.debug(f'time to get site vs30 from THS: {toc-tic:.1f} seconds')
 
@@ -183,7 +183,7 @@ def load_realization_values(toshi_ids: List[str], locs: List[str], vs30s: List[i
             % (err, toshi_ids, locs, vs30s)
         )
         raise
-    
+
     toc = time.perf_counter()
     log.debug(f'time to load realizations from THS: {toc-tic:.1f} seconds')
 

@@ -2,7 +2,7 @@ import ast
 import logging
 import time
 from pathlib import Path
-from typing import Collection, Dict, List, Union
+from typing import Collection, Dict, List, Optional, Union
 
 # from toshi_hazard_store.query_v3 import get_hazard_metadata_v3
 import toshi_hazard_store
@@ -43,7 +43,9 @@ def preload_meta(ids: Collection[str], vs30: int) -> Dict[str, dict]:
     toc = time.perf_counter()
     log.debug(f'time to load metadata from THS: {toc-tic} seconds.')
     if len(metadata) != len(ids):
-        raise Exception("not all hazard ids returned meta data. len(ids): %s, len(metadata) %s" % (len(ids), len(metadata)))
+        raise Exception(
+            "not all hazard ids returned meta data. len(ids): %s, len(metadata) %s" % (len(ids), len(metadata))
+        )
     # print(len(ids))
     # print(len(metadata))
     return metadata
@@ -54,7 +56,7 @@ def get_logic_tree(
     hazard_gts: List[str],
     vs30: int,
     gmm_correlations: List[List[str]],
-    truncate: int = None,
+    truncate: Optional[int] = None,
 ) -> HazardLogicTree:
 
     fslt = FlattenedSourceLogicTree.from_source_logic_tree(from_config(lt_config_filepath))

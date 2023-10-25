@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import asdict
-from typing import Any, Collection, Dict, Generator, Iterable
+from typing import Any, Collection, Dict, Generator, Iterable, Optional
 
 import boto3
 from nzshm_common.location import CodedLocation
@@ -81,7 +81,7 @@ def tasks_by_chunk(
         task_chunk.imts.append(imt)
         task_chunk.aggs.append(agg)
         if count == chunk_size:
-            task_chunk.poe_levels = poe_levels
+            task_chunk.poe_levels = list(poe_levels)
             yield task_chunk
             count = 0
             task_chunk = DistributedGridTaskArguments(
@@ -95,7 +95,7 @@ def tasks_by_chunk(
                 force=False,
             )
         elif total == total_jobs:
-            task_chunk.poe_levels = poe_levels
+            task_chunk.poe_levels = list(poe_levels)
             yield task_chunk
 
 
@@ -107,10 +107,12 @@ def batch_job_configs(
     imts: Collection[str],
     aggs: Collection[str],
     force: bool = False,
-    filter_locations: Iterable[CodedLocation] = None,
+    filter_locations: Optional[Iterable[CodedLocation]] = None,
     iter_method: str = 'product',
 ):
 
+    if filter_locations is None:
+        filter_locations = []
     task_count = 0
     items_processed = 0
 
@@ -127,7 +129,7 @@ def batch_job_configs(
             vs30s=task_chunk.vs30s,
             imts=task_chunk.imts,
             aggs=task_chunk.aggs,
-            filter_locations=filter_locations,
+            filter_locations=list(filter_locations),
             force=force,
         )
         items_processed += NUM_WORKERS
@@ -147,7 +149,7 @@ def distribute_gridded_hazard(
     imts: Collection[str],
     aggs: Collection[str],
     force: bool = False,
-    filter_locations: Iterable[CodedLocation] = None,
+    filter_locations: Optional[Iterable[CodedLocation]] = None,
     iter_method: str = 'product',
 ):
 

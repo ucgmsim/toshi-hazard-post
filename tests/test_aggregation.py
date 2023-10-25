@@ -7,6 +7,7 @@ import numpy as np
 
 import toshi_hazard_post.hazard_aggregation.aggregation
 from toshi_hazard_post.hazard_aggregation.aggregation import AggTaskArgs
+
 # from .test_branch_combinator import convert_gmcm_branches, convert_source_branches
 from .test_aggregate_rlzs import convert_values
 

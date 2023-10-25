@@ -83,7 +83,7 @@ class SourceSolutionMap:
 
 
 class ToshiApi(ToshiFile):
-    def save_sources_to_toshi(self, filepath: Union[str, Path], tag: str = None) -> str:
+    def save_sources_to_toshi(self, filepath: Union[str, Path], tag: Optional[str] = None) -> str:
         """Archive and upload one file."""
         log.info(f"Processing */{Path(filepath).name} :: {tag}")
 

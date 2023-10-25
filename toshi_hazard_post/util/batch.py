@@ -3,7 +3,7 @@
 import collections
 import json
 import urllib.parse
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from .util import compress_config
 
@@ -21,7 +21,7 @@ def get_ecs_job_config(
     vcpu,
     job_definition="Fargate-runzi-opensha-JD",
     job_queue="BasicFargate_Q",
-    extra_env: List[BatchEnvironmentSetting] = None,
+    extra_env: Optional[List[BatchEnvironmentSetting]] = None,
     use_compression=False,
     quote_config_string=False,
 ) -> Dict[str, Any]:

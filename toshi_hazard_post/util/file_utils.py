@@ -245,7 +245,7 @@ def save_realizations(
         logic tree definition
     """
 
-    save_dir = '/work/chrisdc/NZSHM-WORKING/PROD/branch_rlz/SRWG/'
+    save_dir = '/work/chrisdc/NZSHM-WORKING/PROD/branch_rlz/'
     branches_filepath = save_dir + f'branches_{imt}-{loc}-{vs30}'
     weights_filepath = save_dir + f'weights_{imt}-{loc}-{vs30}'
     logic_tree_filepath = save_dir + f'source_branches_{imt}-{loc}-{vs30}.json'

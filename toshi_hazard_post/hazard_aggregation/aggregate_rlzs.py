@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -16,7 +16,11 @@ VERBOSE = True
 log = logging.getLogger(__name__)
 
 
-def weighted_stats(values: npt.NDArray, quantiles: List[str], sample_weight: npt.NDArray = None) -> npt.NDArray:
+def weighted_stats(
+    values: npt.NDArray,
+    quantiles: List[str],
+    sample_weight: Optional[npt.NDArray] = None,
+) -> npt.NDArray:
     """Get weighted statistics for a 1D array like object.
 
     Parameters

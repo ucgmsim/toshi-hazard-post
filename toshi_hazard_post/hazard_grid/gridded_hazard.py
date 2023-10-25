@@ -5,7 +5,7 @@ import logging
 import multiprocessing
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 import numpy as np
 from nzshm_common.grids import RegionGrid
@@ -67,7 +67,6 @@ def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_m
                 if grid_accel_levels[poe_lvl][index] == 0.0:
                     grid_covs[poe_lvl][index] = 0.0
                 else:
-                # cov_accel_levels = [val.lvl for val in cov.values]
                     grid_covs[poe_lvl][index] = np.exp(
                         np.interp(np.log(grid_accel_levels[poe_lvl][index]), np.log(accel_levels), np.log(cov_values))
                     )
@@ -133,12 +132,11 @@ class GriddedHazardWorkerMP(multiprocessing.Process):
             log.info('%s task done.' % self.name)
 
 
-class SerialQueue():
-
+class SerialQueue:
     def __init__(self):
         self.queue = []
 
-    def put(self, task_args: GridHazTaskArgs):
+    def put(self, task_args: Optional[GridHazTaskArgs]):
         self.queue.append(task_args)
 
     def join(self):
@@ -148,7 +146,9 @@ class SerialQueue():
                     for ghaz in process_gridded_hazard(*task):
                         try:
                             ghaz_old = next(
-                                model.GriddedHazard.query(ghaz.partition_key, model.GriddedHazard.sort_key == ghaz.sort_key)
+                                model.GriddedHazard.query(
+                                    ghaz.partition_key, model.GriddedHazard.sort_key == ghaz.sort_key
+                                )
                             )
                             ghaz_old.grid_poes = ghaz.grid_poes
                             ghaz_old.save()
@@ -160,8 +160,7 @@ class SerialQueue():
                     log.warn(e)
 
 
-class GriddedHazardWorkerS():
-
+class GriddedHazardWorkerS:
     def start(self):
         pass
 
@@ -175,7 +174,7 @@ def calc_gridded_hazard(
     aggs: Iterable[str],
     num_workers: int,
     force: bool = False,
-    filter_locations: Iterable[CodedLocation] = None,
+    filter_locations: Optional[Iterable[CodedLocation]] = None,
     iter_method: str = 'product',
 ):
 
@@ -198,11 +197,13 @@ def calc_gridded_hazard(
 
     log.debug('location_keys: %s' % location_keys)
 
+    task_queue: Union[multiprocessing.JoinableQueue, SerialQueue]
     if num_workers > 1:
-        task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
+        task_queue = multiprocessing.JoinableQueue()
     else:
-        task_queue: SerialQueue = SerialQueue()
+        task_queue = SerialQueue()
 
+    workers: List[Union[GriddedHazardWorkerMP, GriddedHazardWorkerS]]
     if num_workers > 1:
         log.info('Creating %d workers' % num_workers)
         workers = [GriddedHazardWorkerMP(task_queue) for i in range(num_workers)]

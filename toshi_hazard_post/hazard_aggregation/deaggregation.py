@@ -180,7 +180,9 @@ def get_deagg_gtids(
     iter_method: str = '',
 ) -> List[str]:
     def extract_deagg_config(deagg_entry):
-        deagg_task_config = json.loads(deagg_entry['arguments']['disagg_config'].replace("'", '"').replace('None', 'null'))
+        deagg_task_config = json.loads(
+            deagg_entry['arguments']['disagg_config'].replace("'", '"').replace('None', 'null')
+        )
 
         return DeaggConfig(
             hazard_model_id=deagg_entry['arguments']['hazard_model_id'],

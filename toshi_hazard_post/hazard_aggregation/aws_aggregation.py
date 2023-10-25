@@ -3,13 +3,13 @@ import json
 import logging
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import boto3
 from nzshm_common.location.code_location import CodedLocation
 
 import toshi_hazard_post.hazard_aggregation.aggregation_task
-from toshi_hazard_post.data_functions import get_imts, get_levels
+from toshi_hazard_post.data_functions import get_levels
 from toshi_hazard_post.local_config import API_URL, NUM_WORKERS, S3_URL, SNS_AGG_TASK_TOPIC, WORK_PATH
 from toshi_hazard_post.locations import get_locations, locations_by_chunk
 from toshi_hazard_post.logic_tree.branch_combinator import get_logic_tree
@@ -34,7 +34,10 @@ TIME_LIMIT = 1 * 60  # minutes
 
 
 def batch_job_config(
-    task_arguments: Dict = None, job_arguments: Dict = None, task_id: int = 0, config_data: Any = None
+    task_arguments: Optional[Dict] = None,
+    job_arguments: Optional[Dict] = None,
+    task_id: int = 0,
+    config_data: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """Create an AWS Batch job configuration."""
 
