@@ -50,13 +50,15 @@ def get_deagg_config(data: Dict[str, Any]) -> DeaggConfig:
     return DeaggConfig(vs30, imt, location, poe, inv_time, deagg_agg_target)
 
 
-def get_imtl(gtdata: Dict[str, Any]) -> str:
+def get_imtl(gtdata: Dict[str, Any]) -> Optional[float]:
 
     for arg in gtdata['data']['node1']['children']['edges'][0]['node']['child']['arguments']:
         # if arg['k'] == 'disagg_config':
         #     return json.loads(arg['v'].replace("'", '"').replace('None', 'null'))['level']
         if arg['k'] == 'level':
             return float(arg['v'])
+
+    return None
 
 
 def create_archive(filename: Union[str, Path], working_path: Union[str, PurePath]) -> str:

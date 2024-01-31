@@ -5,7 +5,7 @@ import logging
 import multiprocessing
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import Any, Dict, Generator, Iterable, List, Optional, Union
 
 import numpy as np
 from nzshm_common.grids import RegionGrid
@@ -39,7 +39,15 @@ class DistributedGridTaskArguments:
     force: bool
 
 
-def process_gridded_hazard(location_keys, poe_levels, location_grid_id, hazard_model_id, vs30, imt, agg):
+def process_gridded_hazard(
+    location_keys: List[str],
+    poe_levels: Iterable[float],
+    location_grid_id: str,
+    hazard_model_id: str,
+    vs30: int,
+    imt: float,
+    agg: str,
+) -> Generator[model.GriddedHazard, None, None]:
     grid_accel_levels: Dict[float, List] = {poe: [None for i in range(len(location_keys))] for poe in poe_levels}
     for haz in query_v3.get_hazard_curves(location_keys, [vs30], [hazard_model_id], imts=[imt], aggs=[agg]):
         accel_levels = [float(val.lvl) for val in haz.values]
@@ -171,7 +179,7 @@ def calc_gridded_hazard(
     hazard_model_ids: Iterable[str],
     vs30s: Iterable[float],
     imts: Iterable[str],
-    aggs: Iterable[str],
+    aggs: List[str],
     num_workers: int,
     force: bool = False,
     filter_locations: Optional[Iterable[CodedLocation]] = None,
