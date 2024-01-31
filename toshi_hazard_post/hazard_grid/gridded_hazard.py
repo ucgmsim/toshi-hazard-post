@@ -178,10 +178,16 @@ def calc_gridded_hazard(
     iter_method: str = 'product',
 ):
 
+
     log.info(
         'calc_gridded_hazard( grid: %s poes: %s models: %s vs30s: %s imts: %s aggs: %s'
         % (location_grid_id, poe_levels, hazard_model_ids, vs30s, imts, aggs)
     )
+    
+    # cov is automatically calculated when mean is 
+    if 'cov' in aggs:
+        aggs.remove('cov')    
+
     count = 0
     grid = RegionGrid[location_grid_id]
 

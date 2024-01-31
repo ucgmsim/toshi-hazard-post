@@ -208,8 +208,8 @@ class HazardLogicTree:
     @classmethod
     def from_flattened_slt(cls, flat_slt: FlattenedSourceLogicTree, gt_ids: List[str]):
         source_solution_map = SourceSolutionMap()
-        for id in gt_ids:
-            source_solution_map.append(toshi_api.get_hazard_gt(id))
+        for gt_id in gt_ids:
+            source_solution_map.append(toshi_api.get_hazard_gt(gt_id))
 
         def yield_haz_branches(branches):
             for comp_branch in branches:
