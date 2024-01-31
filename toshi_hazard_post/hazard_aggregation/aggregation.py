@@ -227,7 +227,10 @@ def save_disaggregation(
 
     hazard_agg = model.AggregationEnum(deagg_agg_target)
     disagg_agg = model.AggregationEnum(agg)
-    probability = model.ProbabilityEnum[f'_{int(poe*100)}_PCT_IN_50YRS']
+    if poe >= 0.01:
+        probability = model.ProbabilityEnum[f'_{int(poe*100)}_PCT_IN_50YRS']
+    else:
+        probability = model.ProbabilityEnum[f'_{int(poe*1000):02d}_PCT_IN_50YRS']
     with model.DisaggAggregationExceedance.batch_write() as batch:
         dae = model.DisaggAggregationExceedance.new_model(
             hazard_model_id,

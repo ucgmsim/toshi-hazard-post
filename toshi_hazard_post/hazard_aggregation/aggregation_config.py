@@ -94,7 +94,7 @@ class AggregationConfig:
             or self.poes
             or self.imts
             or self.vs30s
-            or self.deagg_hazard_model_id
+            or self.deagg_hazard_model_target
         )
         if self.hazard_gts and dspec:
             raise Exception("for disaggregation you can only provied EITHER gtid(s) or a disagg spec")
