@@ -40,8 +40,8 @@ click = "^8.1.3"
 dacite = "^1.7.0"
 numba = "^0.56.0"
 toshi-hazard-store = "^0.7.5"
-nzshm-model = {git = "https://github.com/GNS-Science/nzshm-model.git", rev = "fix/correlations"}
 pandas = "~2.0.3"
+nzshm-model = "^0.4.0"
 
 
 [tool.poetry.dev-dependencies]
