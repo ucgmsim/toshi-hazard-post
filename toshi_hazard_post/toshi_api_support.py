@@ -18,9 +18,11 @@ log = logging.getLogger(__name__)
 
 DeaggConfig = namedtuple("DeaggConfig", "vs30 imt location poe inv_time deagg_agg_target")
 
+
 def args_to_dict(args: List) -> Dict:
 
     return {arg['k']: arg['v'] for arg in args}
+
 
 def get_deagg_config(data: Dict[str, Any]) -> DeaggConfig:
 
@@ -64,8 +66,9 @@ def create_archive(filename: Union[str, Path], working_path: Union[str, PurePath
         return archive(filename, Path(working_path, f"{Path(filename).name}.zip"))
     raise Exception("file does not exist.")
 
+
 def sanitize_json(jstring):
-    return jstring.replace("'",'"').replace('None', 'null').replace("False", 'false').replace("True", 'true')
+    return jstring.replace("'", '"').replace('None', 'null').replace("False", 'false').replace("True", 'true')
 
 
 class SourceSolutionMap:
@@ -83,7 +86,9 @@ class SourceSolutionMap:
                 onfault_nrml_id = onfault_ids[0]['nrml_id'] if onfault_ids else ''
                 distributed_nrml_id = dsm_ids[0]['nrml_id'] if dsm_ids else ''
                 hazard_solution = job['node']['child']['hazard_solution']
-                if hazard_solution:  # don't return a result if there is no solution (usually due to no ruptures near the site)
+                if (
+                    hazard_solution
+                ):  # don't return a result if there is no solution (usually due to no ruptures near the site)
                     self._dict[self.__key(onfault_nrml_id, distributed_nrml_id)] = hazard_solution['id']
         return
 
