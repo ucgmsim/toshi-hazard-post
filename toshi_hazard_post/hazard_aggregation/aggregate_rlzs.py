@@ -207,12 +207,17 @@ def get_branch_weights(logic_tree: HazardLogicTree) -> npt.NDArray:
         multiplicitive weights of all branches of full, combined logic tree
     """
 
-    nbranches = len(logic_tree.branches)  # TODO: should these be properties?
-    nrows = len(logic_tree.branches[0].gmcm_branches) * nbranches
+    # nbranches = len(logic_tree.branches)  # TODO: should these be properties?
+    # nrows = len(logic_tree.branches[0].gmcm_branches) * nbranches
+    nrows = sum([len(branch.gmcm_branches) for branch in logic_tree.branches])
     weights = np.empty((nrows,))
-    for i, branch in enumerate(logic_tree.branches):
+    i = 0
+    # for i, branch in enumerate(logic_tree.branches):
+    for branch in logic_tree.branches:
         w = np.array(branch.gmcm_branch_weights) * branch.weight
-        weights[i * len(w) : (i + 1) * len(w)] = w
+        # weights[i * len(w) : (i + 1) * len(w)] = w
+        weights[i:i + len(w)] = w
+        i += len(w)
 
     return weights
 
@@ -252,21 +257,25 @@ def build_branches(
     """
 
     nbranches = len(logic_tree.branches)
-    ncombs = len(logic_tree.branches[0].gmcm_branches)
-    nrows = ncombs * nbranches
+    # ncombs = len(logic_tree.branches[0].gmcm_branches)
+    # nrows = ncombs * nbranches
+    nrows = sum([len(branch.gmcm_branches) for branch in logic_tree.branches])
     # ncols = get_len_rate(values)
     ncols = end_ind - start_ind
     branch_probs = np.empty((nrows, ncols))
 
     tic = time.process_time()
-    for i, branch in enumerate(logic_tree.branches):  # ~320 source branches
+    # for i, branch in enumerate(logic_tree.branches):  # ~320 source branches
+    i = 0
+    for branch in logic_tree.branches:  # ~320 source branches
         # rlz_combs, weight_combs = build_rlz_table(branch, vs30)
 
         # set of realization probabilties for a single complete source branch
         # these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve
-        branch_probs[i * ncombs : (i + 1) * ncombs, :] = calc_weighted_sum(
+        branch_probs[i:i + len(branch.gmcm_branches) , :] = calc_weighted_sum(
             branch.gmcm_branches, values, loc, imt, start_ind, end_ind
         )
+        i += len(branch.gmcm_branches)
 
         log.debug(f'built branch {i+1} of {nbranches}')
 

@@ -134,7 +134,6 @@ def process_location_list(task_args: AggTaskArgs) -> None:
     if not values:
         log.info('missing values: %s' % (values))
         return
-
     weights = get_branch_weights(logic_tree)
     for imt in imts:
         log.info('working on imt: %s' % imt)
