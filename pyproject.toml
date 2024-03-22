@@ -32,16 +32,19 @@ thp = 'scripts.cli:main'
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
-boto3 = "^1.24.34"
-nshm-toshi-client = "^1.0.0"
-PyYAML = "^6.0"
+# boto3 = "^1.24.34"
+# nshm-toshi-client = "^1.0.0"
+# PyYAML = "^6.0"
 toml = "^0.10.2"
-click = "^8.1.3"
-dacite = "^1.7.0"
-numba = "^0.56.0"
-toshi-hazard-store = "^0.7.5"
-pandas = "~2.0.3"
-nzshm-model = "^0.4.0"
+# click = "^8.1.3"
+# dacite = "^1.7.0"
+# numba = "^0.56.0"
+# toshi-hazard-store = "^0.7.5"
+# pandas = "~2.0.3"
+numpy = "^1.26.4"
+nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "36-get_locations"}
+nzshm-model = {git = "https://github.com/GNS-Science/nzshm-model.git", rev = "61-srm-trt"}
+numba = "^0.59.1"
 
 [tool.poetry.group.dev.dependencies]
 black  = { version = "^22.3"}
@@ -51,25 +54,22 @@ flake8-docstrings = { version = "^1.6.0", optional = true }
 pytest = { version = "^6.2.4"}
 pytest-cov  = { version = "^2.12.0"}
 virtualenv  = { version = "^20.2.2", optional = true}
-mkdocs  = { version = "^1.1.2"}
-mkdocs-include-markdown-plugin  = { version = "^1.0.0"}
-mkdocs-material  = { version = "^6.1.7"}
-mkdocstrings  = { version = "^0.18.0"}
-mkdocs-material-extensions  = { version = "^1.0.1"}
-mkdocs-autorefs = {version = "^0.3.1"}
-pymdown-extensions = {version = "^9.4"}
-mkdocstrings-python = {version = "^0.6.5"}
-mkdocs-pymdownx-material-extras = "^2.0.3"
 twine  = { version = "^3.3.0"}
 pre-commit = {version = "^2.12.0", optional = true}
-toml = {version = "^0.10.2", optional = true}
 bump2version = {version = "^1.0.1"}
 jinja2 = {version = "3.0.3"}
-types-PyYAML = "^6.0.10"
+# types-PyYAML = "^6.0.10"
 types-toml = "^0.10.8"
 types-requests = "^2.28.5"
 tox = "^4.6.4"
 mypy = "^1.8.0"
+mkdocs = "^1.5.3"
+mkdocs-include-markdown-plugin = "^6.0.4"
+mkdocs-material = "^9.5.14"
+mkdocs-material-extensions = "^1.3.1"
+mkdocs-autorefs = "^1.0.1"
+mkdocs-pymdownx-material-extras = "^2.5.6"
+pymdown-extensions = "^10.7.1"
 
 [tool.poetry.extras]
 test = [
