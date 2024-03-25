@@ -1,14 +1,36 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator
 import numpy as np
+from dataclasses import dataclass, asdict
 
 if TYPE_CHECKING:
-    from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree
+    from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree, SourceBranch, GMCMBranch
     import numpy.typing as npt
+
+@dataclass
+class ComponentBranch:
+
+    source_branch: 'SourceBranch'
+    gmcm_branch: 'GMCMBranch'
+
+    def __repr__(self) -> str:
+        return(repr(asdict(self)))
+
+class CompositeBranch:
+
+    def __init__(self) -> None:
+        pass
+
+    @property
+    def component_branches(self) -> Generator[ComponentBranch, None, None]:
+        pass
+
+class CompositeBranch:
+    pass
 
 # TODO: move to nzhsm_model?
 class HazardLogicTree:
 
-    def __init__(srm_logic_tree: SourceLogicTree, gmcm_logic_tree: GMCMLogicTree) -> None:
+    def __init__(srm_logic_tree: 'SourceLogicTree', gmcm_logic_tree: 'GMCMLogicTree') -> None:
         pass
 
     # TODO: is it better to make this a generator or return list and cast to np.array when using it?
