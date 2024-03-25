@@ -5,7 +5,7 @@ import toml
 from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 from nzshm_model import get_model_version, all_model_versions
 from collections import namedtuple
-from .mock_ths import query_compatibility
+from .ths_mock import query_compatibility
 
 
 class AggregationConfig:

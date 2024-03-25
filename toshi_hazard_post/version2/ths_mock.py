@@ -1,6 +1,7 @@
 from typing import Generator, Any, List
 from dataclasses import dataclass
 from itertools import product
+import numpy as np
 
 def query_compatibility(compatibility_key: str) -> Generator[str, None, None]:
     entries = {"A":"a", "B":"b", "C":"c"}
@@ -33,6 +34,6 @@ def query_realizations(
             imt=imt,
             sources=[source],
             gsims=[gsim],
-            values=list(range(10)),
+            values=list(np.linspace(1, 0, 10) * 0.5),
         )
         
