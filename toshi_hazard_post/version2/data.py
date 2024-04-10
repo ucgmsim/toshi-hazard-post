@@ -1,15 +1,18 @@
 from typing import TYPE_CHECKING, List, Union, Generator, Dict
+import numpy as np
 from pathlib import Path
 import json
 from collections import namedtuple
 import csv
 from toshi_hazard_post.version2.ths_mock import query_realizations
 import numpy.typing as npt
+from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
 from nzshm_model.logic_tree import SourceBranch, GMCMBranch
+from toshi_hazard_post.version2.logic_tree import HazardBranch
 
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from toshi_hazard_post.version2.logic_tree import HazardLogicTree, ComponentBranch
+    from toshi_hazard_post.version2.logic_tree import HazardLogicTree
     from nzshm_common.location.code_location import CodedLocation
 
 
@@ -21,25 +24,16 @@ class ValueStore:
     def __init__(self) -> None:
         self._values: Dict[str, npt.NDArray] = {}
     
-    def _key(self, branch: 'ComponentBranch') -> str:
+    def _key(self, branch: HazardBranch) -> str:
         return repr(branch)
 
-    def get_values(self, branch: 'ComponentBranch') -> 'npt.NDArray':
+    def get_values(self, branch: HazardBranch) -> 'npt.NDArray':
         return self._values[self._key(branch)]
 
-    def set_values(self, values: 'npt.NDArray', branch: 'ComponentBranch') -> None:
+    def set_values(self, values: 'npt.NDArray', branch: HazardBranch) -> None:
         self._values[self._key(branch)] = values
 
 
-
-
-def get_vs30s(site_filepath: Union[str, Path]) -> Generator[int, None, None]:
-    with Path(site_filepath).open() as site_file:
-        reader = csv.reader(site_file)
-        Site = namedtuple("Site", next(reader), rename=True)
-        for row in reader:
-            site = Site(*row)
-            yield int(site.vs30)
 
 
 
@@ -63,7 +57,18 @@ def load_realizations(
     Returns:
         values: the component realizations rates (not probabilities)
     """
-    pass
+    value_store = ValueStore()
+    for res in query_realizations(
+            [location.code],
+            [vs30],
+            [imt],
+            logic_tree.component_branches,
+            compatibility_key,
+        ):
+        component_branch = HazardBranch(res.source, res.gsims)
+        values = prob_to_rate(np.array(res.values), 1.0)
+        value_store.set_values(values, component_branch)
+    return value_store
 
 def save_aggregations(
     hazard: 'npt.NDArray',
@@ -80,117 +85,117 @@ def save_aggregations(
         hazard: the aggregate hazard rates (not proabilities)
         aggs: the statistical aggregate types (e.g. "mean", "0.5")
     """
-    pass
+    rate_to_prob(hazard, 1.0)
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    import string
-    import random
-    import numpy as np
-    from toshi_hazard_post.version2.logic_tree import ComponentBranch
-    class FastValueStore:
-        """For baseline performance testing"""
+#     import string
+#     import random
+#     import numpy as np
+#     from toshi_hazard_post.version2.logic_tree import HazardBranch
+#     class FastValueStore:
+#         """For baseline performance testing"""
         
-        def __init__(self):
-            self._values = {}
+#         def __init__(self):
+#             self._values = {}
 
 
-        def get_values(self, *, key: str) -> 'npt.NDArray':
-            return self._values[key]
+#         def get_values(self, *, key: str) -> 'npt.NDArray':
+#             return self._values[key]
 
-        def set_values(self, *, values: 'npt.NDArray', key: str) -> None:
-            self._values[key] = values
+#         def set_values(self, *, values: 'npt.NDArray', key: str) -> None:
+#             self._values[key] = values
 
 
 
-    def generate_branches(source_names, gmcm_names):
-        print("generating branches")
-        branches = []
-        for sname, gname in zip(source_names, gmcm_names):
-            sb = SourceBranch(sname)
-            gb = GMCMBranch(gname)
-            branches.append(ComponentBranch(sb, gb))
-        return branches
+#     def generate_branches(source_names, gmcm_names):
+#         print("generating branches")
+#         branches = []
+#         for sname, gname in zip(source_names, gmcm_names):
+#             sb = SourceBranch(sname)
+#             gb = GMCMBranch(gname)
+#             branches.append(HazardBranch(sb, gb))
+#         return branches
 
 
 
     
-    def generate_keys():
-        print("generating keys")
-        def id_generator(size=20, chars=string.ascii_uppercase + string.digits):
-            return ''.join(random.choice(chars) for _ in range(size))
-        keys = set()
-        while len(keys) < 100:
-            keys.add(id_generator())
-        return keys
+#     def generate_keys():
+#         print("generating keys")
+#         def id_generator(size=20, chars=string.ascii_uppercase + string.digits):
+#             return ''.join(random.choice(chars) for _ in range(size))
+#         keys = set()
+#         while len(keys) < 100:
+#             keys.add(id_generator())
+#         return keys
 
-    def generate_fast_values(keys):
-        print("generating fast values")
-        values = FastValueStore()
+#     def generate_fast_values(keys):
+#         print("generating fast values")
+#         values = FastValueStore()
 
-        for key in keys:
-            values.set_values(values=np.random.rand(10), key=key)
+#         for key in keys:
+#             values.set_values(values=np.random.rand(10), key=key)
         
-        return values
+#         return values
 
-    def generate_values(branches):
-        print("generating values")
-        values = ValueStore()
-        for branch in branches:
-            values.set_values(values=np.random.rand(10), branch=branch)
-        return values
+#     def generate_values(branches):
+#         print("generating values")
+#         values = ValueStore()
+#         for branch in branches:
+#             values.set_values(values=np.random.rand(10), branch=branch)
+#         return values
 
-    def generate_values_dict(keys):
-        d = {}
-        for key in keys:
-            d[key] = np.random.rand(10) 
-        return d
+#     def generate_values_dict(keys):
+#         d = {}
+#         for key in keys:
+#             d[key] = np.random.rand(10) 
+#         return d
 
-    def generate_values_slow_dict(branches):
-        d = {}
-        for branch in branches:
-            key = repr(branch)
-            d[key] = np.random.rand(10)
-        return d
+#     def generate_values_slow_dict(branches):
+#         d = {}
+#         for branch in branches:
+#             key = repr(branch)
+#             d[key] = np.random.rand(10)
+#         return d
             
 
     
-    keys = generate_keys()
-    snames = generate_keys()
-    gnames = generate_keys()
-    branches = generate_branches(snames, gnames)
-    values_fast = generate_fast_values(keys)
-    values_slow = generate_values(branches)
-    values_dict = generate_values_dict(keys)
-    values_slow_dict = generate_values_slow_dict(branches)
+#     keys = generate_keys()
+#     snames = generate_keys()
+#     gnames = generate_keys()
+#     branches = generate_branches(snames, gnames)
+#     values_fast = generate_fast_values(keys)
+#     values_slow = generate_values(branches)
+#     values_dict = generate_values_dict(keys)
+#     values_slow_dict = generate_values_slow_dict(branches)
 
-    def time_get_fast_values():
-        for key in keys:
-            a = values_fast.get_values(key=key)
+#     def time_get_fast_values():
+#         for key in keys:
+#             a = values_fast.get_values(key=key)
 
     
-    def time_get_values():
-        for branch in branches:
-            a = values_slow.get_values(branch)
+#     def time_get_values():
+#         for branch in branches:
+#             a = values_slow.get_values(branch)
 
-    def time_get_dict_values():
-        for key in keys:
-            a = values_dict[key]
+#     def time_get_dict_values():
+#         for key in keys:
+#             a = values_dict[key]
     
-    def time_get_dict_slow_values():
-        for branch in branches:
-            key =  repr(branch)
-            a = values_slow_dict[key]
+#     def time_get_dict_slow_values():
+#         for branch in branches:
+#             key =  repr(branch)
+#             a = values_slow_dict[key]
 
-    import timeit    
-    number = 10000
+#     import timeit    
+#     number = 10000
     
-    t_dict = timeit.timeit(time_get_dict_values, globals=globals(), number=number)
-    print(f"time to  ValueStoreDict {number} times: {t_dict} seconds")
+#     t_dict = timeit.timeit(time_get_dict_values, globals=globals(), number=number)
+#     print(f"time to  ValueStoreDict {number} times: {t_dict} seconds")
 
-    t_fast = timeit.timeit(time_get_fast_values, globals=globals(), number=number)
-    print(f"time to  ValueStoreFast {number} times: {t_fast} seconds")
+#     t_fast = timeit.timeit(time_get_fast_values, globals=globals(), number=number)
+#     print(f"time to  ValueStoreFast {number} times: {t_fast} seconds")
 
-    t_slow = timeit.timeit(time_get_fast_values, globals=globals(), number=number)
-    print(f"time to  ValueStore {number} times: {t_slow} seconds")
+#     t_slow = timeit.timeit(time_get_fast_values, globals=globals(), number=number)
+#     print(f"time to  ValueStore {number} times: {t_slow} seconds")
 

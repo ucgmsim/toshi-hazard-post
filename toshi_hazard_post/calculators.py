@@ -55,18 +55,12 @@ def weighted_avg_and_std(values: npt.NDArray, weights: npt.NDArray) -> Tuple[np.
     """Calculate weighted average and standard deviation of an array.
 
     Parameters
-    ----------
-    values
-        array of values
-    weights
-        weights of values. Same length as values.
+        values: array of values
+        weights: weights of values. Same length as values.
 
     Returns
-    -------
-    mean
-        weighted mean
-    std
-        standard deviation
+        mean: weighted mean
+        std: standard deviation
     """
 
     average = np.average(values, weights=weights)
@@ -81,18 +75,12 @@ def calculate_weighted_quantiles(
     """Calculate weighed quantiles of array
 
     Parameters
-    ----------
-    values
-        values of data
-    weights
-        weights of values. Same length as values
-    quantiles
-        quantiles to be found. Values should be in [0,1]
+        values: values of data
+        weights: weights of values. Same length as values
+        quantiles: quantiles to be found. Values should be in [0,1]
 
     Returns
-    -------
-    weighed_quantiles
-        weighed quantiles
+        weighed_quantiles: weighed quantiles
     """
 
     sorter = np.argsort(values)

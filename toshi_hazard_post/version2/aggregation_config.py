@@ -1,11 +1,13 @@
-from typing import Tuple, Union, Any, Dict
+from typing import Tuple, Union, Any, Dict, Iterable, List
 import csv
 from pathlib import Path
 import toml
+from nzshm_common.location.location import get_locations
 from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 from nzshm_model import get_model_version, all_model_versions
 from collections import namedtuple
 from .ths_mock import query_compatibility
+
 
 
 class AggregationConfig:
@@ -62,7 +64,7 @@ class AggregationConfig:
             if not isinstance(loc, element_type):
                 raise ValueError("all location identifiers in [{}][{}] must be {}".format(table, name, element_type))
 
-    def _validate_logic_trees(self) -> None:
+    def _validate_logic_trees(self) -> bool:
         lt_config = self._config["logic_trees"]
         model_spec = bool(lt_config.get("model_version"))
         file_spec = bool(lt_config.get("srm_file") or lt_config.get("gmcm_file"))
@@ -104,4 +106,3 @@ class AggregationConfig:
                             assert vs30>0
                         except ValueError:
                             raise ValueError("not all vs30 values in {} are not valid row:{}".format(location_id, row))
-

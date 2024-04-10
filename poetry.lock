@@ -1320,7 +1320,7 @@ test = []
 type = "git"
 url = "https://github.com/GNS-Science/nzshm-common-py.git"
 reference = "36-get_locations"
-resolved_reference = "e6c7e7c684e86ff773cf25d2f6d10a978e44c30b"
+resolved_reference = "ebfb3371ca565fc3a2d89f34d3ccff4b20175dd0"
 
 [[package]]
 name = "nzshm-model"
@@ -1345,7 +1345,7 @@ toshi = ["boto3[toshi] (>=1.26.28,<2.0.0)", "nshm-toshi-client[toshi] (>=1.0.1,<
 type = "git"
 url = "https://github.com/GNS-Science/nzshm-model.git"
 reference = "61-srm-trt"
-resolved_reference = "eb112603195011cb048c8e3989a1de517385e12d"
+resolved_reference = "a422d8612cf7b77aa4df6052a28f93e95e7afa69"
 
 [[package]]
 name = "packaging"
