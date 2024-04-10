@@ -1,13 +1,7 @@
-from typing import TYPE_CHECKING, List, Union, Generator, Dict
+from typing import TYPE_CHECKING, List, Dict
 import numpy as np
-from pathlib import Path
-import json
-from collections import namedtuple
-import csv
 from toshi_hazard_post.version2.ths_mock import query_realizations
-import numpy.typing as npt
 from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
-from nzshm_model.logic_tree import SourceBranch, GMCMBranch
 from toshi_hazard_post.version2.logic_tree import HazardBranch
 
 if TYPE_CHECKING:

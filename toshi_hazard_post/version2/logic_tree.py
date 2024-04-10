@@ -1,20 +1,21 @@
-from typing import TYPE_CHECKING, Generator, List, Sequence, Tuple
+from typing import TYPE_CHECKING, Generator, List, Tuple
 import copy
 from operator import mul
 from functools import reduce
-from itertools import chain, filterfalse, product
+from itertools import chain, product
 from dataclasses import dataclass, asdict, field
 
 
 if TYPE_CHECKING:
     from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree, SourceBranch, GMCMBranch
-    import numpy.typing as npt
+
 
 # this is a dataclass so that we can use asdict for the __repr__()
 @dataclass
 class HazardBranch:
     """
-    A component branch of the combined (SRM + GMCM) logic tree comprised of an srm branch and a gmcm branch. The HazardComposite branch is the smallest unit necessary to create a hazard curve realization.
+    A component branch of the combined (SRM + GMCM) logic tree comprised of an srm branch and a gmcm branch. The
+    HazardComposite branch is the smallest unit necessary to create a hazard curve realization.
 
     Parameters:
         source_branch: the source
@@ -36,7 +37,9 @@ class HazardBranch:
 @dataclass
 class HazardCompositeBranch:
     """
-    A composite branch of the combined (SRM + GMCM) logic tree. A HazardCompositeBranch will have multiple sources and multiple ground motion models and is formed by taking all combinations of branches from the branch sets. The HazardComposite branch is an Iterable and will return HazardComponentBranch when iterated.
+    A composite branch of the combined (SRM + GMCM) logic tree. A HazardCompositeBranch will have multiple sources and
+    multiple ground motion models and is formed by taking all combinations of branches from the branch sets. The
+    HazardComposite branch is an Iterable and will return HazardComponentBranch when iterated.
 
     Parameters:
         branches: the source-ground motion pairs that comprise the HazardCompositeBranch
@@ -89,10 +92,12 @@ class HazardLogicTree:
     @property
     def composite_branches(self) -> Generator[HazardCompositeBranch, None, None]:
         """
-        Yield the composite branches combining the SRM branches with the appropraite GMCM branches by matching tectonic region type
+        Yield the composite branches combining the SRM branches with the appropraite GMCM branches by matching tectonic
+        region type.
 
         Returns:
-            composite_branches: the composite branches that make up all full realizations of the complete hazard logic tree
+            composite_branches: the composite branches that make up all full realizations of the complete hazard
+            logic tree
         """
         for srm_composite_branch, gmcm_composite_branch in product(
             self.srm_logic_tree.composite_branches, self.gmcm_logic_tree.composite_branches

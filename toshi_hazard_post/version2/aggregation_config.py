@@ -1,10 +1,8 @@
-from typing import Tuple, Union, Any, Dict, Iterable, List
+from typing import Union
 import csv
 from pathlib import Path
 import toml
-from nzshm_common.location.location import get_locations
-from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
-from nzshm_model import get_model_version, all_model_versions
+from nzshm_model import all_model_versions
 from collections import namedtuple
 from .ths_mock import query_compatibility
 
@@ -52,9 +50,10 @@ class AggregationConfig:
                     fractile = float(agg)
                 except ValueError:
                     raise ValueError(
-                        "aggregates must be 'cov', 'std', 'mean', or a string representation of a floating point value: {}".format(
-                            agg
-                        )
+                        """
+                        aggregates must be 'cov', 'std', 'mean',
+                        or a string representation of a floating point value: {}
+                        """.format(agg)
                     )
                 else:
                     if not (0 < fractile < 1):

@@ -1,11 +1,10 @@
-from typing import Tuple, TYPE_CHECKING, List, Sequence, Optional
+from typing import TYPE_CHECKING, List, Sequence, Optional
 import toshi_hazard_post.calculators as calculators
 import numpy as np
 from .data import load_realizations, save_aggregations
 
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from nzshm_common.location.code_location import CodedLocation
     from toshi_hazard_post.version2.logic_tree import HazardLogicTree, HazardCompositeBranch
     from toshi_hazard_post.version2.data import ValueStore
     from toshi_hazard_post.version2.aggregation_setup import Site
@@ -13,7 +12,8 @@ if TYPE_CHECKING:
 
 def build_branch_rates(logic_tree: 'HazardLogicTree', value_store: 'ValueStore', nlevels: int) -> 'npt.NDArray':
     """
-    Calculate the rate for the composite branches in the logic tree (all combination of SRM branch sets and applicable GMCM models).
+    Calculate the rate for the composite branches in the logic tree (all combination of SRM branch sets and applicable
+    GMCM models).
 
     Output is a numpy array with dimensions (branch, IMTL)
 

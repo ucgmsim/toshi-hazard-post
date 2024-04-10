@@ -6,12 +6,9 @@ from pathlib import Path
 from itertools import product
 
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
-from .aggregation_calc import calc_aggregation
 from nzshm_common.location.location import get_locations
 from nzshm_model import get_model_version
 from nzshm_common.location.code_location import CodedLocation
-from .logic_tree import HazardLogicTree
-from collections import namedtuple
 from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 
 
@@ -78,7 +75,8 @@ def get_sites(locations: Iterable[str], vs30s: List[int]) -> List[Site]:
     Get the sites (combined location and vs30) at which to calculate hazard.
 
     Parameters:
-        locations: location identifiers. Identifiers can be anything accepted by nzshm_common.location.location.get_locations
+        locations: location identifiers. Identifiers can be anything accepted
+        by nzshm_common.location.location.get_locations
         vs30s: the vs30s. If empty use the vs30s from the site files
 
     Returns:

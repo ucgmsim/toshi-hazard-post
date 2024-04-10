@@ -1,25 +1,9 @@
-import csv
-from dataclasses import dataclass
-from collections import namedtuple
-from typing import Tuple, TYPE_CHECKING, Iterable, List, Union
-from pathlib import Path
-from itertools import product
-
 import numpy as np
 
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 from .aggregation_calc import calc_aggregation
-from nzshm_common.location.location import get_locations
-from nzshm_model import get_model_version
-from nzshm_common.location.code_location import CodedLocation
 from .logic_tree import HazardLogicTree
-from collections import namedtuple
-from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 from .aggregation_setup import get_lts, get_sites, get_levels
-
-
-if TYPE_CHECKING:
-    import numpy.typing as npt
 
 
 def run_aggregation(config: AggregationConfig) -> None:
@@ -34,7 +18,8 @@ def run_aggregation(config: AggregationConfig) -> None:
     sites = get_sites(config.locations, config.vs30s)
 
     # create the logic tree objects and build the full logic tree
-    # TODO: pre-calculating the logic tree will require serialization if dsitributing in cloud. However, the object cannot be serialized due to use of FilteredBranch
+    # TODO: pre-calculating the logic tree will require serialization if dsitributing in cloud. However,
+    # the object cannot be serialized due to use of FilteredBranch
     srm_lt, gmcm_lt = get_lts(config)
     logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
 

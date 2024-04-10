@@ -1,8 +1,7 @@
-from typing import Generator, Any, List, TYPE_CHECKING, Iterable, Sequence
+from typing import Generator, List, TYPE_CHECKING, Iterable, Sequence
 from dataclasses import dataclass
 from itertools import product
 import numpy as np
-from toshi_hazard_post.calculators import prob_to_rate
 
 from nzshm_model.logic_tree import SourceBranch, GMCMBranch
 from toshi_hazard_post.version2.logic_tree import HazardBranch
