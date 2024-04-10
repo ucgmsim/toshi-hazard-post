@@ -18,12 +18,14 @@ if TYPE_CHECKING:
 
 class ValueStore:
     """
-    key arguments: source (contact of source IDs), gsim (with args and arg values), 
+    key arguments: source (contact of source IDs), gsim (with args and arg values),
     """
 
     def __init__(self) -> None:
         self._values: Dict[str, npt.NDArray] = {}
-    
+
+    # TODO: this could be a hash to make the keys more compact (though, they then cannot be interpreted for debugging)
+    # use json of dataclass for more robust string ification
     def _key(self, branch: HazardBranch) -> str:
         return repr(branch)
 
@@ -32,9 +34,6 @@ class ValueStore:
 
     def set_values(self, values: 'npt.NDArray', branch: HazardBranch) -> None:
         self._values[self._key(branch)] = values
-
-
-
 
 
 def load_realizations(
@@ -59,16 +58,17 @@ def load_realizations(
     """
     value_store = ValueStore()
     for res in query_realizations(
-            [location.code],
-            [vs30],
-            [imt],
-            logic_tree.component_branches,
-            compatibility_key,
-        ):
-        component_branch = HazardBranch(res.source, res.gsims)
+        [location.code],
+        [vs30],
+        [imt],
+        logic_tree.component_branches,
+        compatibility_key,
+    ):
+        component_branch = HazardBranch(res.source, tuple(res.gsims))
         values = prob_to_rate(np.array(res.values), 1.0)
         value_store.set_values(values, component_branch)
     return value_store
+
 
 def save_aggregations(
     hazard: 'npt.NDArray',
@@ -87,6 +87,7 @@ def save_aggregations(
     """
     rate_to_prob(hazard, 1.0)
 
+
 # if __name__ == "__main__":
 
 #     import string
@@ -95,7 +96,7 @@ def save_aggregations(
 #     from toshi_hazard_post.version2.logic_tree import HazardBranch
 #     class FastValueStore:
 #         """For baseline performance testing"""
-        
+
 #         def __init__(self):
 #             self._values = {}
 
@@ -105,7 +106,6 @@ def save_aggregations(
 
 #         def set_values(self, *, values: 'npt.NDArray', key: str) -> None:
 #             self._values[key] = values
-
 
 
 #     def generate_branches(source_names, gmcm_names):
@@ -118,8 +118,6 @@ def save_aggregations(
 #         return branches
 
 
-
-    
 #     def generate_keys():
 #         print("generating keys")
 #         def id_generator(size=20, chars=string.ascii_uppercase + string.digits):
@@ -135,7 +133,7 @@ def save_aggregations(
 
 #         for key in keys:
 #             values.set_values(values=np.random.rand(10), key=key)
-        
+
 #         return values
 
 #     def generate_values(branches):
@@ -148,7 +146,7 @@ def save_aggregations(
 #     def generate_values_dict(keys):
 #         d = {}
 #         for key in keys:
-#             d[key] = np.random.rand(10) 
+#             d[key] = np.random.rand(10)
 #         return d
 
 #     def generate_values_slow_dict(branches):
@@ -157,9 +155,8 @@ def save_aggregations(
 #             key = repr(branch)
 #             d[key] = np.random.rand(10)
 #         return d
-            
 
-    
+
 #     keys = generate_keys()
 #     snames = generate_keys()
 #     gnames = generate_keys()
@@ -173,7 +170,7 @@ def save_aggregations(
 #         for key in keys:
 #             a = values_fast.get_values(key=key)
 
-    
+
 #     def time_get_values():
 #         for branch in branches:
 #             a = values_slow.get_values(branch)
@@ -181,15 +178,15 @@ def save_aggregations(
 #     def time_get_dict_values():
 #         for key in keys:
 #             a = values_dict[key]
-    
+
 #     def time_get_dict_slow_values():
 #         for branch in branches:
 #             key =  repr(branch)
 #             a = values_slow_dict[key]
 
-#     import timeit    
+#     import timeit
 #     number = 10000
-    
+
 #     t_dict = timeit.timeit(time_get_dict_values, globals=globals(), number=number)
 #     print(f"time to  ValueStoreDict {number} times: {t_dict} seconds")
 
@@ -198,4 +195,3 @@ def save_aggregations(
 
 #     t_slow = timeit.timeit(time_get_fast_values, globals=globals(), number=number)
 #     print(f"time to  ValueStore {number} times: {t_slow} seconds")
-

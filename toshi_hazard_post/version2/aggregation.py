@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     import numpy.typing as npt
 
 
-
 def run_aggregation(config: AggregationConfig) -> None:
     """
     Main entry point for running aggregation caculations.
@@ -51,15 +50,13 @@ def run_aggregation(config: AggregationConfig) -> None:
     # each of these can be placed in a multiprocessing queue
     for site in sites:
         for imt in config.imts:
-            calc_aggregation(site, imt, config.aggs, levels, weights, logic_tree, config.compat_key, config.hazard_model_id)
-
-
-
-
+            calc_aggregation(
+                site, imt, config.aggs, levels, weights, logic_tree, config.compat_key, config.hazard_model_id
+            )
 
 
 if __name__ == "__main__":
 
-    config_filepath = "tests/version2/fixtures/hazard.toml"    
+    config_filepath = "tests/version2/fixtures/hazard.toml"
     config = AggregationConfig(config_filepath)
     run_aggregation(config)

@@ -9,9 +9,7 @@ from collections import namedtuple
 from .ths_mock import query_compatibility
 
 
-
 class AggregationConfig:
-
     def __init__(self, config_filepath: Union[str, Path]) -> None:
         self._config = toml.load(config_filepath)
         model_spec = self._validate_logic_trees()
@@ -30,19 +28,22 @@ class AggregationConfig:
             self.model_version = None
             self.srm_file = self._config['logic_trees']['srm_file']
             self.gmcm_file = self._config['logic_trees']['gmcm_file']
-        
+
         self.locations = self._config['site']['locations']
         self.vs30s = self._config['site'].get('vs30s')
         self.compat_key = self._config['general']['compatibility_key']
         self.hazard_model_id = self._config['general']['hazard_model_id']
         self.imts = self._config['calculation']['imts']
         self.aggs = self._config['calculation']['aggs']
-            
 
     def _validate_compatibility(self) -> None:
         res = list(query_compatibility(self._config['general']['compatibility_key']))
         if not res:
-            raise ValueError("compatibility key {} does not exist in the database".format(self._config['general']['compatibility_key']))
+            raise ValueError(
+                "compatibility key {} does not exist in the database".format(
+                    self._config['general']['compatibility_key']
+                )
+            )
 
     def _validate_aggs(self) -> None:
         for agg in self._config['calculation']['aggs']:
@@ -50,9 +51,13 @@ class AggregationConfig:
                 try:
                     fractile = float(agg)
                 except ValueError:
-                    raise ValueError("aggregates must be 'cov', 'std', 'mean', or a string representation of a floating point value: {}".format(agg))
+                    raise ValueError(
+                        "aggregates must be 'cov', 'std', 'mean', or a string representation of a floating point value: {}".format(
+                            agg
+                        )
+                    )
                 else:
-                    if not(0 < fractile < 1):
+                    if not (0 < fractile < 1):
                         raise ValueError("fractile aggregates must be between 0 and 1 exclusive: {}".format(agg))
 
     def _validate_list(self, table, name, element_type) -> None:
@@ -70,7 +75,7 @@ class AggregationConfig:
         file_spec = bool(lt_config.get("srm_file") or lt_config.get("gmcm_file"))
 
         if model_spec and file_spec:
-            raise KeyError("specify EITHER a model_version or logic tree files, not both")  
+            raise KeyError("specify EITHER a model_version or logic tree files, not both")
         if (not model_spec) and (not file_spec):
             raise KeyError("must specify a model_version or srm_file and gmcm_file")
         if file_spec:
@@ -83,15 +88,15 @@ class AggregationConfig:
                     raise FileNotFoundError("{} {} does not exist".format(lt_file, lt_config["srm_file"]))
         if model_spec and lt_config["model_version"] not in all_model_versions():
             raise KeyError("{} is not a valid model version".format(lt_config["model_version"]))
-        
+
         return model_spec
-    
+
     def _validate_vs30s(self) -> None:
         if self._config['site'].get('vs30s'):
             self._validate_list('site', 'vs30s', int)
         else:
             for location_id in self._config['site']['locations']:
-                fpath = Path(location_id) 
+                fpath = Path(location_id)
                 if not fpath.exists():
                     raise RuntimeError("if vs30s not specified, all locations must be files with vs30 column")
                 with Path(location_id).open() as loc_file:
@@ -103,6 +108,6 @@ class AggregationConfig:
                         site = Site(*row)
                         try:
                             vs30 = int(site.vs30)  # type:ignore
-                            assert vs30>0
+                            assert vs30 > 0
                         except ValueError:
                             raise ValueError("not all vs30 values in {} are not valid row:{}".format(location_id, row))

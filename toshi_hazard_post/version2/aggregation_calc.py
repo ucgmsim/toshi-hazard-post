@@ -11,8 +11,7 @@ if TYPE_CHECKING:
     from toshi_hazard_post.version2.aggregation_setup import Site
 
 
-
-def build_branch_rates(logic_tree: 'HazardLogicTree', value_store: 'ValueStore', location: 'CodedLocation', vs30: int, nlevels: int) -> 'npt.NDArray':
+def build_branch_rates(logic_tree: 'HazardLogicTree', value_store: 'ValueStore', nlevels: int) -> 'npt.NDArray':
     """
     Calculate the rate for the composite branches in the logic tree (all combination of SRM branch sets and applicable GMCM models).
 
@@ -35,7 +34,9 @@ def build_branch_rates(logic_tree: 'HazardLogicTree', value_store: 'ValueStore',
     return rates
 
 
-def calc_composite_rates(composite_branch: 'HazardCompositeBranch', value_store: 'ValueStore', nlevels: int) -> 'npt.NDArray':
+def calc_composite_rates(
+    composite_branch: 'HazardCompositeBranch', value_store: 'ValueStore', nlevels: int
+) -> 'npt.NDArray':
     """
     Calculate the rate for a single composite branch of the logic tree by summing rates of the component branches
 
@@ -125,7 +126,7 @@ def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', aggs: Se
         branch_rates: hazard rates for every composite realization of the model with dimensions (branch, IMTL)
         weights: one dimensional array of weights for composite branches
         aggs: the aggregate statistics to be calculated (e.g., "mean", "0.5")
-    
+
     Returns:
         hazard: aggregate rates array with dimension (agg, IMTL)
     """
@@ -141,14 +142,14 @@ def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', aggs: Se
 
 
 def calc_aggregation(
-        site: 'Site',
-        imt: str,
-        aggs: List[str],
-        levels: 'npt.NDArray',
-        weights: 'npt.NDArray',
-        logic_tree: 'HazardLogicTree',
-        compatibility_key: str,
-        hazard_model_id: str,
+    site: 'Site',
+    imt: str,
+    aggs: List[str],
+    levels: 'npt.NDArray',
+    weights: 'npt.NDArray',
+    logic_tree: 'HazardLogicTree',
+    compatibility_key: str,
+    hazard_model_id: str,
 ) -> Optional[Exception]:
     """
     Calculate hazard aggregation for a single site and imt and save result
@@ -161,7 +162,7 @@ def calc_aggregation(
         logic_tree: the complete (srm + gmcm combined) logic tree
         compatibility_key: the key identifying the hazard calculation compatibility entry
         hazard_model_id: the id of the hazard model for storing results in the database
-    
+
     Returns:
         exception: the raised exception if any part of the calculation fails
     """
@@ -170,7 +171,7 @@ def calc_aggregation(
 
     try:
         values = load_realizations(logic_tree, imt, location, vs30, compatibility_key)
-        branch_rates = build_branch_rates(logic_tree, values, location, vs30, len(levels))
+        branch_rates = build_branch_rates(logic_tree, values, len(levels))
         hazard = calculate_aggs(branch_rates, weights, aggs)
         save_aggregations(hazard, location, vs30, imt, aggs, hazard_model_id)
     except Exception as e:

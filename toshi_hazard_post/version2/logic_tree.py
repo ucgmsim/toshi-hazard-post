@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Generator, List, Sequence
+from typing import TYPE_CHECKING, Generator, List, Sequence, Tuple
 import copy
 from operator import mul
 from functools import reduce
@@ -22,14 +22,16 @@ class HazardBranch:
     """
 
     source_branch: 'SourceBranch'
-    gmcm_branches: Sequence['GMCMBranch']
+    gmcm_branches: Tuple['GMCMBranch']
     weight: float = field(init=False)
 
     def __post_init__(self):
         self.weight = reduce(mul, [self.source_branch.weight] + [b.weight for b in self.gmcm_branches])
+        self.gmcm_branches = tuple(self.gmcm_branches)
 
     def __repr__(self) -> str:
-        return(repr(asdict(self)))
+        return repr(asdict(self))
+
 
 @dataclass
 class HazardCompositeBranch:
@@ -49,7 +51,7 @@ class HazardCompositeBranch:
     def __iter__(self) -> 'HazardCompositeBranch':
         self.__counter = 0
         return self
-    
+
     def __next__(self) -> HazardBranch:
         if self.__counter >= len(self.branches):
             raise StopIteration
@@ -71,7 +73,7 @@ class HazardLogicTree:
     def __init__(self, srm_logic_tree: 'SourceLogicTree', gmcm_logic_tree: 'GMCMLogicTree') -> None:
         self.srm_logic_tree = srm_logic_tree
 
-        # remove the TRTs from the GMCM logic tree that are not in the SRM logic tree 
+        # remove the TRTs from the GMCM logic tree that are not in the SRM logic tree
         # 1. find which TRTs are included in the source logic tree
         self.trts = set(chain(*[bs.tectonic_region_types for bs in self.srm_logic_tree.branch_sets]))
 
@@ -81,7 +83,7 @@ class HazardLogicTree:
             lambda bs: bs.tectonic_region_type in self.trts, gmcm_logic_tree.branch_sets
         )
 
-        self._n_composite_branches: int
+        self._n_composite_branches: int = 0
 
     # TODO: is this better stored or as a generator?
     @property
@@ -93,17 +95,15 @@ class HazardLogicTree:
             composite_branches: the composite branches that make up all full realizations of the complete hazard logic tree
         """
         for srm_composite_branch, gmcm_composite_branch in product(
-            self.srm_logic_tree.composite_branches,
-            self.gmcm_logic_tree.composite_branches
+            self.srm_logic_tree.composite_branches, self.gmcm_logic_tree.composite_branches
         ):
             # for each srm component branch, find the matching GMCM branches (by TRT)
             hbranches = []
             for srm_branch in srm_composite_branch:
                 trts = srm_branch.tectonic_region_types
-                gmcm_branches = [branch for branch in gmcm_composite_branch if branch.tectonic_region_type in trts]
+                gmcm_branches = tuple(branch for branch in gmcm_composite_branch if branch.tectonic_region_type in trts)
                 hbranches.append(HazardBranch(source_branch=srm_branch, gmcm_branches=gmcm_branches))
             yield HazardCompositeBranch(hbranches)
-
 
     @property
     def n_composite_branches(self) -> int:
@@ -126,8 +126,7 @@ class HazardLogicTree:
                 branch_set for branch_set in self.gmcm_logic_tree.branch_sets if branch_set.tectonic_region_type in trts
             ]
             for gmcm_branches in product(*[bs.branches for bs in branch_sets]):
-                yield HazardBranch(source_branch=srm_branch, gmcm_branches=gmcm_branches)
-
+                yield HazardBranch(source_branch=srm_branch.to_branch(), gmcm_branches=gmcm_branches)
 
     # TODO: is it better to make this a generator or return list and cast to np.array when using it?
     # Keep numpy types from poluting logic tree?  Would def want to do if this class is moved to nzshm_model
