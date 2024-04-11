@@ -32,9 +32,6 @@ class HazardBranch:
         self.weight = reduce(mul, [self.source_branch.weight] + [b.weight for b in self.gmcm_branches])
         self.gmcm_branches = tuple(self.gmcm_branches)
 
-    def __repr__(self) -> str:
-        return repr(asdict(self))
-
 
 @dataclass
 class HazardCompositeBranch:

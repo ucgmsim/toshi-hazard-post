@@ -1,5 +1,8 @@
 from typing import TYPE_CHECKING, List, Dict
 import numpy as np
+import hashlib
+from dataclasses import asdict
+import json
 from toshi_hazard_post.version2.ths_mock import query_realizations, write_aggs_to_ths
 from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
 from toshi_hazard_post.version2.logic_tree import HazardBranch
@@ -18,10 +21,8 @@ class ValueStore:
     def __init__(self) -> None:
         self._values: Dict[str, npt.NDArray] = {}
 
-    # TODO: this could be a hash to make the keys more compact (though, they then cannot be interpreted for debugging)
-    # use json of dataclass for more robust string ification
     def _key(self, branch: HazardBranch) -> str:
-        return repr(branch)
+        return hashlib.shake_256(json.dumps(asdict(branch)).encode()).hexdigest(6)
 
     def get_values(self, branch: HazardBranch) -> 'npt.NDArray':
         return self._values[self._key(branch)]
