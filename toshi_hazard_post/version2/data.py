@@ -51,9 +51,9 @@ def load_realizations(
     """
     value_store = ValueStore()
     for res in query_realizations(
-        [location.code],
-        [vs30],
-        [imt],
+        location,
+        vs30,
+        imt,
         logic_tree.component_branches,
         compatibility_key,
     ):

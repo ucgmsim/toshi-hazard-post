@@ -2,10 +2,14 @@ from typing import Generator, List, TYPE_CHECKING, Iterable, Sequence
 from dataclasses import dataclass
 from itertools import product
 import numpy as np
+import boto3
+import pyarrow.dataset as ds
+import pyarrow.compute as pc
+from pyarrow import fs
 
 from nzshm_model.logic_tree import SourceBranch, GMCMBranch
 from toshi_hazard_post.version2.logic_tree import HazardBranch
-
+from toshi_hazard_post.version2.local_config import WORK_PATH, ARROW_FS
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -93,24 +97,69 @@ def query_levels(compat_key: str) -> 'npt.NDArray':
 
 @dataclass
 class mRLZ:
-    values: List[float]
-    loc: str
-    vs30: int
-    imt: str
+    values: 'npt.NDArray'
+    # loc: str
+    # vs30: int
+    # imt: str
     source: SourceBranch
     gsims: Sequence[GMCMBranch]
 
 
 def query_realizations(
-    locs: List[str], vs30s: List[int], imts: List[str], branches: Iterable[HazardBranch], compat_key: str
+    loc: 'CodedLocation', vs30: int, imt: str, branches: Iterable[HazardBranch], compat_key: str
 ) -> Generator[mRLZ, None, None]:
+    
+    session = boto3.session.Session()
+    credentials = session.get_credentials()
 
-    for loc, vs30, imt, branch in product(locs, vs30s, imts, branches):
-        yield mRLZ(
-            loc=loc,
-            vs30=vs30,
-            imt=imt,
-            source=branch.source_branch,
-            gsims=branch.gmcm_branches,
-            values=list(np.linspace(1, 0, 44) * 0.5),
-        )
+    s3 = fs.S3FileSystem(
+        secret_key=credentials.secret_key,
+        access_key=credentials.access_key,
+        region='ap-southeast-2',
+        session_token=credentials.token)
+
+    s3  = fs.S3FileSystem(region='ap-southeast-2', )
+    partition = f"nloc_0={loc.downsample(0.1).code}"
+    dataset = ds.dataset(f'ths-poc-arrow-test/pq-CDC/{partition}', format='parquet', filesystem=s3)
+    filter = (
+        pc.field('imt')==pc.scalar(imt) &
+        pc.field('vs30') == pc.scalar(vs30) &
+        pc.field('nloc_001') == pc.scalar(loc.downsample(0.001).code) & 
+        pc.field('compatible_calc_fk') == pc.scalar(compat_key)
+    )
+    df = dataset.to_table(filter=filter).to_pandas()
+
+
+    # for loc, vs30, imt, branch in product(locs, vs30s, imts, branches):
+    #     yield mRLZ(
+    #         loc=loc,
+    #         vs30=vs30,
+    #         imt=imt,
+    #         source=branch.source_branch,
+    #         gsims=branch.gmcm_branches,
+    #         values=list(np.linspace(1, 0, 44) * 0.5),
+    #     )
+
+def pyarrow_demo(loc, imt, vs30, compat_key):
+
+    session = boto3.session.Session()
+    credentials = session.get_credentials()
+
+    s3 = fs.S3FileSystem(
+        secret_key=credentials.secret_key,
+        access_key=credentials.access_key,
+        region='ap-southeast-2',
+        session_token=credentials.token)
+
+    s3  = fs.S3FileSystem(region='ap-southeast-2', )
+    partition = f"nloc_0={loc.downsample(1).code}"
+    dataset = ds.dataset(f'ths-poc-arrow-test/pq-CDC/{partition}', format='parquet', filesystem=s3)
+    filter = (
+        (pc.field('imt')==pc.scalar(imt)) &
+        (pc.field('vs30') == pc.scalar(vs30)) &
+        (pc.field('nloc_001') == pc.scalar(loc.downsample(0.001).code)) &
+        (pc.field('compatible_calc_fk') == pc.scalar(compat_key))
+    )
+    df = dataset.to_table(filter=filter).to_pandas()
+
+    return dataset, df
