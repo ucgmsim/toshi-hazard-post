@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Generator, List, Tuple
 import copy
 import numpy as np
+import json
 from operator import mul
 from functools import reduce
 from itertools import chain, product
@@ -31,6 +32,10 @@ class HazardBranch:
     def __post_init__(self):
         self.weight = reduce(mul, [self.source_branch.weight] + [b.weight for b in self.gmcm_branches])
         self.gmcm_branches = tuple(self.gmcm_branches)
+
+    @property
+    def registry_identity(self) -> str:
+        return json.dumps(asdict(self))
 
 
 @dataclass

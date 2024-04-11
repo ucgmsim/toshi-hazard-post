@@ -1,9 +1,9 @@
 import logging
 
 from typing import TYPE_CHECKING, List, Sequence, Optional
-import toshi_hazard_post.calculators as calculators
+import toshi_hazard_post.version2.calculators as calculators
 import numpy as np
-from .data import load_realizations, save_aggregations
+from toshi_hazard_post.version2.data import load_realizations, save_aggregations
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -121,33 +121,33 @@ def weighted_stats(
     return wq
 
 
-def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', aggs: Sequence[str]) -> 'npt.NDArray':
+def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_types: Sequence[str]) -> 'npt.NDArray':
     """
     Calculate weighted aggregate statistics of the composite realizations
 
     Parameters:
         branch_rates: hazard rates for every composite realization of the model with dimensions (branch, IMTL)
         weights: one dimensional array of weights for composite branches
-        aggs: the aggregate statistics to be calculated (e.g., "mean", "0.5")
+        agg_types: the aggregate statistics to be calculated (e.g., "mean", "0.5")
 
     Returns:
-        hazard: aggregate rates array with dimension (agg, IMTL)
+        hazard: aggregate rates array with dimension (agg_type, IMTL)
     """
 
     nrows = branch_rates.shape[1]
-    ncols = len(aggs)
-    median = np.empty((nrows, ncols))
+    ncols = len(agg_types)
+    aggs = np.empty((nrows, ncols))
     for i in range(nrows):
-        quantiles = weighted_stats(branch_rates[:, i], list(aggs), sample_weight=weights)
-        median[i, :] = np.array(quantiles)
+        quantiles = weighted_stats(branch_rates[:, i], list(agg_types), sample_weight=weights)
+        aggs[i, :] = np.array(quantiles)
 
-    return median
+    return aggs
 
 
 def calc_aggregation(
     site: 'Site',
     imt: str,
-    aggs: List[str],
+    agg_types: List[str],
     levels: 'npt.NDArray',
     weights: 'npt.NDArray',
     logic_tree: 'HazardLogicTree',
@@ -160,6 +160,7 @@ def calc_aggregation(
     Parameters:
         site: location, vs30 pair
         imt: Intensity measure type (e.g. "PGA", "SA(1.5)")
+        agg_types: the aggregate statistics to be calculated (e.g., "mean", "0.5")
         levels: IMTLs for the hazard curve
         weights: weights for the branches of the logic tree
         logic_tree: the complete (srm + gmcm combined) logic tree
@@ -174,13 +175,13 @@ def calc_aggregation(
 
     try:
         log.info("loading realizations")
-        values = load_realizations(logic_tree, imt, location, vs30, compatibility_key)
+        value_store = load_realizations(logic_tree, imt, location, vs30, compatibility_key)
         log.info("building branch rates")
-        branch_rates = build_branch_rates(logic_tree, values, len(levels))
+        branch_rates = build_branch_rates(logic_tree, value_store, len(levels))
         log.info("calculating aggregates")
-        hazard = calculate_aggs(branch_rates, weights, aggs)
+        hazard = calculate_aggs(branch_rates, weights, agg_types)
         log.info("saving result")
-        save_aggregations(hazard, location, vs30, imt, aggs, hazard_model_id)
+        save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)
     except Exception as e:
         return e
 

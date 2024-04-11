@@ -2,17 +2,19 @@
 
 import logging
 import math
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
-import numpy.typing as npt
 from numba import jit
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
 
 log = logging.getLogger(__name__)
 
 
 @jit(nopython=True)
-def prob_to_rate(prob: npt.NDArray, inv_time: float) -> npt.NDArray:
+def prob_to_rate(prob: 'npt.NDArray', inv_time: float) -> 'npt.NDArray':
     """Convert probability of exceedance to rate assuming Poisson distribution.
 
     Parameters:
@@ -27,7 +29,7 @@ def prob_to_rate(prob: npt.NDArray, inv_time: float) -> npt.NDArray:
 
 
 @jit(nopython=True)
-def rate_to_prob(rate: npt.NDArray, inv_time: float) -> npt.NDArray:
+def rate_to_prob(rate: 'npt.NDArray', inv_time: float) -> 'npt.NDArray':
     """Convert rate to probabiility of exceedance assuming Poisson distribution.
 
     Parameters:
@@ -41,7 +43,7 @@ def rate_to_prob(rate: npt.NDArray, inv_time: float) -> npt.NDArray:
     return 1.0 - np.exp(-inv_time * rate)
 
 
-def weighted_avg_and_std(values: npt.NDArray, weights: npt.NDArray) -> Tuple[np.double, float]:
+def weighted_avg_and_std(values: 'npt.NDArray', weights: 'npt.NDArray') -> Tuple[np.double, float]:
     """Calculate weighted average and standard deviation of an array.
 
     Parameters:
@@ -60,8 +62,8 @@ def weighted_avg_and_std(values: npt.NDArray, weights: npt.NDArray) -> Tuple[np.
 
 
 def calculate_weighted_quantiles(
-    values: npt.NDArray, weights: npt.NDArray, quantiles: Union[List[float], npt.NDArray]
-) -> npt.NDArray:
+    values: 'npt.NDArray', weights: 'npt.NDArray', quantiles: Union[List[float], 'npt.NDArray']
+) -> 'npt.NDArray':
     """Calculate weighed quantiles of array
 
     Parameters:

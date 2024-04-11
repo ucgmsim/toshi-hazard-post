@@ -1,8 +1,6 @@
 from typing import TYPE_CHECKING, List, Dict
 import numpy as np
 import hashlib
-from dataclasses import asdict
-import json
 from toshi_hazard_post.version2.ths_mock import query_realizations, write_aggs_to_ths
 from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
 from toshi_hazard_post.version2.logic_tree import HazardBranch
@@ -22,7 +20,7 @@ class ValueStore:
         self._values: Dict[str, npt.NDArray] = {}
 
     def _key(self, branch: HazardBranch) -> str:
-        return hashlib.shake_256(json.dumps(asdict(branch)).encode()).hexdigest(6)
+        return hashlib.shake_256(branch.registry_identity.encode()).hexdigest(6)
 
     def get_values(self, branch: HazardBranch) -> 'npt.NDArray':
         return self._values[self._key(branch)]
@@ -70,7 +68,7 @@ def save_aggregations(
     location: 'CodedLocation',
     vs30: int,
     imt: str,
-    aggs: List[str],
+    agg_types: List[str],
     hazard_model_id: str,
 ) -> None:
     """
@@ -78,10 +76,14 @@ def save_aggregations(
 
     Parameters:
         hazard: the aggregate hazard rates (not proabilities)
-        aggs: the statistical aggregate types (e.g. "mean", "0.5")
+        location: the site location
+        vs30: the site vs30
+        imt: the intensity measure type (e.g. "PGA", "SA(1.5)")
+        agg_types: the statistical aggregate types (e.g. "mean", "0.5")
+        hazard_model_id: the model id for storing in the database
     """
     hazard = rate_to_prob(hazard, 1.0)
-    write_aggs_to_ths(hazard, location, vs30, imt, aggs, hazard_model_id)
+    write_aggs_to_ths(hazard, location, vs30, imt, agg_types, hazard_model_id)
 
 
 # if __name__ == "__main__":

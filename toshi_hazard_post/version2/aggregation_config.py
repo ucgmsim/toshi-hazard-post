@@ -4,7 +4,7 @@ from pathlib import Path
 import toml
 from nzshm_model import all_model_versions
 from collections import namedtuple
-from .ths_mock import query_compatibility
+from toshi_hazard_post.version2.ths_mock import query_compatibility
 
 
 class AggregationConfig:
@@ -14,8 +14,8 @@ class AggregationConfig:
         self._validate_vs30s()
         self._validate_list('site', 'locations', str)
         self._validate_list('calculation', 'imts', str)
-        self._validate_list('calculation', 'aggs', str)
-        self._validate_aggs()
+        self._validate_list('calculation', 'agg_types', str)
+        self._validate_agg_types()
         self._validate_compatibility()
 
         if model_spec:
@@ -32,7 +32,7 @@ class AggregationConfig:
         self.compat_key = self._config['general']['compatibility_key']
         self.hazard_model_id = self._config['general']['hazard_model_id']
         self.imts = self._config['calculation']['imts']
-        self.aggs = self._config['calculation']['aggs']
+        self.agg_types = self._config['calculation']['agg_types']
 
     def _validate_compatibility(self) -> None:
         res = list(query_compatibility(self._config['general']['compatibility_key']))
@@ -43,21 +43,23 @@ class AggregationConfig:
                 )
             )
 
-    def _validate_aggs(self) -> None:
-        for agg in self._config['calculation']['aggs']:
-            if agg not in ("cov", "std", "mean"):
+    def _validate_agg_types(self) -> None:
+        for agg_type in self._config['calculation']['agg_types']:
+            if agg_type not in ("cov", "std", "mean"):
                 try:
-                    fractile = float(agg)
+                    fractile = float(agg_type)
                 except ValueError:
                     raise ValueError(
                         """
-                        aggregates must be 'cov', 'std', 'mean',
+                        aggregate types must be 'cov', 'std', 'mean',
                         or a string representation of a floating point value: {}
-                        """.format(agg)
+                        """.format(
+                            agg_type
+                        )
                     )
                 else:
                     if not (0 < fractile < 1):
-                        raise ValueError("fractile aggregates must be between 0 and 1 exclusive: {}".format(agg))
+                        raise ValueError("fractile aggregate types must be between 0 and 1 exclusive: {}".format(agg_type))
 
     def _validate_list(self, table, name, element_type) -> None:
         if not self._config[table].get(name):

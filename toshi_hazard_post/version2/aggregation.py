@@ -1,7 +1,5 @@
 import logging
 
-import numpy as np
-
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 from toshi_hazard_post.version2.aggregation_calc import calc_aggregation
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
@@ -47,7 +45,7 @@ def run_aggregation(config: AggregationConfig) -> None:
         for imt in config.imts:
             log.info("site: %s, imt: %s", site, imt)
             exception = calc_aggregation(
-                site, imt, config.aggs, levels, weights, logic_tree, config.compat_key, config.hazard_model_id
+                site, imt, config.agg_types, levels, weights, logic_tree, config.compat_key, config.hazard_model_id
             )
             if exception:
                 raise exception
