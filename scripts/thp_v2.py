@@ -8,6 +8,7 @@ from toshi_hazard_post.version2.aggregation import run_aggregation
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)
+logging.getLogger('toshi_hazard_post.version2.aggregation_calc').setLevel(logging.DEBUG)
 
 @click.group()
 def thp():

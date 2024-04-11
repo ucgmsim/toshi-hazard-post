@@ -1,4 +1,5 @@
 import logging
+import time
 
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 from toshi_hazard_post.version2.aggregation_calc import calc_aggregation
@@ -28,11 +29,15 @@ def run_aggregation(config: AggregationConfig) -> None:
     log.info("building hazard logic tree")
     logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
 
+
     # get the weights (this code could be moved to nzshm-model)
     # TODO: this could be done in calc_aggregation() which would avoid passing the weights array when running in
     # parrallel, however, it may be slow? determine speed and decide
     log.info("getting weights")
+    tic = time.perf_counter()
     weights = logic_tree.weights
+    toc = time.perf_counter()
+    log.info(f'time to calculate weights {toc-tic:.2f} seconds')
 
     # get the levels for the compatibility
     log.info("getting levels")
@@ -44,9 +49,12 @@ def run_aggregation(config: AggregationConfig) -> None:
     for site in sites:
         for imt in config.imts:
             log.info("site: %s, imt: %s", site, imt)
+            tic = time.perf_counter()
             exception = calc_aggregation(
                 site, imt, config.agg_types, levels, weights, logic_tree, config.compat_key, config.hazard_model_id
             )
+            toc = time.perf_counter()
+            log.info(f'time to perform aggregation for one location-imt pair {toc-tic:.2f} seconds')
             if exception:
                 raise exception
 

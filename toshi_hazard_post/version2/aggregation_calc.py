@@ -1,4 +1,5 @@
 import logging
+import time
 
 from typing import TYPE_CHECKING, List, Sequence, Optional
 import toshi_hazard_post.version2.calculators as calculators
@@ -175,11 +176,23 @@ def calc_aggregation(
 
     try:
         log.info("loading realizations")
+        tic = time.perf_counter()
         value_store = load_realizations(logic_tree, imt, location, vs30, compatibility_key)
+        toc = time.perf_counter()
+        log.debug(f'time to load realizations {toc-tic:.2f} seconds')
+
+        tic = time.perf_counter()
         log.info("building branch rates")
         branch_rates = build_branch_rates(logic_tree, value_store, len(levels))
+        toc = time.perf_counter()
+        log.debug(f'time to build branch rates {toc-tic:.2f} seconds')
+
+        tic = time.perf_counter()
         log.info("calculating aggregates")
         hazard = calculate_aggs(branch_rates, weights, agg_types)
+        toc = time.perf_counter()
+        log.debug(f'time to calculate aggs {toc-tic:.2f} seconds')
+
         log.info("saving result")
         save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)
     except Exception as e:
