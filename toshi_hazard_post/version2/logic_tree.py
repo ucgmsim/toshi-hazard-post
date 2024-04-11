@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Generator, List, Tuple
 import copy
+import numpy as np
 from operator import mul
 from functools import reduce
 from itertools import chain, product
@@ -8,6 +9,7 @@ from dataclasses import dataclass, asdict, field
 
 if TYPE_CHECKING:
     from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree, SourceBranch, GMCMBranch
+    import numpy.typing as npt
 
 
 # this is a dataclass so that we can use asdict for the __repr__()
@@ -136,7 +138,7 @@ class HazardLogicTree:
     # TODO: is it better to make this a generator or return list and cast to np.array when using it?
     # Keep numpy types from poluting logic tree?  Would def want to do if this class is moved to nzshm_model
     @property
-    def weights(self) -> Generator[float, None, None]:
+    def weights(self) -> 'npt.NDArray':
         """
         The weights for every enumerated branch (srm + gmcm) of the logic tree.
 
@@ -146,5 +148,4 @@ class HazardLogicTree:
         Returns:
             weights: one dimensional array of branch weights
         """
-        for composite_branch in self.composite_branches:
-            yield composite_branch.weight
+        return np.array([branch.weight for branch in self.composite_branches])

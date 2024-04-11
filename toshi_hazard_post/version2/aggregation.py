@@ -34,7 +34,7 @@ def run_aggregation(config: AggregationConfig) -> None:
     # TODO: this could be done in calc_aggregation() which would avoid passing the weights array when running in
     # parrallel, however, it may be slow? determine speed and decide
     log.info("getting weights")
-    weights = np.array(logic_tree.weights)
+    weights = logic_tree.weights
 
     # get the levels for the compatibility
     log.info("getting levels")

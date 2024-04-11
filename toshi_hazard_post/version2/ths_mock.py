@@ -114,5 +114,5 @@ def query_realizations(
             imt=imt,
             source=branch.source_branch,
             gsims=branch.gmcm_branches,
-            values=list(np.linspace(1, 0, 10) * 0.5),
+            values=list(np.linspace(1, 0, 44) * 0.5),
         )

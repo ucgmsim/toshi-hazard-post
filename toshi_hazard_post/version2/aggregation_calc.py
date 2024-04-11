@@ -81,7 +81,6 @@ def weighted_stats(
     Returns
         stats: statistics in same order as quantiles
     """
-
     if sample_weight is None:
         sample_weight = np.ones(len(values))
     sample_weight = sample_weight / sum(sample_weight)
