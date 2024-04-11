@@ -9,12 +9,12 @@ from nzshm_model.logic_tree.correlation import LogicTreeCorrelations
 
 @pytest.fixture(scope='function')
 def source_logic_tree():
-    slt_filepath = Path(__file__).parent / 'fixtures/slt_v1.0.4.json'
+    slt_filepath = Path(__file__).parent / 'fixtures/slt.json'
     return SourceLogicTree.from_json(slt_filepath)
 
 @pytest.fixture(scope='function')
 def gmcm_logic_tree():
-    gmcm_filepath = Path(__file__).parent / 'fixtures/glt_v1.0.4.json'
+    gmcm_filepath = Path(__file__).parent / 'fixtures/glt.json'
     return GMCMLogicTree.from_json(gmcm_filepath)
 
 

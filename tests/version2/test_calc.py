@@ -13,8 +13,8 @@ NLEVELS = 10
 
 @pytest.fixture(scope='function')
 def logic_tree():
-    slt_filepath = Path(__file__).parent / 'fixtures/slt_v1.0.4.json'
-    gmcm_filepath = Path(__file__).parent / 'fixtures/glt_v1.0.4.json'
+    slt_filepath = Path(__file__).parent / 'fixtures/slt.json'
+    gmcm_filepath = Path(__file__).parent / 'fixtures/glt.json'
     slt = SourceLogicTree.from_json(slt_filepath)
     glt = GMCMLogicTree.from_json(gmcm_filepath)
     return HazardLogicTree(slt, glt)

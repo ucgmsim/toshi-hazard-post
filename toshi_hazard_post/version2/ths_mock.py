@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Generator, List, TYPE_CHECKING, Iterable, Sequence
 from dataclasses import dataclass
 from itertools import product
@@ -9,6 +10,20 @@ from toshi_hazard_post.version2.logic_tree import HazardBranch
 
 if TYPE_CHECKING:
     import numpy.typing as npt
+    from nzshm_common.location.code_location import CodedLocation
+
+
+def write_aggs_to_ths(
+        hazard: 'npt.NDArray',
+        location: 'CodedLocation',
+        vs30: int,
+        imt: str,
+        aggs: List[str],
+        hazard_model_id: str,
+) -> None:
+    filepath = f"{hazard_model_id}_{vs30}_{imt}_{location.code}"
+    np.save(filepath, hazard)
+
 
 
 def query_compatibility(compatibility_key: str) -> Generator[str, None, None]:

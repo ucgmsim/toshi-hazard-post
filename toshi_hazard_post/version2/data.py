@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List, Dict
 import numpy as np
-from toshi_hazard_post.version2.ths_mock import query_realizations
+from toshi_hazard_post.version2.ths_mock import query_realizations, write_aggs_to_ths
 from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
 from toshi_hazard_post.version2.logic_tree import HazardBranch
 
@@ -79,7 +79,8 @@ def save_aggregations(
         hazard: the aggregate hazard rates (not proabilities)
         aggs: the statistical aggregate types (e.g. "mean", "0.5")
     """
-    rate_to_prob(hazard, 1.0)
+    hazard = rate_to_prob(hazard, 1.0)
+    write_aggs_to_ths(hazard, location, vs30, imt, aggs, hazard_model_id)
 
 
 # if __name__ == "__main__":

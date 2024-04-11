@@ -18,8 +18,8 @@ def test_model():
 
 def test_model_from_paths():
     config.model_version = None
-    gmcm_filepath = Path(__file__).parent / 'fixtures/glt_v1.0.4.json'
-    srm_filepath = Path(__file__).parent / 'fixtures/slt_v1.0.4.json'
+    gmcm_filepath = Path(__file__).parent / 'fixtures/glt.json'
+    srm_filepath = Path(__file__).parent / 'fixtures/slt.json'
     config.gmcm_file = gmcm_filepath
     config.srm_file = srm_filepath
 

@@ -1,3 +1,5 @@
+import logging
+
 from typing import TYPE_CHECKING, List, Sequence, Optional
 import toshi_hazard_post.calculators as calculators
 import numpy as np
@@ -8,6 +10,8 @@ if TYPE_CHECKING:
     from toshi_hazard_post.version2.logic_tree import HazardLogicTree, HazardCompositeBranch
     from toshi_hazard_post.version2.data import ValueStore
     from toshi_hazard_post.version2.aggregation_setup import Site
+
+log = logging.getLogger(__name__)
 
 
 def build_branch_rates(logic_tree: 'HazardLogicTree', value_store: 'ValueStore', nlevels: int) -> 'npt.NDArray':
@@ -170,9 +174,13 @@ def calc_aggregation(
     vs30 = site.vs30
 
     try:
+        log.info("loading realizations")
         values = load_realizations(logic_tree, imt, location, vs30, compatibility_key)
+        log.info("building branch rates")
         branch_rates = build_branch_rates(logic_tree, values, len(levels))
+        log.info("calculating aggregates")
         hazard = calculate_aggs(branch_rates, weights, aggs)
+        log.info("saving result")
         save_aggregations(hazard, location, vs30, imt, aggs, hazard_model_id)
     except Exception as e:
         return e

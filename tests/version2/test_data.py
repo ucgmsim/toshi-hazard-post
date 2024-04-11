@@ -20,8 +20,8 @@ def test_valuestore():
 
 def test_loadrlz():
 
-    slt_filepath = Path(__file__).parent / 'fixtures/slt_v1.0.4.json'
-    gmcm_filepath = Path(__file__).parent / 'fixtures/glt_v1.0.4.json'
+    slt_filepath = Path(__file__).parent / 'fixtures/slt.json'
+    gmcm_filepath = Path(__file__).parent / 'fixtures/glt.json'
     location = CodedLocation(-45.0, 170.0, 0.001)
     slt = SourceLogicTree.from_json(slt_filepath)
     glt = GMCMLogicTree.from_json(gmcm_filepath)
