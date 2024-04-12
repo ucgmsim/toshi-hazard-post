@@ -1,3 +1,7 @@
+import csv
+
+from collections import namedtuple
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 from nzshm_common.grids.region_grid import load_grid
@@ -20,6 +24,19 @@ def stat_test_missing() -> List[Tuple[float, float]]:
     ]
 
     return [(round(loc[0], 1), round(loc[1], 1)) for loc in locations]
+
+
+def locations_from_csv(locations_filepath):
+
+    locations = []
+    locations_filepath = Path(locations_filepath)
+    with locations_filepath.open('r') as locations_file:
+        reader = csv.reader(locations_file)
+        Location = namedtuple("Location", next(reader), rename=True)
+        for row in reader:
+            location = Location(*row)
+            locations.append((float(location.lat), float(location.lon)))
+    return locations
 
 
 def transpower_locs() -> List[Tuple[float, float]]:
@@ -342,6 +359,8 @@ def get_locations(config: AggregationConfig) -> List[Tuple[float, float]]:
             locations += stat_test_missing()
         elif location_spec == 'TP':
             locations += transpower_locs()
+        elif Path(location_spec).exists():
+            locations += locations_from_csv(location_spec)
         else:
             locations += load_grid(location_spec)
     if config.location_limit:
