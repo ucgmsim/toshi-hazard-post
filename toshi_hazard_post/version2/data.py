@@ -23,7 +23,7 @@ class ValueStore:
         self._values: Dict[str, npt.NDArray] = {}
 
     def _key(self, branch: HazardBranch) -> str:
-        return hashlib.shake_256(branch.registry_identity.encode()).hexdigest(6)
+        return branch.registry_identity
 
     def get_values(self, branch: HazardBranch) -> 'npt.NDArray':
         return self._values[self._key(branch)]

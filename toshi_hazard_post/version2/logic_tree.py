@@ -35,7 +35,11 @@ class HazardBranch:
 
     @property
     def registry_identity(self) -> str:
-        return json.dumps(asdict(self))
+        return (
+            self.source_branch.registry_identity +
+            '|'.join([branch.registry_identity for branch in self.gmcm_branches])
+        )
+
 
 
 @dataclass

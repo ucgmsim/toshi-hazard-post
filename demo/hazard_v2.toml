@@ -7,7 +7,7 @@ model_version = "NSHM_v1.0.4"
 
 # alternativly, specify a path to logic tree files
 # srm_file = "demo/srm_logic_tree.json"
-# gmcm_file = "demo/gmcm_logic_tree.json"
+# gmcm_file = "demo/gmcm_logic_tree_medium.json"
 
 [site]
 vs30s = [275]
