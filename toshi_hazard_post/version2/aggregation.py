@@ -18,33 +18,33 @@ def run_aggregation(config: AggregationConfig) -> None:
     """
 
     # get the sites
-    log.info("getting sites")
+    log.info("getting sites . . .")
     sites = get_sites(config.locations, config.vs30s)
 
     # create the logic tree objects and build the full logic tree
     # TODO: pre-calculating the logic tree will require serialization if dsitributing in cloud. However,
     # the object cannot be serialized due to use of FilteredBranch
-    log.info("getting logic trees")
+    log.info("getting logic trees . . . ")
     srm_lt, gmcm_lt = get_lts(config)
-    log.info("building hazard logic tree")
+    log.info("building hazard logic tree . . .")
     logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
 
     # get the weights (this code could be moved to nzshm-model)
     # TODO: this could be done in calc_aggregation() which would avoid passing the weights array when running in
     # parrallel, however, it may be slow? determine speed and decide
-    log.info("getting weights")
+    log.info("calculating weights . . . ")
     tic = time.perf_counter()
     weights = logic_tree.weights
     toc = time.perf_counter()
     log.info(f'time to calculate weights {toc-tic:.2f} seconds')
 
     # get the levels for the compatibility
-    log.info("getting levels")
+    log.info("getting levels . . .")
     levels = get_levels(config.compat_key)
 
     # for each independent thing (location, imt, vs30) (do we want to allow looping over vs30s?)
     # each of these can be placed in a multiprocessing queue
-    log.info("starting aggregation for %s sites and %s imts", len(sites), len(config.imts))
+    log.info("starting aggregation for %s sites and %s imts . . . ", len(sites), len(config.imts))
     for site in sites:
         for imt in config.imts:
             log.info("site: %s, imt: %s", site, imt)

@@ -1,4 +1,5 @@
 import logging
+import time
 from nzshm_model.branch_registry import identity_digest
 from typing import Generator, List, TYPE_CHECKING, Iterable, Sequence
 from dataclasses import dataclass
@@ -152,7 +153,7 @@ def query_realizations(
         # gmms_digest = hashlib.shake_256(
         #     '|'.join([b.registry_identity for b in branch.gmcm_branches]).encode()
         # ).hexdigest(6)
-
+        tic = time.perf_counter()
         sources_digest = identity_digest(branch.source_branch.registry_identity)
         gmms_digest = identity_digest(branch.gmcm_branches[0].registry_identity)
 
@@ -173,6 +174,8 @@ def query_realizations(
             breakpoint()
             raise Exception("something's gone wrong")
         values = df1['values'].iloc[0]
+        toc = time.perf_counter()
+        log.debug(f"time to load one component branch {toc-tic}")
 
         yield mRLZ(
             values=values,

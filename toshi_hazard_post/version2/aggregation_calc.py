@@ -33,10 +33,7 @@ def build_branch_rates(logic_tree: 'HazardLogicTree', value_store: 'ValueStore',
         rates: hazard rates for every composite realization of the model D(branch, IMTL)
     """
 
-    rates = np.empty((logic_tree.n_composite_branches, nlevels))
-    for i, composite_branch in enumerate(logic_tree.composite_branches):
-        rates[i, :] = calc_composite_rates(composite_branch, value_store, nlevels)
-    return rates
+    return np.array([calc_composite_rates(branch, value_store, nlevels) for branch in logic_tree.composite_branches])
 
 
 def calc_composite_rates(
@@ -53,10 +50,8 @@ def calc_composite_rates(
     Returns:
         rates: hazard rates for the composite realization D(nlevels,)
     """
-    rates = np.zeros((nlevels,))
-    for component_branch in composite_branch:
-        rates += value_store.get_values(component_branch)
-    return rates
+    rates = np.array([value_store.get_values(branch) for branch in composite_branch])
+    return np.sum(rates, axis=0)
 
 
 def weighted_stats(
@@ -175,25 +170,25 @@ def calc_aggregation(
     vs30 = site.vs30
 
     try:
-        log.info("loading realizations")
+        log.info("loading realizations . . .")
         tic = time.perf_counter()
         value_store = load_realizations(logic_tree, imt, location, vs30, compatibility_key)
         toc = time.perf_counter()
         log.debug(f'time to load realizations {toc-tic:.2f} seconds')
 
         tic = time.perf_counter()
-        log.info("building branch rates")
+        log.info("building branch rates . . . ")
         branch_rates = build_branch_rates(logic_tree, value_store, len(levels))
         toc = time.perf_counter()
         log.debug(f'time to build branch rates {toc-tic:.2f} seconds')
 
         tic = time.perf_counter()
-        log.info("calculating aggregates")
+        log.info("calculating aggregates . . . ")
         hazard = calculate_aggs(branch_rates, weights, agg_types)
         toc = time.perf_counter()
         log.debug(f'time to calculate aggs {toc-tic:.2f} seconds')
 
-        log.info("saving result")
+        log.info("saving result . . . ")
         save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)
     except Exception as e:
         return e
