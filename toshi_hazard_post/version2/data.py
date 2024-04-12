@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING, List, Dict
 import numpy as np
 import hashlib
@@ -10,6 +11,7 @@ if TYPE_CHECKING:
     from toshi_hazard_post.version2.logic_tree import HazardLogicTree
     from nzshm_common.location.code_location import CodedLocation
 
+log = logging.getLogger(__name__)
 
 class ValueStore:
     """
@@ -50,16 +52,17 @@ def load_realizations(
         values: the component realizations rates (not probabilities)
     """
     value_store = ValueStore()
-    for res in query_realizations(
+    for i, res in enumerate(query_realizations(
         location,
         vs30,
         imt,
         logic_tree.component_branches,
         compatibility_key,
-    ):
+    )):
         component_branch = HazardBranch(res.source, tuple(res.gsims))
         values = prob_to_rate(np.array(res.values), 1.0)
         value_store.set_values(values, component_branch)
+    log.info("loaded %s realizations", i)
     return value_store
 
 

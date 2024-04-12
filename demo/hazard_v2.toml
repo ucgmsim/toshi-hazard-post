@@ -1,17 +1,18 @@
 [general]
-compatibility_key = "A"
+compatibility_key = "A_A"
 hazard_model_id = "DEMO_MODEL"
 
 [logic_trees]
-# model_version = "NSHM_v1.0.4"
+model_version = "NSHM_v1.0.4"
 
 # alternativly, specify a path to logic tree files
-srm_file = "demo/srm_logic_tree.json"
-gmcm_file = "demo/gmcm_logic_tree.json"
+# srm_file = "demo/srm_logic_tree.json"
+# gmcm_file = "demo/gmcm_logic_tree.json"
 
 [site]
-vs30s = [400]
-locations = ["WLG"]
+vs30s = [275]
+# locations = ["WLG", "SRWG214", "-41.000~174.700", "myfile.csv"]
+locations = ["-34.500~173.000"]
 
 # alternativly specify a file with locations and vs30 values
 # site_file = "sites.csv"
