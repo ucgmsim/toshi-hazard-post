@@ -59,7 +59,9 @@ class AggregationConfig:
                     )
                 else:
                     if not (0 < fractile < 1):
-                        raise ValueError("fractile aggregate types must be between 0 and 1 exclusive: {}".format(agg_type))
+                        raise ValueError(
+                            "fractile aggregate types must be between 0 and 1 exclusive: {}".format(agg_type)
+                        )
 
     def _validate_list(self, table, name, element_type) -> None:
         if not self._config[table].get(name):

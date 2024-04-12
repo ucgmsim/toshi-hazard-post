@@ -2,9 +2,11 @@ import os
 from enum import Enum, auto
 from pathlib import PurePath
 
+
 class ArrowFS(Enum):
-    LOCAL  = auto()
+    LOCAL = auto()
     AWS = auto()
+
 
 WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', PurePath(os.getcwd(), "tmp"))
 ARROW_DIR = os.getenv('NZSHM22_THS_REPO', PurePath(os.getcwd(), "tmp"))

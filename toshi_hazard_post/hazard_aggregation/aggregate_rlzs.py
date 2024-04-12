@@ -216,7 +216,7 @@ def get_branch_weights(logic_tree: HazardLogicTree) -> npt.NDArray:
     for branch in logic_tree.branches:
         w = np.array(branch.gmcm_branch_weights) * branch.weight
         # weights[i * len(w) : (i + 1) * len(w)] = w
-        weights[i:i + len(w)] = w
+        weights[i : i + len(w)] = w
         i += len(w)
 
     return weights
@@ -272,7 +272,7 @@ def build_branches(
 
         # set of realization probabilties for a single complete source branch
         # these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve
-        branch_probs[i:i + len(branch.gmcm_branches) , :] = calc_weighted_sum(
+        branch_probs[i : i + len(branch.gmcm_branches), :] = calc_weighted_sum(
             branch.gmcm_branches, values, loc, imt, start_ind, end_ind
         )
         i += len(branch.gmcm_branches)

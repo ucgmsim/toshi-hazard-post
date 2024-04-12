@@ -2,7 +2,6 @@ import logging
 from nzshm_model.branch_registry import identity_digest
 from typing import Generator, List, TYPE_CHECKING, Iterable, Sequence
 from dataclasses import dataclass
-from itertools import product
 import numpy as np
 import boto3
 import pyarrow.dataset as ds
@@ -11,13 +10,14 @@ from pyarrow import fs
 
 from nzshm_model.logic_tree import SourceBranch, GMCMBranch
 from toshi_hazard_post.version2.logic_tree import HazardBranch
-from toshi_hazard_post.version2.local_config import WORK_PATH, ARROW_FS, ArrowFS, ARROW_DIR
+from toshi_hazard_post.version2.local_config import ARROW_FS, ArrowFS, ARROW_DIR
 
 if TYPE_CHECKING:
     import numpy.typing as npt
     from nzshm_common.location.code_location import CodedLocation
 
 log = logging.getLogger(__name__)
+
 
 def write_aggs_to_ths(
     hazard: 'npt.NDArray',
@@ -110,7 +110,7 @@ class mRLZ:
 
 def query_realizations(
     loc: 'CodedLocation', vs30: int, imt: str, branches: Iterable[HazardBranch], compat_key: str
-) -> Generator['npt.NDArray', None, None]:
+) -> Generator[mRLZ, None, None]:
 
     session = boto3.session.Session()
     credentials = session.get_credentials()
@@ -121,23 +121,26 @@ def query_realizations(
             secret_key=credentials.secret_key,
             access_key=credentials.access_key,
             region='ap-southeast-2',
-            session_token=credentials.token)
+            session_token=credentials.token,
+        )
         root = 'ths-poc-arrow-test/pq-CDC'
 
-        filesystem  = fs.S3FileSystem(region='ap-southeast-2', )
+        filesystem = fs.S3FileSystem(
+            region='ap-southeast-2',
+        )
     elif ARROW_FS is ArrowFS.LOCAL:
         log.info("reading from local dataset")
         filesystem = fs.LocalFileSystem()
-        root = ARROW_DIR
+        root = str(ARROW_DIR)
 
     partition = f"nloc_0={loc.downsample(1).code}"
     dataset = ds.dataset(f'{root}/{partition}', format='parquet', filesystem=filesystem)
     df = dataset.to_table().to_pandas()
     ind = (
-            (df['nloc_001'] == loc.downsample(0.001).code) &
-            (df['imt'] == imt) &
-            (df['vs30'] == vs30) &
-            (df['compatible_calc_fk'] == compat_key)
+        (df['nloc_001'] == loc.downsample(0.001).code)
+        & (df['imt'] == imt)
+        & (df['vs30'] == vs30)
+        & (df['compatible_calc_fk'] == compat_key)
     )
     df0 = df[ind]
 
@@ -152,37 +155,30 @@ def query_realizations(
 
         sources_digest = identity_digest(branch.source_branch.registry_identity)
         gmms_digest = identity_digest(branch.gmcm_branches[0].registry_identity)
-        
 
         # filter = (
         #     (pc.field('imt')==pc.scalar(imt)) &
         #     (pc.field('vs30') == pc.scalar(vs30)) &
-        #     (pc.field('nloc_001') == pc.scalar(loc.downsample(0.001).code)) & 
+        #     (pc.field('nloc_001') == pc.scalar(loc.downsample(0.001).code)) &
         #     (pc.field('compatible_calc_fk') == pc.scalar(compat_key)) &
         #     (pc.field('sources_digest') == pc.scalar(sources_digest)) &
-        #     (pc.field('gmms_digest') == pc.scalar(gmms_digest)) 
+        #     (pc.field('gmms_digest') == pc.scalar(gmms_digest))
         # )
         # df = dataset.to_table(filter=filter).to_pandas()
 
-        ind = (
-            (df0['sources_digest'] == sources_digest) &
-            (df0['gmms_digest'] == gmms_digest)
-        )
+        ind = (df0['sources_digest'] == sources_digest) & (df0['gmms_digest'] == gmms_digest)
         df1 = df0[ind]
-        
+
         if df1.shape[0] != 1:
             breakpoint()
             raise Exception("something's gone wrong")
         values = df1['values'].iloc[0]
 
-        
         yield mRLZ(
             values=values,
             source=branch.source_branch,
             gsims=branch.gmcm_branches,
         )
-
-
 
     # for loc, vs30, imt, branch in product(locs, vs30s, imts, branches):
     #     yield mRLZ(
@@ -193,6 +189,7 @@ def query_realizations(
     #         gsims=branch.gmcm_branches,
     #         values=list(np.linspace(1, 0, 44) * 0.5),
     #     )
+
 
 def pyarrow_demo(loc, imt, vs30, compat_key):
 
@@ -207,23 +204,26 @@ def pyarrow_demo(loc, imt, vs30, compat_key):
             secret_key=credentials.secret_key,
             access_key=credentials.access_key,
             region='ap-southeast-2',
-            session_token=credentials.token)
+            session_token=credentials.token,
+        )
 
-        filesystem  = fs.S3FileSystem(region='ap-southeast-2', )
+        filesystem = fs.S3FileSystem(
+            region='ap-southeast-2',
+        )
     elif ARROW_FS is ArrowFS.LOCAL:
         filesystem = fs.LocalFileSystem()
 
     partition = f"nloc_0={loc.downsample(1).code}"
     dataset = ds.dataset(f'ths-poc-arrow-test/pq-CDC/{partition}', format='parquet', filesystem=filesystem)
     filter = (
-        (pc.field('imt')==pc.scalar(imt)) &
-        (pc.field('vs30') == pc.scalar(vs30)) &
-        (pc.field('nloc_001') == pc.scalar(loc.downsample(0.001).code)) &
-        (pc.field('compatible_calc_fk') == pc.scalar(compat_key)) &
-        (pc.field('sources_digest') == pc.scalar(sources_digest)) &
-        (pc.field('gmms_digest') == pc.scalar(gmms_digest)) 
+        (pc.field('imt') == pc.scalar(imt))
+        & (pc.field('vs30') == pc.scalar(vs30))
+        & (pc.field('nloc_001') == pc.scalar(loc.downsample(0.001).code))
+        & (pc.field('compatible_calc_fk') == pc.scalar(compat_key))
+        & (pc.field('sources_digest') == pc.scalar(sources_digest))
+        & (pc.field('gmms_digest') == pc.scalar(gmms_digest))
     )
     # df = dataset.to_table(filter=filter).to_pandas()
-    table =  dataset.to_table(filter=filter)
+    table = dataset.to_table(filter=filter)
 
     return table

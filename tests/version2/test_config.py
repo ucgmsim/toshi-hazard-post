@@ -8,9 +8,12 @@ from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 
 
 config_filepath = Path(__file__).parent / 'fixtures/hazard.toml'
+
+
 def get_config():
     config = toml.load(config_filepath)
     return copy.deepcopy(config)
+
 
 # can specify model version
 config1 = get_config()
@@ -34,7 +37,7 @@ config_keyerror1['logic_trees']['model_version'] = 'NOT A MODEL VERSION'
 config_keyerror2 = get_config()
 del config_keyerror2['logic_trees']['model_version']
 
-# if specifying logic tree files, must specify both srm and gmcm 
+# if specifying logic tree files, must specify both srm and gmcm
 config_keyerror3 = get_config()
 del config_keyerror3['logic_trees']['model_version']
 config_keyerror3['logic_trees']['srm_file'] = config_filepath
@@ -93,22 +96,26 @@ def test_logic_tree_valid(mock_load, config):
     mock_load.return_value = config
     assert AggregationConfig('dummy')
 
-@pytest.mark.parametrize("config,errortype", [
-    (config_keyerror1, KeyError),
-    (config_keyerror2, KeyError),
-    (config_keyerror3, KeyError),
-    (config_keyerror4, KeyError),
-    (config_keyerror5, KeyError),
-    (config_keyerror6, KeyError),
-    (config_fnferror1, FileNotFoundError),
-    (config_rterror1, RuntimeError),
-    (config_aerror1, AssertionError),
-    (config_verror1, ValueError),
-    (config_verror2, ValueError),
-    (config_verror3, ValueError),
-    (config_verror4, ValueError),
-    (config_verror5, ValueError),
-])
+
+@pytest.mark.parametrize(
+    "config,errortype",
+    [
+        (config_keyerror1, KeyError),
+        (config_keyerror2, KeyError),
+        (config_keyerror3, KeyError),
+        (config_keyerror4, KeyError),
+        (config_keyerror5, KeyError),
+        (config_keyerror6, KeyError),
+        (config_fnferror1, FileNotFoundError),
+        (config_rterror1, RuntimeError),
+        (config_aerror1, AssertionError),
+        (config_verror1, ValueError),
+        (config_verror2, ValueError),
+        (config_verror3, ValueError),
+        (config_verror4, ValueError),
+        (config_verror5, ValueError),
+    ],
+)
 @mock.patch('toshi_hazard_post.version2.aggregation_config.toml.load')
 def test_logic_tree_error(mock_load, config, errortype):
     mock_load.return_value = config

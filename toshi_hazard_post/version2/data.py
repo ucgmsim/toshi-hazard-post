@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
+
 class ValueStore:
     """
     key arguments: source (contact of source IDs), gsim (with args and arg values),
@@ -52,17 +53,19 @@ def load_realizations(
         values: the component realizations rates (not probabilities)
     """
     value_store = ValueStore()
-    for i, res in enumerate(query_realizations(
-        location,
-        vs30,
-        imt,
-        logic_tree.component_branches,
-        compatibility_key,
-    )):
+    for i, res in enumerate(
+        query_realizations(
+            location,
+            vs30,
+            imt,
+            logic_tree.component_branches,
+            compatibility_key,
+        )
+    ):
         component_branch = HazardBranch(res.source, tuple(res.gsims))
         values = prob_to_rate(np.array(res.values), 1.0)
         value_store.set_values(values, component_branch)
-    log.info("loaded %s realizations", i)
+    log.info("loaded %s realizations", i + 1)
     return value_store
 
 

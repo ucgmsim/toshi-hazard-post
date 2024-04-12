@@ -29,7 +29,6 @@ def run_aggregation(config: AggregationConfig) -> None:
     log.info("building hazard logic tree")
     logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
 
-
     # get the weights (this code could be moved to nzshm-model)
     # TODO: this could be done in calc_aggregation() which would avoid passing the weights array when running in
     # parrallel, however, it may be slow? determine speed and decide
