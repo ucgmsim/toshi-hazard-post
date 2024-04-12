@@ -17,6 +17,7 @@ def test_valuestore():
 
     assert np.array_equal(value_store.get_values(branch), values)
 
+
 @pytest.mark.skip(reason="need to mock the database")
 def test_loadrlz():
 

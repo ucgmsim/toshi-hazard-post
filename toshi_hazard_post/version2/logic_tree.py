@@ -1,11 +1,10 @@
 from typing import TYPE_CHECKING, Generator, List, Tuple
 import copy
 import numpy as np
-import json
 from operator import mul
 from functools import reduce
 from itertools import chain, product
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 
 
 if TYPE_CHECKING:
@@ -35,11 +34,9 @@ class HazardBranch:
 
     @property
     def registry_identity(self) -> str:
-        return (
-            self.source_branch.registry_identity +
-            '|'.join([branch.registry_identity for branch in self.gmcm_branches])
+        return self.source_branch.registry_identity + '|'.join(
+            [branch.registry_identity for branch in self.gmcm_branches]
         )
-
 
 
 @dataclass
