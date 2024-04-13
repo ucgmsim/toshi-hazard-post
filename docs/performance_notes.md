@@ -199,3 +199,89 @@ real    3m18.219s
 user    3m18.289s
 sys     0m4.423s
 ```
+
+### Old THP on glacier
+```
+chrisdc@glacier:~/.../DEV/toshi-hazard-post$ time NZSHM22_HAZARD_POST_WORKERS=34 poetry run python scripts/cli.py aggregate /home/chrisdc/NSHM/nzshm-model/Configs/slt_v9.toml
+logging config from: toshi_hazard_post/logging.yaml                                                                                                                                                                logging config from: toshi_hazard_post/logging.yaml
+Hazard post-processing pipeline as serverless AWS infrastructure.                                                                                                                                                  
+mode: LOCAL                                                                                                                                                                                                        
+{'hazard_model_id': 'TEST', 'stage': 'PROD', 'vs30s': [750], 'imts': ['PGA'], 'aggs': ['mean', 'cov', 'std', '0.005', '0.01', '0.025', '0.05', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '0.95
+', '0.975', '0.99', '0.995'], 'locations': ['/home/chrisdc/NSHM/nzshm-model/WeakMotionSiteLocs_one.csv'], 'logic_tree_file': '/home/chrisdc/NSHM/nzshm-model/SRM_LTs/python/SLT_v9p0p0.py', 'gtids': ['R2VuZXJhbFRh
+c2s6NjgwMjYyOA==']}                                                                                                                                                                                                
+2024-04-12 21:55:25,631 - toshi_hazard_post.logic_tree.branch_combinator - INFO - built FlattenedSourceLogicTree                                                                                                   
+2024-04-12 21:55:28,822 - toshi_hazard_post.logic_tree.branch_combinator - INFO - built HazardLogicTree                                                                                                            
+2024-04-12 21:55:28,822 - toshi_hazard_post.logic_tree.branch_combinator - INFO - hazard ids: ['T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4OQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgyMg==', 'T3BlbnF1YWtlSGF6YXJ
+kU29sdXRpb246NjgwMjc2OA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc3NQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5OQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwMA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMj
+czNA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwNA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwOQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxNg==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4NA==', 'T3BlbnF1Y
+WtlSGF6YXJkU29sdXRpb246NjgwMjczNw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjcyNw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjcxMQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwMw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRp
+b246NjgwMjc5Mw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjczMg==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxNQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5Nw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxMg==', 
+'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjcwOQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgyMQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4Nw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxNw==', 'T3BlbnF1YWtlSGF6YX
+JkU29sdXRpb246NjgwMjgyMw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc0Mg==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5MQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5MA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwM
+jgxMQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5NQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4NQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwNQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwNw==', 'T3BlbnF1
+YWtlSGF6YXJkU29sdXRpb246NjgwMjc5Mg==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4OA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgyNA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5Ng==', 'T3BlbnF1YWtlSGF6YXJkU29sdXR
+pb246NjgwMjgyMA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc1OQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjcwOA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4Ng==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5OA==',
+ 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwMg==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxMw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjczMQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxOQ==', 'T3BlbnF1YWtlSGF6Y
+XJkU29sdXRpb246NjgwMjgwMQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxOA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjczNg==']                                                                                      
+2024-04-12 21:55:28,836 - botocore.credentials - INFO - Found credentials in shared credentials file: ~/.aws/credentials                                                                                           
+2024-04-12 21:55:28 INFO     Found credentials in shared credentials file: ~/.aws/credentials                                                                                                                      
+time to load metadata 2.9059813669882715 seconds                                                                                                                                                                   
+2024-04-12 21:55:31,728 - toshi_hazard_post.logic_tree.branch_combinator - INFO - loaded metadata                                                                                                                  
+2024-04-12 21:55:33,790 - toshi_hazard_post.logic_tree.branch_combinator - INFO - set gmcm branches      
+time to set gmcm branches 2.0616297251544893 seconds                                                     
+2024-04-12 21:55:33,790 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - finished building logic trees                                                                                                  
+2024-04-12 21:55:33,792 - toshi_hazard_post.data_functions - INFO - get_levels locs[0]: -36.600~174.832 vs30: 750, id T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4OQ==                                                 
+2024-04-12 21:55:33 INFO     get_levels locs[0]: -36.600~174.832 vs30: 750, id T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4OQ==                                                                                        
+2024-04-12 21:55:33,792 - toshi_hazard_store.query.hazard_query - INFO - hash_key -36.6~174.8            
+2024-04-12 21:55:33 INFO     hash_key -36.6~174.8                                                        
+2024-04-12 21:55:33,799 - botocore.credentials - INFO - Found credentials in shared credentials file: ~/.aws/credentials                                                                                           
+2024-04-12 21:55:33 INFO     Found credentials in shared credentials file: ~/.aws/credentials            
+2024-04-12 21:55:34,237 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - get values for 1 locations and 49 hazard_solutions                                                                             
+2024-04-12 21:55:34,238 - toshi_hazard_post.data_functions - INFO - loading 49 hazard IDs ...            
+2024-04-12 21:55:34 INFO     loading 49 hazard IDs ...                                                   
+2024-04-12 21:55:34,238 - toshi_hazard_store.query.hazard_query - INFO - hash_key -36.6~174.8            
+2024-04-12 21:55:34 INFO     hash_key -36.6~174.8   
+2024-04-12 21:56:26,582 - toshi_hazard_store.query.hazard_query - INFO - hash_key -36.6~174.8 has 912 hits                                                                                                         
+2024-04-12 21:56:26 INFO     hash_key -36.6~174.8 has 912 hits                                           
+2024-04-12 21:56:26,583 - toshi_hazard_store.query.hazard_query - INFO - Total 912 hits                  
+2024-04-12 21:56:26 INFO     Total 912 hits                                                              
+2024-04-12 21:56:26,697 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - working on imt: PGA                                                                                                            
+2024-04-12 21:56:26,697 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - working on loc -36.600~174.832                                                                                                 
+2024-04-12 21:56:38,181 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - time to calculate hazard for one stride 11.484137553256005 seconds                                                             
+2024-04-12 21:56:38,181 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - imt: PGA took 11.484 secs                                                                                                      
+2024-04-12 21:56:38,181 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - process_location_list took 63.943 secs 
+
+real    1m19.145s                                   
+user    0m21.596s                                   
+sys     0m3.779s  
+```
+
+### New THP on glacier
+```
+chrisdc@glacier:~/.../DEV/toshi-hazard-post$ time NZSHM22_THS_REPO=/home/chrisdc/NSHM/THS/pq-CDC2/ poetry run python ./scripts/thp_v2.py aggregate demo/hazard_v2.toml
+warning openquake module dependency not available, maybe you want to install
+                with nzshm-model[openquake]
+Toshi Hazard Post: hazard curve aggregation
+2024-04-13 10:32:05,148 - toshi_hazard_post.version2.aggregation - INFO - getting sites . . .
+2024-04-13 10:32:05,149 - toshi_hazard_post.version2.aggregation - INFO - getting logic trees . . . 
+2024-04-13 10:32:05,321 - toshi_hazard_post.version2.aggregation - INFO - building hazard logic tree . . .
+2024-04-13 10:32:05,323 - toshi_hazard_post.version2.aggregation - INFO - calculating weights . . . 
+2024-04-13 10:32:14,000 - toshi_hazard_post.version2.aggregation - INFO - time to calculate weights 8.68 seconds
+2024-04-13 10:32:14,000 - toshi_hazard_post.version2.aggregation - INFO - getting levels . . .
+2024-04-13 10:32:14,000 - toshi_hazard_post.version2.aggregation - INFO - starting aggregation for 1 sites and 1 imts . . . 
+2024-04-13 10:32:14,000 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: PGA
+2024-04-13 10:32:14,000 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations . . .
+2024-04-13 10:32:14,009 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
+2024-04-13 10:32:18,822 - toshi_hazard_post.version2.data - INFO - loaded 912 realizations
+2024-04-13 10:32:18,822 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 4.82 seconds
+2024-04-13 10:32:18,822 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates . . . 
+2024-04-13 10:32:40,173 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 21.35 seconds
+2024-04-13 10:32:40,173 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates . . . 
+2024-04-13 10:32:45,161 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 4.99 seconds
+2024-04-13 10:32:45,161 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result . . . 
+2024-04-13 10:32:45,279 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 31.28 seconds
+
+real    1m1.418s
+user    0m45.976s
+sys     0m4.532s
+```
