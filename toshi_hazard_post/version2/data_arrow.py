@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 def load_realizations(
     logic_tree: 'HazardLogicTree',
-    imt: str,
+    imts: List[str],
     location: 'CodedLocation',
     vs30: int,
     compatibility_key: str,
@@ -48,11 +48,12 @@ def load_realizations(
 
     flt0 = (
         (pc.field('nloc_001') == pc.scalar(location.downsample(0.001).code))
-        & (pc.field('imt') == pc.scalar(imt))
+        # & (pc.field('imt') == pc.scalar(imt))
+        & (pc.is_in(pc.field('imt'), pa.array(imts)))
         & (pc.field('vs30') == pc.scalar(vs30))
         & (pc.field('compatible_calc_fk') == pc.scalar(compatibility_key))
     )
-    columns = ['sources_digest', 'gmms_digest', 'values']
+    columns = ['sources_digest', 'gmms_digest', 'values', 'imt']
     arrow_scanner = ds.Scanner.from_dataset(dataset, filter = flt0, columns = columns)
     t2 = time.monotonic()
 

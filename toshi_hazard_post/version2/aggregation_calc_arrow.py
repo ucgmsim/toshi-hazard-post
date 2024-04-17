@@ -33,9 +33,8 @@ def join_rates_weights(rlz_table: pa.Table, weights: pa.Table) -> pa.Table:
     rates_weights_joined = joined.arrow()
 
     log.info(f"rates_weights_joined shape: {rates_weights_joined.shape}")
-    log.debug(rates_weights_joined.to_pandas())
+    # log.debug(rates_weights_joined.to_pandas()) # Don't do this for logging it takes significant time
     log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))  #     value_store.set_values(values, component_branch)
-
     return rates_weights_joined
 
 
@@ -43,17 +42,15 @@ def convert_probs_to_rates(rlz_table):
     """all aggregations must be performed in rates space, but rlz have probablities
 
     here we're only vectorising internally to the row, maybe this could be done over the entire columns ??
-
-    rather than apply() which is a slow operation
     """
+    probs_array = rlz_table.column(2).to_numpy()
+    print(probs_array.shape)
 
-    rlz_df = rlz_table.to_pandas()
-    val_series = rlz_df['values']
+    vpr = np.vectorize(calculators.prob_to_rate, otypes=[object])
 
-    vpr = np.vectorize(calculators.prob_to_rate)
-    val_series = val_series.apply(vpr, inv_time= 1.0)
-    return rlz_table.set_column(2, 'rates', pa.array(val_series))
-
+    rates_array = np.apply_along_axis(vpr, 0, probs_array, inv_time=1.0)
+    print(rates_array.shape)
+    return rlz_table.set_column(2, 'rates', pa.array(rates_array))
 
 def calculate_aggs(rates_weights_table: pa.Table, agg_types: Sequence[str]):
     """
@@ -66,17 +63,23 @@ def calculate_aggs(rates_weights_table: pa.Table, agg_types: Sequence[str]):
     # branch_rates = rates_weights_table.column(2).to_numpy()
     # weights = rates_weights_table.column(3).to_numpy()
 
-    rw_df = rates_weights_table.to_pandas()
-    rates_series = rw_df['rates']
-    weight_series = rw_df['weight']
+    # rw_df = rates_weights_table.to_pandas()
+    # rates_series = rw_df['rates']
+    # weight_series = rw_df['weight']
 
-    log.debug(f"calculate_aggs(): branch_rates with shape {rates_series.shape}")
-    log.debug(f"calculate_aggs(): weights with shape {rates_series.shape}")
+    # log.debug(f"calculate_aggs(): branch_rates with shape {rates_series.shape}")
+    # log.debug(f"calculate_aggs(): weights with shape {rates_series.shape}")
     log.debug(f"calculate_aggs(): agg_types {agg_types}")
 
     # vectorize it
-    vect_wtd_avg = np.vectorize(calculators.weighted_avg_and_std)
-    wa_std = rates_series.apply(vect_wtd_avg, weights=weight_series)
+    vect_wtd_avg = np.vectorize(calculators.weighted_avg_and_std, otypes=[object])
+    rates = tbl.column(0).to_numpy()
+
+    tic = time.perf_counter()
+    val_series_along_np = np.apply_along_axis(vpr, 0, tbl.column(0).to_numpy(), inv_time=1.0)
+    toc = time.perf_counter()
+    print(toc - tic, "numpy")
+    # wa_std = rates_series.apply(vect_wtd_avg, weights=weight_series)
 
     print(wa_std)
     assert 0
@@ -97,7 +100,7 @@ def calculate_aggs(rates_weights_table: pa.Table, agg_types: Sequence[str]):
 
 def calc_aggregation_arrow(
     site: 'Site',
-    imt: str,
+    imts: List[str],
     agg_types: List[str],
     weights: 'pa.table',
     logic_tree: 'HazardLogicTree',
@@ -125,7 +128,7 @@ def calc_aggregation_arrow(
 
     log.info("loading realizations . . .")
     tic = time.perf_counter()
-    rlz_table = load_arrow_realizations(logic_tree, imt, location, vs30, compatibility_key)
+    rlz_table = load_arrow_realizations(logic_tree, imts, location, vs30, compatibility_key)
     toc = time.perf_counter()
     log.debug(f'time to load realizations {toc-tic:.2f} seconds')
     log.debug(f"rlz_table {rlz_table.shape}")
