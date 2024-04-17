@@ -4,7 +4,11 @@ import time
 from typing import TYPE_CHECKING, List, Sequence, Optional
 import toshi_hazard_post.version2.calculators as calculators
 import numpy as np
+import pyarrow as pa
+import duckdb
+
 from toshi_hazard_post.version2.data import load_realizations, save_aggregations
+#from toshi_hazard_post.version2.data_arrow import load_realizations as load_arrow_realizations
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -51,7 +55,12 @@ def calc_composite_rates(
         rates: hazard rates for the composite realization D(nlevels,)
     """
     rates = np.array([value_store.get_values(branch) for branch in composite_branch])
-    return np.sum(rates, axis=0)
+
+    # print(rates)
+    summed = np.sum(rates, axis=0)
+    # print()
+    # print(summed)
+    return summed
 
 
 def weighted_stats(
@@ -123,20 +132,29 @@ def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_type
 
     Parameters:
         branch_rates: hazard rates for every composite realization of the model with dimensions (branch, IMTL)
-        weights: one dimensional array of weights for composite branches
-        agg_types: the aggregate statistics to be calculated (e.g., "mean", "0.5")
+        weights: one dimensional array of weights for composite branches with dimensions (branch,)
+        agg_types: the aggregate statistics to be calculated (e.g., "mean", "0.5") with dimension (agg_type,)
 
     Returns:
-        hazard: aggregate rates array with dimension (agg_type, IMTL)
+        hazard: aggregate rates array with dimension (IMTL, agg_type)
     """
 
-    nrows = branch_rates.shape[1]
+    log.debug(f"branch_rates with shape {branch_rates.shape}")
+    log.debug(f"weights with shape {weights.shape}")
+    log.debug(f"agg_types ")
+
+    try:
+        nrows = branch_rates.shape[1]
+    except:
+        nrows = len(branch_rates)
+
     ncols = len(agg_types)
-    aggs = np.empty((nrows, ncols))
+    aggs = np.empty((nrows, ncols)) # (IMTL, agg_type)
     for i in range(nrows):
         quantiles = weighted_stats(branch_rates[:, i], list(agg_types), sample_weight=weights)
         aggs[i, :] = np.array(quantiles)
 
+    log.debug(f"agg with shape {aggs.shape}")
     return aggs
 
 

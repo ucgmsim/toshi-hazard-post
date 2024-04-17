@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List, Dict
 import numpy as np
 from toshi_hazard_post.version2.ths_mock import query_realizations, write_aggs_to_ths
 from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
-from toshi_hazard_post.version2.logic_tree import HazardBranch
+from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -21,15 +21,17 @@ class ValueStore:
     def __init__(self) -> None:
         self._values: Dict[str, npt.NDArray] = {}
 
-    def _key(self, branch: HazardBranch) -> str:
+    def _key(self, branch: HazardComponentBranch) -> str:
         return branch.registry_identity
 
-    def get_values(self, branch: HazardBranch) -> 'npt.NDArray':
+    def get_values(self, branch: HazardComponentBranch) -> 'npt.NDArray':
         return self._values[self._key(branch)]
 
-    def set_values(self, values: 'npt.NDArray', branch: HazardBranch) -> None:
+    def set_values(self, values: 'npt.NDArray', branch: HazardComponentBranch) -> None:
         self._values[self._key(branch)] = values
 
+    def __len__(self):
+        return len(self._values)
 
 def load_realizations(
     logic_tree: 'HazardLogicTree',
@@ -61,10 +63,10 @@ def load_realizations(
             compatibility_key,
         )
     ):
-        component_branch = HazardBranch(res.source, tuple(res.gsims))
+        component_branch = HazardComponentBranch(res.source, tuple(res.gsims))
         values = prob_to_rate(np.array(res.values), 1.0)
         value_store.set_values(values, component_branch)
-    log.info("loaded %s realizations", i + 1)
+    log.info(f"loaded {i+1} realizations and {len(value_store)} entries", )
     return value_store
 
 
@@ -96,7 +98,7 @@ def save_aggregations(
 #     import string
 #     import random
 #     import numpy as np
-#     from toshi_hazard_post.version2.logic_tree import HazardBranch
+#     from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
 #     class FastValueStore:
 #         """For baseline performance testing"""
 
@@ -117,7 +119,7 @@ def save_aggregations(
 #         for sname, gname in zip(source_names, gmcm_names):
 #             sb = SourceBranch(sname)
 #             gb = GMCMBranch(gname)
-#             branches.append(HazardBranch(sb, gb))
+#             branches.append(HazardComponentBranch(sb, gb))
 #         return branches
 
 

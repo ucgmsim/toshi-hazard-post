@@ -3,13 +3,11 @@ compatibility_key = "A_A"
 hazard_model_id = "DEMO_MODEL"
 
 [logic_trees]
-model_version = "NSHM_v1.0.4"
+# model_version = "NSHM_v1.0.4"
 
 # alternativly, specify a path to logic tree files
-# srm_file = "demo/srm_logic_tree_no_slab.json"
-# srm_file = "demo/srm_logic_tree_micro.json"
-# gmcm_file = "demo/gmcm_logic_tree_medium.json"
-# gmcm_file = "demo/gmcm_logic_tree_small.json"
+srm_file = "demo/srm_logic_tree_no_slab.json"
+gmcm_file = "demo/gmcm_logic_tree_medium.json"
 
 [site]
 vs30s = [275]

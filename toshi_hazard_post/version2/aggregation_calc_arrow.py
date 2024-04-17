@@ -1,0 +1,161 @@
+import logging
+import time
+
+from typing import TYPE_CHECKING, List, Sequence, Optional
+import toshi_hazard_post.version2.calculators as calculators
+import toshi_hazard_post.version2.aggregation_calc as aggregation_calc
+import numpy as np
+import pyarrow as pa
+import duckdb
+
+#from toshi_hazard_post.version2.data import load_realizations, save_aggregations
+from toshi_hazard_post.version2.data_arrow import load_realizations as load_arrow_realizations
+
+if TYPE_CHECKING:
+
+    from toshi_hazard_post.version2.logic_tree import HazardLogicTree, HazardCompositeBranch
+    from toshi_hazard_post.version2.aggregation_setup import Site
+
+log = logging.getLogger(__name__)
+
+def join_rates_weights(rlz_table: pa.Table, weights: pa.Table) -> pa.Table:
+    """join the tables using the two digest columns
+
+    Using duckdb for now because ...
+      - still using our in-memory dataframes
+      - SQL syntax
+      - hides some complexity
+    """
+    con = duckdb.connect()
+    joined = con.execute(
+        f"SELECT r.sources_digest, r.gmms_digest, r.rates, w.weight from rlz_table r join "
+        f"weights w ON r.sources_digest = w.sources_digest AND r.gmms_digest = w.gmms_digest;")
+    rates_weights_joined = joined.arrow()
+
+    log.info(f"rates_weights_joined shape: {rates_weights_joined.shape}")
+    log.debug(rates_weights_joined.to_pandas())
+    log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))  #     value_store.set_values(values, component_branch)
+
+    return rates_weights_joined
+
+
+def convert_probs_to_rates(rlz_table):
+    """all aggregations must be performed in rates space, but rlz have probablities
+
+    here we're only vectorising internally to the row, maybe this could be done over the entire columns ??
+
+    rather than apply() which is a slow operation
+    """
+
+    rlz_df = rlz_table.to_pandas()
+    val_series = rlz_df['values']
+
+    vpr = np.vectorize(calculators.prob_to_rate)
+    val_series = val_series.apply(vpr, inv_time= 1.0)
+    return rlz_table.set_column(2, 'rates', pa.array(val_series))
+
+
+def calculate_aggs(rates_weights_table: pa.Table, agg_types: Sequence[str]):
+    """
+
+    Calculate weighted aggregate statistics of the composite realizations
+
+    modified from OG
+
+    """
+    # branch_rates = rates_weights_table.column(2).to_numpy()
+    # weights = rates_weights_table.column(3).to_numpy()
+
+    rw_df = rates_weights_table.to_pandas()
+    rates_series = rw_df['rates']
+    weight_series = rw_df['weight']
+
+    log.debug(f"calculate_aggs(): branch_rates with shape {rates_series.shape}")
+    log.debug(f"calculate_aggs(): weights with shape {rates_series.shape}")
+    log.debug(f"calculate_aggs(): agg_types {agg_types}")
+
+    # vectorize it
+    vect_wtd_avg = np.vectorize(calculators.weighted_avg_and_std)
+    wa_std = rates_series.apply(vect_wtd_avg, weights=weight_series)
+
+    print(wa_std)
+    assert 0
+    # nrows = rates_series.shape[0]
+
+    # log.debug(f"{rates_series[:, 0]}")
+
+    # ncols = len(agg_types)
+    # aggs = np.empty((nrows, ncols)) # (IMTL, agg_type)
+    # for i in range(nrows):
+    #     quantiles = aggregation_calc.weighted_stats(rates_series[:, i], list(agg_types), sample_weight=weight_series)
+    #     aggs[i, :] = np.array(quantiles)
+
+    log.debug(f"agg with shape {aggs.shape}")
+    return aggs
+
+
+
+def calc_aggregation_arrow(
+    site: 'Site',
+    imt: str,
+    agg_types: List[str],
+    weights: 'pa.table',
+    logic_tree: 'HazardLogicTree',
+    compatibility_key: str,
+    hazard_model_id: str,
+) -> pa.table:
+    """
+    Calculate hazard aggregation for a single site and imt and save result
+
+    Parameters:
+        site: location, vs30 pair
+        imt: Intensity measure type (e.g. "PGA", "SA(1.5)")
+        agg_types: the aggregate statistics to be calculated (e.g., "mean", "0.5")
+        levels: IMTLs for the hazard curve
+        weights: weights for the branches of the logic tree
+        logic_tree: the complete (srm + gmcm combined) logic tree
+        compatibility_key: the key identifying the hazard calculation compatibility entry
+        hazard_model_id: the id of the hazard model for storing results in the database
+
+    Returns:
+        exception: the raised exception if any part of the calculation fails
+    """
+    location = site.location
+    vs30 = site.vs30
+
+    log.info("loading realizations . . .")
+    tic = time.perf_counter()
+    rlz_table = load_arrow_realizations(logic_tree, imt, location, vs30, compatibility_key)
+    toc = time.perf_counter()
+    log.debug(f'time to load realizations {toc-tic:.2f} seconds')
+    log.debug(f"rlz_table {rlz_table.shape}")
+    # log.debug(rlz_table.to_pandas())
+    # print(weights)
+
+    # convert probabilities to rates
+    tic = time.perf_counter()
+    rates_table = convert_probs_to_rates(rlz_table)
+    del rlz_table
+    toc = time.perf_counter()
+    log.debug(f'time to convert_probs_to_rates() {toc-tic:.2f} seconds')
+    log.debug(f"rates_table {rates_table.shape}")
+
+    #print(rates_table)
+
+    # join tables (NB this is a bit expensive, esp as we have four times (tectonic_types) more rows than OG approach )
+    tic = time.perf_counter()
+    rates_weights = join_rates_weights(rates_table, weights)
+    toc = time.perf_counter()
+    log.debug(f'time to join_rates_weights() {toc-tic:.2f} seconds')
+    log.debug(f"rates_weights {rates_weights.shape}")
+
+    return rates_weights
+    # now we need to figure out the math (sum of rates)
+    ## Need to figure out vectorization better
+    ## aggregates = calculate_aggs(rates_weights, agg_types)
+
+
+    log.info("saving result . . . ")
+    # save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)
+
+    return None

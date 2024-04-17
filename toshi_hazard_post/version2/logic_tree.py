@@ -6,15 +6,35 @@ from functools import reduce
 from itertools import chain, product
 from dataclasses import dataclass, field
 
+import pyarrow as pa
+import nzshm_model.branch_registry
+# from nzshm_model import branch_registry
 
 if TYPE_CHECKING:
     from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree, SourceBranch, GMCMBranch
     import numpy.typing as npt
 
+registry = nzshm_model.branch_registry.Registry()
+
+# #TODO: this is stolen from THS.., does it belong in nshm-model.psha_adapter??
+# def migrate_nshm_uncertainty_string(uncertainty: str) -> str:
+#     # handle GMM modifications ...
+#     if "[Atkinson2022" in uncertainty:
+#         uncertainty += '\nmodified_sigma = "true"'
+#     elif "[AbrahamsonGulerce2020S" in uncertainty:
+#         uncertainty = uncertainty.replace("AbrahamsonGulerce2020S", "NZNSHM2022_AbrahamsonGulerce2020S")
+#     elif "[KuehnEtAl2020S" in uncertainty:
+#         uncertainty = uncertainty.replace("KuehnEtAl2020S", "NZNSHM2022_KuehnEtAl2020S")
+#         uncertainty += '\nmodified_sigma = "true"'
+#     elif "[ParkerEtAl2021" in uncertainty:
+#         uncertainty = uncertainty.replace("ParkerEtAl2021", "NZNSHM2022_ParkerEtAl2020")
+#         uncertainty += '\nmodified_sigma = "true"'
+#     return uncertainty
+
 
 # this is a dataclass so that we can use asdict for the __repr__()
 @dataclass
-class HazardBranch:
+class HazardComponentBranch:
     """
     A component branch of the combined (SRM + GMCM) logic tree comprised of an srm branch and a gmcm branch. The
     HazardComposite branch is the smallest unit necessary to create a hazard curve realization.
@@ -38,11 +58,23 @@ class HazardBranch:
             [branch.registry_identity for branch in self.gmcm_branches]
         )
 
+    @property
+    def gmcm_hash_digest(self) -> str:
+        assert len(self.gmcm_branches) == 1
+        return registry.gmm_registry.get_by_identity(self.gmcm_branches[0].registry_identity).hash_digest
+
+    @property
+    def source_hash_digest(self) -> str:
+        return registry.source_registry.get_by_identity(self.source_branch.registry_identity).hash_digest
+
+
 
 @dataclass
 class HazardCompositeBranch:
     """
-    A composite branch of the combined (SRM + GMCM) logic tree. A HazardCompositeBranch will have multiple sources and
+    A composite branch of the combined (SRM + GMCM) logic tree.
+
+    A HazardCompositeBranch will have multiple sources and
     multiple ground motion models and is formed by taking all combinations of branches from the branch sets. The
     HazardComposite branch is an Iterable and will return HazardComponentBranch when iterated.
 
@@ -50,7 +82,7 @@ class HazardCompositeBranch:
         branches: the source-ground motion pairs that comprise the HazardCompositeBranch
     """
 
-    branches: List[HazardBranch] = field(default_factory=list)
+    branches: List[HazardComponentBranch] = field(default_factory=list)
     weight: float = field(init=False)
 
     def __post_init__(self) -> None:
@@ -60,7 +92,7 @@ class HazardCompositeBranch:
         self.__counter = 0
         return self
 
-    def __next__(self) -> HazardBranch:
+    def __next__(self) -> HazardComponentBranch:
         if self.__counter >= len(self.branches):
             raise StopIteration
         else:
@@ -85,7 +117,7 @@ class HazardLogicTree:
         # 1. find which TRTs are included in the source logic tree
         self.trts = set(chain(*[bs.tectonic_region_types for bs in self.srm_logic_tree.branch_sets]))
 
-        # 2. make a copy of the gmcm logic tree. Elimanate any BranchSets with a TRT not included in the source tree
+        # 2. make a copy of the gmcm logic tree. Eliminate any BranchSets with a TRT not included in the source tree
         self.gmcm_logic_tree = copy.deepcopy(gmcm_logic_tree)
         self.gmcm_logic_tree.branch_sets[:] = filter(
             lambda bs: bs.tectonic_region_type in self.trts, gmcm_logic_tree.branch_sets
@@ -112,7 +144,7 @@ class HazardLogicTree:
             for srm_branch in srm_composite_branch:
                 trts = srm_branch.tectonic_region_types
                 gmcm_branches = tuple(branch for branch in gmcm_composite_branch if branch.tectonic_region_type in trts)
-                hbranches.append(HazardBranch(source_branch=srm_branch, gmcm_branches=gmcm_branches))
+                hbranches.append(HazardComponentBranch(source_branch=srm_branch, gmcm_branches=gmcm_branches))
             yield HazardCompositeBranch(hbranches)
 
     @property
@@ -122,7 +154,7 @@ class HazardLogicTree:
         return self._n_composite_branches
 
     @property
-    def component_branches(self) -> Generator[HazardBranch, None, None]:
+    def component_branches(self) -> Generator[HazardComponentBranch, None, None]:
         """
         Yield the component branches (each SRM branch with all possible GMCM branch matches)
 
@@ -136,7 +168,7 @@ class HazardLogicTree:
                 branch_set for branch_set in self.gmcm_logic_tree.branch_sets if branch_set.tectonic_region_type in trts
             ]
             for gmcm_branches in product(*[bs.branches for bs in branch_sets]):
-                yield HazardBranch(source_branch=srm_branch.to_branch(), gmcm_branches=gmcm_branches)
+                yield HazardComponentBranch(source_branch=srm_branch.to_branch(), gmcm_branches=gmcm_branches)
 
     # TODO: is it better to make this a generator or return list and cast to np.array when using it?
     # Keep numpy types from poluting logic tree?  Would def want to do if this class is moved to nzshm_model
@@ -152,3 +184,42 @@ class HazardLogicTree:
             weights: one dimensional array of branch weights
         """
         return np.array([branch.weight for branch in self.composite_branches])
+
+    # TODO: CBC hacking
+    # NOTE this returns a table four times longer than the self.weights property.
+    # sounds like four tectonic regions??
+    def weight_table(self):
+        """
+        The weights for every enumerated branch (srm + gmcm) of the logic tree.
+
+        Parameters:
+            logic_tree: the complete (srm + gmcm combined) logic tree
+
+        Returns:
+            weights:
+            table for joining branch weights with realisations
+        """
+        source_digests = []
+        gmm_digests = []
+        weights = []
+
+        # testing
+        count = 0
+        for composite_branch in self.composite_branches:
+            for branch in composite_branch.branches:
+                source_digests.append(branch.source_hash_digest)
+                gmm_digests.append(branch.gmcm_hash_digest)
+                weights.append(composite_branch.weight)
+                count +=1
+            # TESTING CODE
+            # if count >= 1000000:
+            #     break
+
+        #build the table
+        source_digest = pa.array(source_digests)
+        gmm_digest = pa.array(gmm_digests)
+        weight = pa.array(weights)
+        table = pa.table([source_digest, gmm_digest, weight],
+            names = ["sources_digest", "gmms_digest", "weight"]
+        )
+        return table

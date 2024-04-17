@@ -10,7 +10,7 @@ import pyarrow.compute as pc
 from pyarrow import fs
 
 from nzshm_model.logic_tree import SourceBranch, GMCMBranch
-from toshi_hazard_post.version2.logic_tree import HazardBranch
+from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
 from toshi_hazard_post.version2.local_config import ARROW_FS, ArrowFS, ARROW_DIR
 
 if TYPE_CHECKING:
@@ -110,7 +110,7 @@ class mRLZ:
 
 
 def query_realizations(
-    loc: 'CodedLocation', vs30: int, imt: str, branches: Iterable[HazardBranch], compat_key: str
+    loc: 'CodedLocation', vs30: int, imt: str, branches: Iterable[HazardComponentBranch], compat_key: str
 ) -> Generator[mRLZ, None, None]:
 
     session = boto3.session.Session()
