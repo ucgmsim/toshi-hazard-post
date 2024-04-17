@@ -198,6 +198,7 @@ def calc_aggregation(
         log.info("building branch rates . . . ")
         branch_rates = build_branch_rates(logic_tree, value_store, len(levels))
         toc = time.perf_counter()
+        # log.debug(f'branch_rates.shape {}
         log.debug(f'time to build branch rates {toc-tic:.2f} seconds')
 
         tic = time.perf_counter()

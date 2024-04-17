@@ -1,6 +1,5 @@
 import logging
 from typing import TYPE_CHECKING, List, Dict
-import numpy as np
 import time
 
 import pyarrow as pa

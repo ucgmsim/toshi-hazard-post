@@ -1,10 +1,12 @@
 from typing import TYPE_CHECKING, Generator, List, Tuple
 import copy
 import numpy as np
+import logging
 from operator import mul
 from functools import reduce
 from itertools import chain, product
 from dataclasses import dataclass, field
+
 
 import pyarrow as pa
 import nzshm_model.branch_registry
@@ -14,23 +16,9 @@ if TYPE_CHECKING:
     from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree, SourceBranch, GMCMBranch
     import numpy.typing as npt
 
+log = logging.getLogger(__name__)
+
 registry = nzshm_model.branch_registry.Registry()
-
-# #TODO: this is stolen from THS.., does it belong in nshm-model.psha_adapter??
-# def migrate_nshm_uncertainty_string(uncertainty: str) -> str:
-#     # handle GMM modifications ...
-#     if "[Atkinson2022" in uncertainty:
-#         uncertainty += '\nmodified_sigma = "true"'
-#     elif "[AbrahamsonGulerce2020S" in uncertainty:
-#         uncertainty = uncertainty.replace("AbrahamsonGulerce2020S", "NZNSHM2022_AbrahamsonGulerce2020S")
-#     elif "[KuehnEtAl2020S" in uncertainty:
-#         uncertainty = uncertainty.replace("KuehnEtAl2020S", "NZNSHM2022_KuehnEtAl2020S")
-#         uncertainty += '\nmodified_sigma = "true"'
-#     elif "[ParkerEtAl2021" in uncertainty:
-#         uncertainty = uncertainty.replace("ParkerEtAl2021", "NZNSHM2022_ParkerEtAl2020")
-#         uncertainty += '\nmodified_sigma = "true"'
-#     return uncertainty
-
 
 # this is a dataclass so that we can use asdict for the __repr__()
 @dataclass
@@ -197,7 +185,7 @@ class HazardLogicTree:
 
         Returns:
             weights:
-            table for joining branch weights with realisations
+            a table for joining branch weights with realisations
         """
         source_digests = []
         gmm_digests = []
@@ -205,15 +193,23 @@ class HazardLogicTree:
 
         # testing
         count = 0
+        comp_count = 0
+
         for composite_branch in self.composite_branches:
+            log.debug(f"composite_branch wt: {composite_branch.weight:.3f} is {count} of {self.n_composite_branches}")
             for branch in composite_branch.branches:
+                #if composite_branch.weight > 0:
+                log.debug(f"    component_branch {comp_count} {branch.source_hash_digest} {branch.gmcm_hash_digest}")
                 source_digests.append(branch.source_hash_digest)
                 gmm_digests.append(branch.gmcm_hash_digest)
                 weights.append(composite_branch.weight)
-                count +=1
+                comp_count +=1
+            count +=1
             # TESTING CODE
             # if count >= 1000000:
             #     break
+
+        print(weights[-10:])
 
         #build the table
         source_digest = pa.array(source_digests)

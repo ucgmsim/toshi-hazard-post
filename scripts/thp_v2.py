@@ -12,6 +12,7 @@ logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)
 logging.getLogger('toshi_hazard_post.version2.aggregation_calc').setLevel(logging.DEBUG)
 logging.getLogger('toshi_hazard_post.version2.aggregation_arrow').setLevel(logging.DEBUG)
 logging.getLogger('toshi_hazard_post.version2.aggregation_calc_arrow').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_post.version2').setLevel(logging.DEBUG)
 
 @click.group()
 def thp():

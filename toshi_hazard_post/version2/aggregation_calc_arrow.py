@@ -28,9 +28,18 @@ def join_rates_weights(rlz_table: pa.Table, weights: pa.Table) -> pa.Table:
     """
     con = duckdb.connect()
     joined = con.execute(
-        f"SELECT r.sources_digest, r.gmms_digest, r.rates, w.weight from rlz_table r join "
+        f"SELECT r.sources_digest, r.gmms_digest, r.rates, w.weight FROM rlz_table r JOIN "
         f"weights w ON r.sources_digest = w.sources_digest AND r.gmms_digest = w.gmms_digest;")
     rates_weights_joined = joined.arrow()
+
+    if True:
+        # af9ec2b004d7 380a95154af2
+        smpl = con.execute(
+            "SELECT * FROM rates_weights_joined WHERE sources_digest = 'af9ec2b004d7' "
+            "AND gmms_digest = '380a95154af2';"
+            )
+        smpl_df = smpl.arrow().to_pandas()
+        print(smpl_df)
 
     log.info(f"rates_weights_joined shape: {rates_weights_joined.shape}")
     # log.debug(rates_weights_joined.to_pandas()) # Don't do this for logging it takes significant time
