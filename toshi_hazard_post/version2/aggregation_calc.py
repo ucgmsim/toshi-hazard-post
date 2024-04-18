@@ -1,20 +1,18 @@
 import logging
 import time
+from typing import TYPE_CHECKING, List, Optional, Sequence
 
-from typing import TYPE_CHECKING, List, Sequence, Optional
-import toshi_hazard_post.version2.calculators as calculators
 import numpy as np
-import pyarrow as pa
-import duckdb
 
+import toshi_hazard_post.version2.calculators as calculators
 from toshi_hazard_post.version2.data import load_realizations, save_aggregations
-#from toshi_hazard_post.version2.data_arrow import load_realizations as load_arrow_realizations
 
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from toshi_hazard_post.version2.logic_tree import HazardLogicTree, HazardCompositeBranch
-    from toshi_hazard_post.version2.data import ValueStore
+
     from toshi_hazard_post.version2.aggregation_setup import Site
+    from toshi_hazard_post.version2.data import ValueStore
+    from toshi_hazard_post.version2.logic_tree import HazardCompositeBranch, HazardLogicTree
 
 log = logging.getLogger(__name__)
 
@@ -141,15 +139,15 @@ def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_type
 
     log.debug(f"branch_rates with shape {branch_rates.shape}")
     log.debug(f"weights with shape {weights.shape}")
-    log.debug(f"agg_types ")
+    log.debug(f"agg_types {agg_types}")
 
     try:
         nrows = branch_rates.shape[1]
-    except:
+    except Exception:
         nrows = len(branch_rates)
 
     ncols = len(agg_types)
-    aggs = np.empty((nrows, ncols)) # (IMTL, agg_type)
+    aggs = np.empty((nrows, ncols))  # (IMTL, agg_type)
     for i in range(nrows):
         quantiles = weighted_stats(branch_rates[:, i], list(agg_types), sample_weight=weights)
         aggs[i, :] = np.array(quantiles)

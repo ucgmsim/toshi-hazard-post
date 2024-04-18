@@ -1,21 +1,24 @@
 import logging
-from typing import TYPE_CHECKING, List, Dict
 import time
+from typing import TYPE_CHECKING, List
 
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
 
-#from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
-
 from toshi_hazard_post.version2.local_config import ARROW_DIR
 
+# from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
+
+
 if TYPE_CHECKING:
-    from toshi_hazard_post.version2.logic_tree import HazardLogicTree
     from nzshm_common.location.code_location import CodedLocation
 
+    from toshi_hazard_post.version2.logic_tree import HazardLogicTree
+
 log = logging.getLogger(__name__)
+
 
 def load_realizations(
     logic_tree: 'HazardLogicTree',
@@ -53,9 +56,8 @@ def load_realizations(
         & (pc.field('compatible_calc_fk') == pc.scalar(compatibility_key))
     )
     columns = ['sources_digest', 'gmms_digest', 'values', 'imt']
-    arrow_scanner = ds.Scanner.from_dataset(dataset, filter = flt0, columns = columns)
+    arrow_scanner = ds.Scanner.from_dataset(dataset, filter=flt0, columns=columns)
     t2 = time.monotonic()
-
 
     ## NB was trying to figure out if ducksb was causing the numpy array issues
     # con = duckdb.connect()
@@ -69,13 +71,14 @@ def load_realizations(
     # print(rlz_table.column(2).to_numpy().shape)
     # print(rlz_table.column(2).to_pandas().shape)
 
-
     t3 = time.monotonic()
     rlz_table = arrow_scanner.to_table()
     t4 = time.monotonic()
 
-    log.info(f"load ds: {round(t1-t0, 6)}, scanner:{round(t2-t1, 6)} duck_sql:{round(t3-t2, 6)}: to_arrow {round(t4-t3, 6)}")
-    log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))  #     value_store.set_values(values, component_branch)
+    log.info(
+        f"load ds: {round(t1-t0, 6)}, scanner:{round(t2-t1, 6)} duck_sql:{round(t3-t2, 6)}: to_arrow {round(t4-t3, 6)}"
+    )
+    log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
     log.info("loaded %s realizations in arrow", rlz_table.shape[0])
     return rlz_table
 

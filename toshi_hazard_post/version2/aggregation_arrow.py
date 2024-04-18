@@ -1,10 +1,12 @@
 import logging
 import time
+
 import pyarrow as pa
-from toshi_hazard_post.version2.aggregation_config import AggregationConfig
+
 from toshi_hazard_post.version2.aggregation_calc_arrow import calc_aggregation_arrow
+from toshi_hazard_post.version2.aggregation_config import AggregationConfig
+from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites  # , get_levels
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
-from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites #, get_levels
 
 log = logging.getLogger(__name__)
 
@@ -54,8 +56,13 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
         tic = time.perf_counter()
 
         calc_aggregation_arrow(
-            site=site, imts=config.imts, agg_types = config.agg_types, weights=weight_table,
-            logic_tree = logic_tree, compatibility_key=config.compat_key, hazard_model_id=config.hazard_model_id
+            site=site,
+            imts=config.imts,
+            agg_types=config.agg_types,
+            weights=weight_table,
+            logic_tree=logic_tree,
+            compatibility_key=config.compat_key,
+            hazard_model_id=config.hazard_model_id,
         )
 
         toc = time.perf_counter()
@@ -73,4 +80,3 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
 #     print()
 #     print()
 #     run_aggregation_arrow(config)
-

@@ -1,24 +1,23 @@
-from typing import TYPE_CHECKING, Generator, List, Tuple
 import copy
-import numpy as np
 import logging
-from operator import mul
+from dataclasses import dataclass, field
 from functools import reduce
 from itertools import chain, product
-from dataclasses import dataclass, field
+from operator import mul
+from typing import TYPE_CHECKING, Generator, List, Tuple
 
-
-import pyarrow as pa
+import numpy as np
 import nzshm_model.branch_registry
-# from nzshm_model import branch_registry
+import pyarrow as pa
 
 if TYPE_CHECKING:
-    from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree, SourceBranch, GMCMBranch
     import numpy.typing as npt
+    from nzshm_model.logic_tree import GMCMBranch, GMCMLogicTree, SourceBranch, SourceLogicTree
 
 log = logging.getLogger(__name__)
 
 registry = nzshm_model.branch_registry.Registry()
+
 
 # this is a dataclass so that we can use asdict for the __repr__()
 @dataclass
@@ -54,7 +53,6 @@ class HazardComponentBranch:
     @property
     def source_hash_digest(self) -> str:
         return registry.source_registry.get_by_identity(self.source_branch.registry_identity).hash_digest
-
 
 
 @dataclass
@@ -198,24 +196,22 @@ class HazardLogicTree:
         for composite_branch in self.composite_branches:
             log.debug(f"composite_branch wt: {composite_branch.weight:.3f} is {count} of {self.n_composite_branches}")
             for branch in composite_branch.branches:
-                #if composite_branch.weight > 0:
+                # if composite_branch.weight > 0:
                 log.debug(f"    component_branch {comp_count} {branch.source_hash_digest} {branch.gmcm_hash_digest}")
                 source_digests.append(branch.source_hash_digest)
                 gmm_digests.append(branch.gmcm_hash_digest)
                 weights.append(composite_branch.weight)
-                comp_count +=1
-            count +=1
+                comp_count += 1
+            count += 1
             # TESTING CODE
             # if count >= 1000000:
             #     break
 
         print(weights[-10:])
 
-        #build the table
+        # build the table
         source_digest = pa.array(source_digests)
         gmm_digest = pa.array(gmm_digests)
         weight = pa.array(weights)
-        table = pa.table([source_digest, gmm_digest, weight],
-            names = ["sources_digest", "gmms_digest", "weight"]
-        )
+        table = pa.table([source_digest, gmm_digest, weight], names=["sources_digest", "gmms_digest", "weight"])
         return table

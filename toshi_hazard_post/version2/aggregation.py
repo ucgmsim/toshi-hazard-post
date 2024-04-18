@@ -1,12 +1,13 @@
 import logging
 import time
 
-from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 from toshi_hazard_post.version2.aggregation_calc import calc_aggregation
+from toshi_hazard_post.version2.aggregation_config import AggregationConfig
+from toshi_hazard_post.version2.aggregation_setup import get_levels, get_lts, get_sites
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
-from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites, get_levels
 
 log = logging.getLogger(__name__)
+
 
 ############
 # ORIGINAL
@@ -30,7 +31,6 @@ def run_aggregation(config: AggregationConfig) -> None:
     srm_lt, gmcm_lt = get_lts(config)
     log.info("building hazard logic tree . . .")
     logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
-
 
     # for each independent thing (location, imt, vs30) (do we want to allow looping over vs30s?)
     # each of these can be placed in a multiprocessing queue
@@ -69,13 +69,9 @@ def run_aggregation(config: AggregationConfig) -> None:
     og_1 = time.perf_counter()
     log.info(f"total OG time: {round(og_1 - og_0, 6)}")
 
+
 if __name__ == "__main__":
 
     config_filepath = "tests/version2/fixtures/hazard.toml"
     config = AggregationConfig(config_filepath)
     run_aggregation(config)
-    print()
-    print()
-    print()
-    run_aggregation_arrow(config)
-

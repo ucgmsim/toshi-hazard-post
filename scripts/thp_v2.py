@@ -14,6 +14,7 @@ logging.getLogger('toshi_hazard_post.version2.aggregation_arrow').setLevel(loggi
 logging.getLogger('toshi_hazard_post.version2.aggregation_calc_arrow').setLevel(logging.DEBUG)
 logging.getLogger('toshi_hazard_post.version2').setLevel(logging.DEBUG)
 
+
 @click.group()
 def thp():
     pass
@@ -38,6 +39,7 @@ def aggregate(config_file, method):
         click.echo("Toshi Hazard Post: hazard curve aggregation ARROW")
         click.echo("=================================================")
         run_aggregation_arrow(config)
+
 
 if __name__ == "__main__":
     thp()  # pragma: no cover

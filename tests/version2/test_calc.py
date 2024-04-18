@@ -86,7 +86,7 @@ def test_weighted_stats(stats):
     stats = weighted_stats(stats['probs'], stats['aggs'], stats['weights'])
 
     print(stats)
-    assert 0
+
     stats_expected = np.load(stats_file)
     assert np.allclose(stats, stats_expected)
 

@@ -1,14 +1,17 @@
 import logging
-from typing import TYPE_CHECKING, List, Dict
+from typing import TYPE_CHECKING, Dict, List
+
 import numpy as np
-from toshi_hazard_post.version2.ths_mock import query_realizations, write_aggs_to_ths
-from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
+
+from toshi_hazard_post.version2.calculators import prob_to_rate, rate_to_prob
 from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
+from toshi_hazard_post.version2.ths_mock import query_realizations, write_aggs_to_ths
 
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from toshi_hazard_post.version2.logic_tree import HazardLogicTree
     from nzshm_common.location.code_location import CodedLocation
+
+    from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 
 log = logging.getLogger(__name__)
 
@@ -32,6 +35,7 @@ class ValueStore:
 
     def __len__(self):
         return len(self._values)
+
 
 def load_realizations(
     logic_tree: 'HazardLogicTree',
@@ -66,7 +70,9 @@ def load_realizations(
         component_branch = HazardComponentBranch(res.source, tuple(res.gsims))
         values = prob_to_rate(np.array(res.values), 1.0)
         value_store.set_values(values, component_branch)
-    log.info(f"loaded {i+1} realizations and {len(value_store)} entries", )
+    log.info(
+        f"loaded {i+1} realizations and {len(value_store)} entries",
+    )
     return value_store
 
 
