@@ -23,6 +23,9 @@ class Site:
     location: CodedLocation
     vs30: int
 
+    def __repr__(self):
+        return f"{self.location.lat}, {self.location.lon}, vs30={self.vs30}"
+
 
 def get_vs30s(site_filepath: Union[str, Path]) -> Generator[int, None, None]:
     with Path(site_filepath).open() as site_file:

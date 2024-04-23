@@ -37,24 +37,16 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
     log.info("arrow method")
     arrow_0 = time.perf_counter()
 
-    ## CBC weight table
     tic = time.perf_counter()
-    # for i, cb in enumerate( logic_tree.weight_table):
-    #     pass
-    # print(i, cb)
-    # weight_table = logic_tree.weight_table()
     weights = logic_tree.weights
     toc = time.perf_counter()
-    log.info(f'time to build weight table {toc-tic:.2f} seconds')
-    # print(table)
-    # log.debug(weights_table.shape)
-    # log.debug(weight_table.to_pandas())
-    # log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
+    log.info(f'time to build weight array {toc-tic:.2f} seconds')
+    log.info("Size of weight array: {}MB".format(weights.nbytes >> 20))
 
     for site in sites:
         for imt in config.imts:
 
-            log.info("site: %s, imts: %s", site, config.imts)
+            log.info(f"working on hazard for site: {site}, imts: {imt}")
             tic = time.perf_counter()
 
             calc_aggregation_arrow(
@@ -68,7 +60,7 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
             )
 
             toc = time.perf_counter()
-            log.info(f'time to perform aggregation for one location, {len(config.imts)} imts: {toc-tic:.2f} seconds')
+            log.info(f'time to perform aggregation for one location, {len(config.imts)} imt: {toc-tic:.2f} seconds')
 
     arrow_1 = time.perf_counter()
     log.info(f"total arrow time: {round(arrow_1 - arrow_0, 3)}")

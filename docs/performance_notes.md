@@ -336,3 +336,17 @@ Toshi Hazard Post: hazard curve aggregation OG
 2024-04-23 16:21:24,202 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - building branch rates for 16200 composite branches
 2024-04-23 16:21:24,859 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 0.66 seconds
 ```
+
+### full NSHM_v1.0.4
+
+#### Arrow
+```
+2024-04-24 08:45:27,103 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table (912, 1)
+2024-04-24 08:46:18,926 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 51.82 seconds
+```
+
+#### OG
+```
+2024-04-24 08:49:45,649 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates . . . 
+2024-04-24 08:50:07,914 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 22.27 seconds
+```

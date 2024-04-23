@@ -48,35 +48,26 @@ def load_realizations(
     dataset = ds.dataset(f'{root}/{partition}', format='parquet', filesystem=filesystem)
     t1 = time.monotonic()
 
+    gmms_digests = [branch.gmcm_hash_digest for branch in logic_tree.component_branches]
+    sources_digests = [branch.source_hash_digest for branch in logic_tree.component_branches]
+
     flt0 = (
         (pc.field('nloc_001') == pc.scalar(location.downsample(0.001).code))
-        # & (pc.field('imt') == pc.scalar(imt))
         & (pc.field('imt') == pa.scalar(imt))
         & (pc.field('vs30') == pc.scalar(vs30))
         & (pc.field('compatible_calc_fk') == pc.scalar(compatibility_key))
+        & (pc.is_in(pc.field('sources_digest'), pa.array(sources_digests)))
+        & (pc.is_in(pc.field('gmms_digest'), pa.array(gmms_digests)))
     )
     columns = ['sources_digest', 'gmms_digest', 'values']
     arrow_scanner = ds.Scanner.from_dataset(dataset, filter=flt0, columns=columns)
     t2 = time.monotonic()
 
-    ## NB was trying to figure out if ducksb was causing the numpy array issues
-    # con = duckdb.connect()
-    # results = con.execute(f"SELECT sources_digest, gmms_digest, values from arrow_scanner;")
-    # rlz_table = results.arrow()
-
-    # colvals = rlz_table.column(2).combine_chunks()
-    # # print(np.array(colvals))
-    # assert np.all(rlz_table.column(2).to_numpy()[0]) == np.all(np.array(colvals)[0])
-    # assert 0
-    # print(rlz_table.column(2).to_numpy().shape)
-    # print(rlz_table.column(2).to_pandas().shape)
-
-    t3 = time.monotonic()
     rlz_table = arrow_scanner.to_table()
-    t4 = time.monotonic()
+    t3 = time.monotonic()
 
     log.info(
-        f"load ds: {round(t1-t0, 6)}, scanner:{round(t2-t1, 6)} duck_sql:{round(t3-t2, 6)}: to_arrow {round(t4-t3, 6)}"
+        f"load dataset: {round(t1-t0, 6)}, scanner:{round(t2-t1, 6)}, to_arrow {round(t3-t2, 6)}"
     )
     log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
     log.info("loaded %s realizations in arrow", rlz_table.shape[0])
