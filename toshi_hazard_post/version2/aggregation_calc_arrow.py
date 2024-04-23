@@ -5,15 +5,19 @@ from typing import TYPE_CHECKING, List, Sequence
 import duckdb
 import numpy as np
 import pyarrow as pa
+import pyarrow.compute as pc
 
 import toshi_hazard_post.version2.calculators as calculators
+from toshi_hazard_post.version2.aggregation_calc import calculate_aggs
+from toshi_hazard_post.version2.data import save_aggregations
 
 # from toshi_hazard_post.version2.data import load_realizations, save_aggregations
 from toshi_hazard_post.version2.data_arrow import load_realizations as load_arrow_realizations
 
 if TYPE_CHECKING:
     from toshi_hazard_post.version2.aggregation_setup import Site
-    from toshi_hazard_post.version2.logic_tree import HazardLogicTree
+    from toshi_hazard_post.version2.logic_tree import HazardLogicTree, HazardCompositeBranch
+    import numpy.typing as npt
 
 log = logging.getLogger(__name__)
 
@@ -65,7 +69,7 @@ def convert_probs_to_rates(rlz_table):
     return rlz_table.set_column(2, 'rates', pa.array(rates_array))
 
 
-def calculate_aggs(rates_weights_table: pa.Table, agg_types: Sequence[str]):
+def calculate_aggs_arrow(rates_weights_table: pa.Table, agg_types: Sequence[str]):
     """
 
     Calculate weighted aggregate statistics of the composite realizations
@@ -105,11 +109,46 @@ def calculate_aggs(rates_weights_table: pa.Table, agg_types: Sequence[str]):
     #     aggs[i, :] = np.array(quantiles)
 
 
+def calc_composite_rates(composite_branch: 'HazardCompositeBranch', component_rates: pa.Table, nlevels: int) -> 'npt.NDArray':
+
+    rates = np.zeros((nlevels, ))
+    for branch in composite_branch:
+        # flt = (
+        #     (pc.field('sources_digest') == pc.scalar(branch.source_hash_digest))
+        #     & (pc.field('gmms_digest') == pc.scalar(branch.gmcm_hash_digest))
+        # )
+        # flt = pc.field('digest') == branch.source_hash_digest + branch.gmcm_hash_digest
+        # rates += component_rates.filter(flt).column('rates').to_numpy()[0]
+        # rates += component_rates[component_rates['digest'] == branch.source_hash_digest + branch.gmcm_hash_digest]
+
+        rates += component_rates.loc[branch.hash_digest, 'rates']
+    return rates
+
+    # this is actually slower!!!
+    # rates = np.array([component_rates.loc[branch.hash_digest, 'rates'] for branch in composite_branch])
+    # return np.sum(rates, axis=0)
+
+
+def build_branch_rates(logic_tree: 'HazardLogicTree', component_rates) -> 'npt.NDArray':
+
+    # nimtl = len(component_rates.column('rates')[0])
+    nimtl = len(component_rates.iloc[0]['rates'])
+    # nbranches = logic_tree.n_composite_branches
+    # log.info(f'building branch rates for {nbranches} composite branches')
+    # branch_rates = np.empty((nbranches, nimtl))
+    # for i_branch, branch in enumerate(logic_tree.composite_branches):
+    #     branch_rates[i_branch, :] = calc_composite_rates(branch, component_rates, nimtl)
+    # return branch_rates
+    return np.array([calc_composite_rates(branch, component_rates, nimtl) for branch in logic_tree.composite_branches])
+
+
+
+
 def calc_aggregation_arrow(
     site: 'Site',
-    imts: List[str],
+    imt: str,
     agg_types: List[str],
-    weights: 'pa.table',
+    weights: 'npt.NDArray',
     logic_tree: 'HazardLogicTree',
     compatibility_key: str,
     hazard_model_id: str,
@@ -135,36 +174,47 @@ def calc_aggregation_arrow(
 
     log.info("loading realizations . . .")
     tic = time.perf_counter()
-    rlz_table = load_arrow_realizations(logic_tree, imts, location, vs30, compatibility_key)
+    component_probs = load_arrow_realizations(logic_tree, imt, location, vs30, compatibility_key)
     toc = time.perf_counter()
     log.debug(f'time to load realizations {toc-tic:.2f} seconds')
-    log.debug(f"rlz_table {rlz_table.shape}")
+    log.debug(f"rlz_table {component_probs.shape}")
     # log.debug(rlz_table.to_pandas())
     # print(weights)
 
     # convert probabilities to rates
     tic = time.perf_counter()
-    rates_table = convert_probs_to_rates(rlz_table)
-    del rlz_table
+    component_rates = convert_probs_to_rates(component_probs)
+    del component_probs
+    component_rates = component_rates.append_column(
+        'digest',
+        pc.binary_join_element_wise(
+            pc.cast(component_rates['sources_digest'], pa.string()),
+            pc.cast(component_rates['gmms_digest'], pa.string()),
+            ""
+        )
+    )
+    component_rates = component_rates.drop_columns(['sources_digest', 'gmms_digest'])
+    component_rates = component_rates.to_pandas()
+    component_rates.set_index('digest', inplace=True)
+    # make the digest the index
     toc = time.perf_counter()
     log.debug(f'time to convert_probs_to_rates() {toc-tic:.2f} seconds')
-    log.debug(f"rates_table {rates_table.shape}")
+    log.debug(f"rates_table {component_rates.shape}")
 
-    # print(rates_table)
-
-    # join tables (NB this is a bit expensive, esp as we have
-    #  four times (tectonic_types) more rows than OG approach
     tic = time.perf_counter()
-    rates_weights = join_rates_weights(rates_table, weights)
+    composite_rates = build_branch_rates(logic_tree, component_rates)
     toc = time.perf_counter()
-    log.debug(f'time to join_rates_weights() {toc-tic:.2f} seconds')
-    log.debug(f"rates_weights {rates_weights.shape}")
+    log.debug(f'time to build_ranch_rates() {toc-tic:.2f} seconds')
+    
+    tic = time.perf_counter()
+    log.info("calculating aggregates . . . ")
+    hazard = calculate_aggs(composite_rates, weights, agg_types)
+    toc = time.perf_counter()
+    log.debug(f'time to calculate aggs {toc-tic:.2f} seconds')
 
-    return rates_weights  # for now, just just finish up here
+    log.info("saving result . . . ")
+    save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)
 
-    ## TODO: now we need to figure out the math (sum of rates, ett)
-    ## Need to figure out vectorization better (OK we have an approach nailed)
-    # aggregates = calculate_aggs(rates_weights, agg_types)
 
     log.info("saving result . . . ")
     # save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)

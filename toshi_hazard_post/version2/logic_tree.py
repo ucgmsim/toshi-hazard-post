@@ -1,7 +1,7 @@
 import copy
 import logging
 from dataclasses import dataclass, field
-from functools import reduce
+from functools import reduce, cached_property
 from itertools import chain, product
 from operator import mul
 from typing import TYPE_CHECKING, Generator, List, Tuple
@@ -44,6 +44,10 @@ class HazardComponentBranch:
         return self.source_branch.registry_identity + '|'.join(
             [branch.registry_identity for branch in self.gmcm_branches]
         )
+
+    @cached_property
+    def hash_digest(self) -> str:
+        return self.source_hash_digest + self.gmcm_hash_digest
 
     @property
     def gmcm_hash_digest(self) -> str:

@@ -42,31 +42,33 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
     # for i, cb in enumerate( logic_tree.weight_table):
     #     pass
     # print(i, cb)
-    weight_table = logic_tree.weight_table()
+    # weight_table = logic_tree.weight_table()
+    weights = logic_tree.weights
     toc = time.perf_counter()
     log.info(f'time to build weight table {toc-tic:.2f} seconds')
     # print(table)
-    log.debug(weight_table.shape)
-    log.debug(weight_table.to_pandas())
-    log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
+    # log.debug(weights_table.shape)
+    # log.debug(weight_table.to_pandas())
+    # log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
 
     for site in sites:
+        for imt in config.imts:
 
-        log.info("site: %s, imts: %s", site, config.imts)
-        tic = time.perf_counter()
+            log.info("site: %s, imts: %s", site, config.imts)
+            tic = time.perf_counter()
 
-        calc_aggregation_arrow(
-            site=site,
-            imts=config.imts,
-            agg_types=config.agg_types,
-            weights=weight_table,
-            logic_tree=logic_tree,
-            compatibility_key=config.compat_key,
-            hazard_model_id=config.hazard_model_id,
-        )
+            calc_aggregation_arrow(
+                site=site,
+                imt=imt,
+                agg_types=config.agg_types,
+                weights=weights,
+                logic_tree=logic_tree,
+                compatibility_key=config.compat_key,
+                hazard_model_id=config.hazard_model_id,
+            )
 
-        toc = time.perf_counter()
-        log.info(f'time to perform aggregation for one location, {len(config.imts)} imts: {toc-tic:.2f} seconds')
+            toc = time.perf_counter()
+            log.info(f'time to perform aggregation for one location, {len(config.imts)} imts: {toc-tic:.2f} seconds')
 
     arrow_1 = time.perf_counter()
     log.info(f"total arrow time: {round(arrow_1 - arrow_0, 3)}")

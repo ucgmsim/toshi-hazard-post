@@ -23,6 +23,6 @@ locations = ["-34.500~173.000"]
 
 [calculation]
 #imts = ["PGA", "SA(1.0)"]
-#imts = ["PGA"]
-imts = ["PGA", "SA(0.5)", "SA(1.0)", "SA(2.0)", "SA(5.0)"]
+imts = ["PGA", "SA(1.0)"]
+# imts = ["PGA", "SA(0.5)", "SA(1.0)", "SA(2.0)", "SA(5.0)"]
 agg_types = ["mean", "cov", "std", "0.005", "0.01", "0.025"]
