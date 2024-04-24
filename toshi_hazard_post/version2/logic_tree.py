@@ -45,7 +45,7 @@ class HazardComponentBranch:
             [branch.registry_identity for branch in self.gmcm_branches]
         )
 
-    @cached_property
+    @property
     def hash_digest(self) -> str:
         return self.source_hash_digest + self.gmcm_hash_digest
 

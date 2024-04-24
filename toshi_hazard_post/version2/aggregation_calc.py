@@ -52,13 +52,18 @@ def calc_composite_rates(
     Returns:
         rates: hazard rates for the composite realization D(nlevels,)
     """
-    rates = np.array([value_store.get_values(branch) for branch in composite_branch])
+    # rates = np.array([value_store.get_values(branch) for branch in composite_branch])
 
-    # print(rates)
-    summed = np.sum(rates, axis=0)
-    # print()
-    # print(summed)
-    return summed
+    # # print(rates)
+    # summed = np.sum(rates, axis=0)
+    # # print()
+    # # print(summed)
+    # return summed
+
+    rates = np.zeros((nlevels, ))
+    for branch in composite_branch:
+        rates += value_store.get_values(branch)
+    return rates
 
 
 def weighted_stats(

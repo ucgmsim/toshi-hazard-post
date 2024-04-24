@@ -106,33 +106,41 @@ def calculate_aggs_arrow(rates_weights_table: pa.Table, agg_types: Sequence[str]
     #     quantiles = aggregation_calc.weighted_stats(rates_series[:, i], list(agg_types), sample_weight=weight_series)
     #     aggs[i, :] = np.array(quantiles)
 
-
 def calc_composite_rates(composite_branch: 'HazardCompositeBranch', component_rates: pa.Table, nlevels: int) -> 'npt.NDArray':
 
+    # option 1, iterate and lookup on dict or pd.Series
     rates = np.zeros((nlevels, ))
     for branch in composite_branch:
-        # flt = (
-        #     (pc.field('sources_digest') == pc.scalar(branch.source_hash_digest))
-        #     & (pc.field('gmms_digest') == pc.scalar(branch.gmcm_hash_digest))
-        # )
-        # flt = pc.field('digest') == branch.source_hash_digest + branch.gmcm_hash_digest
-        # rates += component_rates.filter(flt).column('rates').to_numpy()[0]
-        # rates += component_rates[component_rates['digest'] == branch.source_hash_digest + branch.gmcm_hash_digest]
-        # rates += component_rates.loc[branch.hash_digest, 'rates']
-        # rates += component_rates['rates'][branch.hash_digest]
         rates += component_rates[branch.hash_digest]
     return rates
 
-    # this is actually slower!!!
+    # option 2, use list comprehnsion and np.sum. Slower than 1.
     # rates = np.array([component_rates[branch.hash_digest] for branch in composite_branch])
     # return np.sum(rates, axis=0)
+
+    # option 3, slice and sum in place using pd.Series. Very slow
+    # digests = [branch.hash_digest for branch in composite_branch]
+    # return component_rates[digests].sum()
+
+    # option 4, use NDArray.sum(). Slightly slower than 1
+    # return np.array([component_rates[branch.hash_digest] for branch in composite_branch]).sum(axis=0)
+    # breakpoint()
+
+    # option 5, build array and then sum. Slower than 1
+    # rates = component_rates[composite_branch.branches[0].hash_digest]
+    # for branch in composite_branch.branches[1:]:
+    #     rates = np.vstack([rates, component_rates[branch.hash_digest]])
+    # return rates.sum(axis=0)
+
+
+
 
 
 def build_branch_rates(logic_tree: 'HazardLogicTree', component_rates) -> 'npt.NDArray':
 
     # nimtl = len(component_rates.column('rates')[0])
-    nimtl = len(component_rates.iloc[0])
-    # nimtl = len(next(iter(component_rates.values())))
+    # nimtl = len(component_rates.iloc[0])
+    nimtl = len(next(iter(component_rates.values())))
     # nbranches = logic_tree.n_composite_branches
     # log.info(f'building branch rates for {nbranches} composite branches')
     # branch_rates = np.empty((nbranches, nimtl))
@@ -201,8 +209,8 @@ def calc_aggregation_arrow(
     component_rates = component_rates.drop_columns(['sources_digest', 'gmms_digest'])
     component_rates = component_rates.to_pandas()
     component_rates.set_index('digest', inplace=True)
-    component_rates = component_rates['rates']
-    # component_rates = component_rates['rates'].to_dict()
+    # component_rates = component_rates['rates']
+    component_rates = component_rates['rates'].to_dict()
     toc = time.perf_counter()
     log.debug(f'time to convert to pandas and set digest index {toc-tic:.2f} seconds')
     # log.debug(f"rates_table {component_rates.shape}")

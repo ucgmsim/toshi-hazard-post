@@ -350,3 +350,35 @@ Toshi Hazard Post: hazard curve aggregation OG
 2024-04-24 08:49:45,649 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates . . . 
 2024-04-24 08:50:07,914 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 22.27 seconds
 ```
+
+
+## Pre-Calculating Branches
+
+### 1. component_branches and composite_branches are generators
+```
+chrisdc@glacier:~/.../DEV/toshi-hazard-post$ NZSHM22_THS_REPO=/home/chrisdc/NSHM/THS/pq-CDC2/ poetry run thp aggregate -M ARROW demo/hazard_v2.toml 
+warning openquake module dependency not available, maybe you want to install
+                with nzshm-model[openquake]
+Toshi Hazard Post: hazard curve aggregation ARROW
+=================================================
+2024-04-24 12:15:43,791 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting sites . . .
+2024-04-24 12:15:43,791 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting logic trees . . . 
+2024-04-24 12:15:43,856 - toshi_hazard_post.version2.aggregation_arrow - INFO - building hazard logic tree . . .
+2024-04-24 12:15:43,856 - toshi_hazard_post.version2.aggregation_arrow - INFO - arrow method
+2024-04-24 12:15:52,551 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to build weight array 8.70 seconds
+2024-04-24 12:15:52,551 - toshi_hazard_post.version2.aggregation_arrow - INFO - Size of weight array: 7MB
+2024-04-24 12:15:52,551 - toshi_hazard_post.version2.aggregation_arrow - INFO - working on hazard for site: -34.5, 173.0, vs30=275, imts: PGA
+2024-04-24 12:15:52,551 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - loading realizations . . .
+2024-04-24 12:15:52,828 - toshi_hazard_post.version2.data_arrow - INFO - load dataset: 0.02054, scanner:0.083051, to_arrow 0.172316
+2024-04-24 12:15:52,828 - toshi_hazard_post.version2.data_arrow - INFO - RSS: 0MB
+2024-04-24 12:15:52,828 - toshi_hazard_post.version2.data_arrow - INFO - loaded 912 realizations in arrow
+2024-04-24 12:15:52,834 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to load realizations 0.28 seconds
+2024-04-24 12:15:52,834 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rlz_table (912, 3)
+2024-04-24 12:15:53,364 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert_probs_to_rates() 0.53 seconds
+2024-04-24 12:15:53,368 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert to pandas and set digest index 0.00 seconds
+2024-04-24 12:15:53,368 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table 912
+2024-04-24 12:16:14,374 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 21.01 seconds
+2024-04-24 12:16:14,374 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - calculating aggregates . . . 
+```
+
+### 2. they are lists and all properties are pre-calculated
