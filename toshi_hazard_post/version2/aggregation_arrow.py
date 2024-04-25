@@ -22,6 +22,7 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
         config: the aggregation configuration
     """
 
+    arrow_0 = time.perf_counter()
     # get the sites
     log.info("getting sites . . .")
     sites = get_sites(config.locations, config.vs30s)
@@ -32,13 +33,19 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
     log.info("getting logic trees . . . ")
     srm_lt, gmcm_lt = get_lts(config)
     log.info("building hazard logic tree . . .")
+    tic = time.perf_counter()
     logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
+    toc = time.perf_counter()
+    log.info(f'time to build HazardLogicTree {toc-tic:.2f} seconds')
+
 
     log.info("arrow method")
-    arrow_0 = time.perf_counter()
 
     tic = time.perf_counter()
     weights = logic_tree.weights
+    component_branches = logic_tree.component_branches
+    branch_hash_list = logic_tree.branch_hash_list
+
     toc = time.perf_counter()
     log.info(f'time to build weight array {toc-tic:.2f} seconds')
     log.info("Size of weight array: {}MB".format(weights.nbytes >> 20))
@@ -54,7 +61,8 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
                 imt=imt,
                 agg_types=config.agg_types,
                 weights=weights,
-                logic_tree=logic_tree,
+                component_branches=component_branches,
+                branch_hash_list=branch_hash_list,
                 compatibility_key=config.compat_key,
                 hazard_model_id=config.hazard_model_id,
             )

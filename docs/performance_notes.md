@@ -361,24 +361,108 @@ warning openquake module dependency not available, maybe you want to install
                 with nzshm-model[openquake]
 Toshi Hazard Post: hazard curve aggregation ARROW
 =================================================
-2024-04-24 12:15:43,791 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting sites . . .
-2024-04-24 12:15:43,791 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting logic trees . . . 
-2024-04-24 12:15:43,856 - toshi_hazard_post.version2.aggregation_arrow - INFO - building hazard logic tree . . .
-2024-04-24 12:15:43,856 - toshi_hazard_post.version2.aggregation_arrow - INFO - arrow method
-2024-04-24 12:15:52,551 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to build weight array 8.70 seconds
-2024-04-24 12:15:52,551 - toshi_hazard_post.version2.aggregation_arrow - INFO - Size of weight array: 7MB
-2024-04-24 12:15:52,551 - toshi_hazard_post.version2.aggregation_arrow - INFO - working on hazard for site: -34.5, 173.0, vs30=275, imts: PGA
-2024-04-24 12:15:52,551 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - loading realizations . . .
-2024-04-24 12:15:52,828 - toshi_hazard_post.version2.data_arrow - INFO - load dataset: 0.02054, scanner:0.083051, to_arrow 0.172316
-2024-04-24 12:15:52,828 - toshi_hazard_post.version2.data_arrow - INFO - RSS: 0MB
-2024-04-24 12:15:52,828 - toshi_hazard_post.version2.data_arrow - INFO - loaded 912 realizations in arrow
-2024-04-24 12:15:52,834 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to load realizations 0.28 seconds
-2024-04-24 12:15:52,834 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rlz_table (912, 3)
-2024-04-24 12:15:53,364 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert_probs_to_rates() 0.53 seconds
-2024-04-24 12:15:53,368 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert to pandas and set digest index 0.00 seconds
-2024-04-24 12:15:53,368 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table 912
-2024-04-24 12:16:14,374 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 21.01 seconds
-2024-04-24 12:16:14,374 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - calculating aggregates . . . 
+2024-04-24 12:23:15,900 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting sites . . .
+2024-04-24 12:23:15,900 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting logic trees . . . 
+2024-04-24 12:23:15,961 - toshi_hazard_post.version2.aggregation_arrow - INFO - building hazard logic tree . . .
+2024-04-24 12:23:15,962 - toshi_hazard_post.version2.aggregation_arrow - INFO - arrow method
+2024-04-24 12:23:24,528 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to build weight array 8.57 seconds
+2024-04-24 12:23:24,528 - toshi_hazard_post.version2.aggregation_arrow - INFO - Size of weight array: 7MB
+2024-04-24 12:23:24,528 - toshi_hazard_post.version2.aggregation_arrow - INFO - working on hazard for site: -34.5, 173.0, vs30=275, imts: PGA
+2024-04-24 12:23:24,528 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - loading realizations . . .
+2024-04-24 12:23:24,766 - toshi_hazard_post.version2.data_arrow - INFO - load dataset: 0.001833, scanner:0.062499, to_arrow 0.172549
+2024-04-24 12:23:24,766 - toshi_hazard_post.version2.data_arrow - INFO - RSS: 0MB
+2024-04-24 12:23:24,766 - toshi_hazard_post.version2.data_arrow - INFO - loaded 912 realizations in arrow
+2024-04-24 12:23:24,772 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to load realizations 0.24 seconds
+2024-04-24 12:23:24,772 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rlz_table (912, 3)
+2024-04-24 12:23:25,189 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert_probs_to_rates() 0.42 seconds
+2024-04-24 12:23:25,193 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert to pandas and set digest index 0.00 seconds
+2024-04-24 12:23:25,193 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table 912
+2024-04-24 12:23:45,939 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 20.75 seconds
+2024-04-24 12:23:45,939 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - calculating aggregates . . . 
+2024-04-24 12:23:45,939 - toshi_hazard_post.version2.aggregation_calc - DEBUG - branch_rates with shape (979776, 44)
+2024-04-24 12:23:45,939 - toshi_hazard_post.version2.aggregation_calc - DEBUG - weights with shape (979776,)
+2024-04-24 12:23:45,939 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg_types ['mean', 'cov', 'std', '0.005', '0.01', '0.025']
+2024-04-24 12:23:50,954 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg with shape (44, 6)
+2024-04-24 12:23:50,954 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to calculate aggs 5.01 seconds
+2024-04-24 12:23:50,954 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
+2024-04-24 12:23:51,069 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
+2024-04-24 12:23:51,070 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to perform aggregation for one location, 2 imt: 26.54 seconds
+2024-04-24 12:23:51,070 - toshi_hazard_post.version2.aggregation_arrow - INFO - working on hazard for site: -34.5, 173.0, vs30=275, imts: SA(1.0)
+2024-04-24 12:23:51,071 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - loading realizations . . .
+2024-04-24 12:23:51,324 - toshi_hazard_post.version2.data_arrow - INFO - load dataset: 0.004364, scanner:0.081462, to_arrow 0.167203
+2024-04-24 12:23:51,324 - toshi_hazard_post.version2.data_arrow - INFO - RSS: 0MB
+2024-04-24 12:23:51,324 - toshi_hazard_post.version2.data_arrow - INFO - loaded 912 realizations in arrow
+2024-04-24 12:23:51,330 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to load realizations 0.26 seconds
+2024-04-24 12:23:51,331 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rlz_table (912, 3)
+2024-04-24 12:23:51,339 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert_probs_to_rates() 0.01 seconds
+2024-04-24 12:23:51,346 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert to pandas and set digest index 0.01 seconds
+2024-04-24 12:23:51,346 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table 912
+2024-04-24 12:24:12,286 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 20.94 seconds
+2024-04-24 12:24:12,286 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - calculating aggregates . . . 
+2024-04-24 12:24:12,286 - toshi_hazard_post.version2.aggregation_calc - DEBUG - branch_rates with shape (979776, 44)
+2024-04-24 12:24:12,286 - toshi_hazard_post.version2.aggregation_calc - DEBUG - weights with shape (979776,)
+2024-04-24 12:24:12,286 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg_types ['mean', 'cov', 'std', '0.005', '0.01', '0.025']
+2024-04-24 12:24:17,284 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg with shape (44, 6)
+2024-04-24 12:24:17,284 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to calculate aggs 5.00 seconds
+2024-04-24 12:24:17,284 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
+2024-04-24 12:24:17,290 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
+2024-04-24 12:24:17,291 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to perform aggregation for one location, 2 imt: 26.22 seconds
+2024-04-24 12:24:17,291 - toshi_hazard_post.version2.aggregation_arrow - INFO - total arrow time: 61.329
 ```
 
 ### 2. they are lists and all properties are pre-calculated
+```
+chrisdc@glacier:~/.../DEV/toshi-hazard-post$ NZSHM22_THS_REPO=/home/chrisdc/NSHM/THS/pq-CDC2/ poetry run thp aggregate -M ARROW demo/hazard_v2.toml 
+warning openquake module dependency not available, maybe you want to install
+                with nzshm-model[openquake]
+Toshi Hazard Post: hazard curve aggregation ARROW
+=================================================
+2024-04-24 12:27:56,189 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting sites . . .
+2024-04-24 12:27:56,189 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting logic trees . . . 
+2024-04-24 12:27:56,240 - toshi_hazard_post.version2.aggregation_arrow - INFO - building hazard logic tree . . .
+2024-04-24 12:28:23,170 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to build HazardLogicTree 26.93 seconds
+2024-04-24 12:28:23,170 - toshi_hazard_post.version2.aggregation_arrow - INFO - arrow method
+2024-04-24 12:28:23,337 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to build weight array 0.17 seconds
+2024-04-24 12:28:23,337 - toshi_hazard_post.version2.aggregation_arrow - INFO - Size of weight array: 7MB
+2024-04-24 12:28:23,337 - toshi_hazard_post.version2.aggregation_arrow - INFO - working on hazard for site: -34.5, 173.0, vs30=275, imts: PGA
+2024-04-24 12:28:23,337 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - loading realizations . . .
+2024-04-24 12:28:23,546 - toshi_hazard_post.version2.data_arrow - INFO - load dataset: 0.020187, scanner:0.0081, to_arrow 0.180949
+2024-04-24 12:28:23,546 - toshi_hazard_post.version2.data_arrow - INFO - RSS: 0MB
+2024-04-24 12:28:23,547 - toshi_hazard_post.version2.data_arrow - INFO - loaded 912 realizations in arrow
+2024-04-24 12:28:23,553 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to load realizations 0.22 seconds
+2024-04-24 12:28:23,553 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rlz_table (912, 3)
+2024-04-24 12:28:24,100 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert_probs_to_rates() 0.55 seconds
+2024-04-24 12:28:24,103 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert to pandas and set digest index 0.00 seconds
+2024-04-24 12:28:24,103 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table 912
+2024-04-24 12:28:27,411 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 3.31 seconds
+2024-04-24 12:28:27,411 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - calculating aggregates . . . 
+2024-04-24 12:28:27,411 - toshi_hazard_post.version2.aggregation_calc - DEBUG - branch_rates with shape (979776, 44)
+2024-04-24 12:28:27,411 - toshi_hazard_post.version2.aggregation_calc - DEBUG - weights with shape (979776,)
+2024-04-24 12:28:27,411 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg_types ['mean', 'cov', 'std', '0.005', '0.01', '0.025']
+2024-04-24 12:28:32,535 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg with shape (44, 6)
+2024-04-24 12:28:32,535 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to calculate aggs 5.12 seconds
+2024-04-24 12:28:32,535 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
+2024-04-24 12:28:32,648 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
+2024-04-24 12:28:32,649 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to perform aggregation for one location, 2 imt: 9.31 seconds
+2024-04-24 12:28:32,649 - toshi_hazard_post.version2.aggregation_arrow - INFO - working on hazard for site: -34.5, 173.0, vs30=275, imts: SA(1.0)
+2024-04-24 12:28:32,649 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - loading realizations . . .
+2024-04-24 12:28:32,821 - toshi_hazard_post.version2.data_arrow - INFO - load dataset: 0.001757, scanner:0.004604, to_arrow 0.165577
+2024-04-24 12:28:32,821 - toshi_hazard_post.version2.data_arrow - INFO - RSS: 0MB
+2024-04-24 12:28:32,821 - toshi_hazard_post.version2.data_arrow - INFO - loaded 912 realizations in arrow
+2024-04-24 12:28:32,828 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to load realizations 0.18 seconds
+2024-04-24 12:28:32,828 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rlz_table (912, 3)
+2024-04-24 12:28:32,837 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert_probs_to_rates() 0.01 seconds
+2024-04-24 12:28:32,843 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert to pandas and set digest index 0.01 seconds
+2024-04-24 12:28:32,843 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table 912
+2024-04-24 12:28:36,016 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 3.17 seconds
+2024-04-24 12:28:36,016 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - calculating aggregates . . . 
+2024-04-24 12:28:36,016 - toshi_hazard_post.version2.aggregation_calc - DEBUG - branch_rates with shape (979776, 44)
+2024-04-24 12:28:36,016 - toshi_hazard_post.version2.aggregation_calc - DEBUG - weights with shape (979776,)
+2024-04-24 12:28:36,016 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg_types ['mean', 'cov', 'std', '0.005', '0.01', '0.025']
+2024-04-24 12:28:41,004 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg with shape (44, 6)
+2024-04-24 12:28:41,004 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to calculate aggs 4.99 seconds
+2024-04-24 12:28:41,004 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
+2024-04-24 12:28:41,011 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
+2024-04-24 12:28:41,012 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to perform aggregation for one location, 2 imt: 8.36 seconds
+2024-04-24 12:28:41,012 - toshi_hazard_post.version2.aggregation_arrow - INFO - total arrow time: 44.824
+```

@@ -16,7 +16,7 @@ from toshi_hazard_post.version2.data_arrow import load_realizations as load_arro
 
 if TYPE_CHECKING:
     from toshi_hazard_post.version2.aggregation_setup import Site
-    from toshi_hazard_post.version2.logic_tree import HazardLogicTree, HazardCompositeBranch
+    from toshi_hazard_post.version2.logic_tree import HazardLogicTree, HazardCompositeBranch, HazardComponentBranch
     import numpy.typing as npt
 
 log = logging.getLogger(__name__)
@@ -106,12 +106,12 @@ def calculate_aggs_arrow(rates_weights_table: pa.Table, agg_types: Sequence[str]
     #     quantiles = aggregation_calc.weighted_stats(rates_series[:, i], list(agg_types), sample_weight=weight_series)
     #     aggs[i, :] = np.array(quantiles)
 
-def calc_composite_rates(composite_branch: 'HazardCompositeBranch', component_rates: pa.Table, nlevels: int) -> 'npt.NDArray':
+def calc_composite_rates(branch_hashes: List[str], component_rates: pa.Table, nlevels: int) -> 'npt.NDArray':
 
     # option 1, iterate and lookup on dict or pd.Series
     rates = np.zeros((nlevels, ))
-    for branch in composite_branch:
-        rates += component_rates[branch.hash_digest]
+    for branch_hash in branch_hashes:
+        rates += component_rates[branch_hash]
     return rates
 
     # option 2, use list comprehnsion and np.sum. Slower than 1.
@@ -136,7 +136,7 @@ def calc_composite_rates(composite_branch: 'HazardCompositeBranch', component_ra
 
 
 
-def build_branch_rates(logic_tree: 'HazardLogicTree', component_rates) -> 'npt.NDArray':
+def build_branch_rates(branch_hash_list: List[List[str]], component_rates) -> 'npt.NDArray':
 
     # nimtl = len(component_rates.column('rates')[0])
     # nimtl = len(component_rates.iloc[0])
@@ -147,7 +147,7 @@ def build_branch_rates(logic_tree: 'HazardLogicTree', component_rates) -> 'npt.N
     # for i_branch, branch in enumerate(logic_tree.composite_branches):
     #     branch_rates[i_branch, :] = calc_composite_rates(branch, component_rates, nimtl)
     # return branch_rates
-    return np.array([calc_composite_rates(branch, component_rates, nimtl) for branch in logic_tree.composite_branches])
+    return np.array([calc_composite_rates(branch, component_rates, nimtl) for branch in branch_hash_list])
 
 
 
@@ -157,7 +157,8 @@ def calc_aggregation_arrow(
     imt: str,
     agg_types: List[str],
     weights: 'npt.NDArray',
-    logic_tree: 'HazardLogicTree',
+    component_branches: List['HazardComponentBranch'],
+    branch_hash_list: List[List[str]],
     compatibility_key: str,
     hazard_model_id: str,
 ) -> pa.table:
@@ -182,7 +183,7 @@ def calc_aggregation_arrow(
 
     log.info("loading realizations . . .")
     tic = time.perf_counter()
-    component_probs = load_arrow_realizations(logic_tree, imt, location, vs30, compatibility_key)
+    component_probs = load_arrow_realizations(component_branches, imt, location, vs30, compatibility_key)
     toc = time.perf_counter()
     log.debug(f'time to load realizations {toc-tic:.2f} seconds')
     log.debug(f"rlz_table {component_probs.shape}")
@@ -217,7 +218,7 @@ def calc_aggregation_arrow(
     log.debug(f"rates_table {len(component_rates)}")
 
     tic = time.perf_counter()
-    composite_rates = build_branch_rates(logic_tree, component_rates)
+    composite_rates = build_branch_rates(branch_hash_list, component_rates)
     toc = time.perf_counter()
     log.debug(f'time to build_ranch_rates() {toc-tic:.2f} seconds')
     

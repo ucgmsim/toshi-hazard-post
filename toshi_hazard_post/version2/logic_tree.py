@@ -34,10 +34,12 @@ class HazardComponentBranch:
     source_branch: 'SourceBranch'
     gmcm_branches: Tuple['GMCMBranch']
     weight: float = field(init=False)
+    hash_digest: str = field(init=False)
 
     def __post_init__(self):
         self.weight = reduce(mul, [self.source_branch.weight] + [b.weight for b in self.gmcm_branches])
         self.gmcm_branches = tuple(self.gmcm_branches)
+        self.hash_digest = self.source_hash_digest + self.gmcm_hash_digest
 
     @property
     def registry_identity(self) -> str:
@@ -45,9 +47,9 @@ class HazardComponentBranch:
             [branch.registry_identity for branch in self.gmcm_branches]
         )
 
-    @property
-    def hash_digest(self) -> str:
-        return self.source_hash_digest + self.gmcm_hash_digest
+    # @property
+    # def hash_digest(self) -> str:
+    #     return self.source_hash_digest + self.gmcm_hash_digest
 
     @property
     def gmcm_hash_digest(self) -> str:
@@ -113,11 +115,11 @@ class HazardLogicTree:
             lambda bs: bs.tectonic_region_type in self.trts, gmcm_logic_tree.branch_sets
         )
 
-        self._n_composite_branches: int = 0
+        self._composite_branches = []
+        self._component_branches = []
 
-    # TODO: is this better stored or as a generator?
     @property
-    def composite_branches(self) -> Generator[HazardCompositeBranch, None, None]:
+    def composite_branches(self) -> List[HazardCompositeBranch]:
         """
         Yield the composite branches combining the SRM branches with the appropraite GMCM branches by matching tectonic
         region type.
@@ -126,6 +128,45 @@ class HazardLogicTree:
             composite_branches: the composite branches that make up all full realizations of the complete hazard
             logic tree
         """
+        return self._composite_branches if self._composite_branches else list(self._generate_composite_branches())
+
+
+    @property
+    def component_branches(self) -> List[HazardComponentBranch]:
+        """
+        Yield the component branches (each SRM branch with all possible GMCM branch matches)
+
+        Returns:
+            component_branches: the component branches that make up the independent realizations of the logic tree
+        """
+        return self._component_branches if self._component_branches else list(self._generate_component_branches())
+    
+    @property
+    def weights(self) -> 'npt.NDArray':
+        """
+        The weights for every enumerated branch (srm + gmcm) of the logic tree.
+
+        Returns:
+            weights: one dimensional array of branch weights
+        """
+        return np.array([branch.weight for branch in self.composite_branches])
+
+    @property
+    def branch_hash_list(self) -> List[List[str]]:
+        """
+        The simplist structure used to iterate though the realization hashes. Each element of the list represents a
+        composite branch as a list of hashes of the component branches that make up the composite branch.
+
+        Returns:
+            hash_list: the list of composite branches, each of wich is a list of component branch hashes.
+        """
+        hashes = []
+        for composite_branch in self.composite_branches:
+            hashes.append([branch.hash_digest for branch in composite_branch])
+        return hashes
+
+    
+    def _generate_composite_branches(self):
         for srm_composite_branch, gmcm_composite_branch in product(
             self.srm_logic_tree.composite_branches, self.gmcm_logic_tree.composite_branches
         ):
@@ -137,21 +178,7 @@ class HazardLogicTree:
                 hbranches.append(HazardComponentBranch(source_branch=srm_branch, gmcm_branches=gmcm_branches))
             yield HazardCompositeBranch(hbranches)
 
-    @property
-    def n_composite_branches(self) -> int:
-        if not self._n_composite_branches:
-            self._n_composite_branches = len(list(self.composite_branches))
-        return self._n_composite_branches
-
-    @property
-    def component_branches(self) -> Generator[HazardComponentBranch, None, None]:
-        """
-        Yield the component branches (each SRM branch with all possible GMCM branch matches)
-
-        Returns:
-            component_branches: the component branches that make up the independent realizations of the logic tree
-        """
-
+    def _generate_component_branches(self):
         for srm_branch in self.srm_logic_tree:
             trts = srm_branch.tectonic_region_types
             branch_sets = [
@@ -159,63 +186,3 @@ class HazardLogicTree:
             ]
             for gmcm_branches in product(*[bs.branches for bs in branch_sets]):
                 yield HazardComponentBranch(source_branch=srm_branch.to_branch(), gmcm_branches=gmcm_branches)
-
-    # TODO: is it better to make this a generator or return list and cast to np.array when using it?
-    # Keep numpy types from poluting logic tree?  Would def want to do if this class is moved to nzshm_model
-    @property
-    def weights(self) -> 'npt.NDArray':
-        """
-        The weights for every enumerated branch (srm + gmcm) of the logic tree.
-
-        Parameters:
-            logic_tree: the complete (srm + gmcm combined) logic tree
-
-        Returns:
-            weights: one dimensional array of branch weights
-        """
-        return np.array([branch.weight for branch in self.composite_branches])
-
-    # TODO: CBC hacking
-    # NOTE this returns a table four times longer than the self.weights property.
-    # sounds like four tectonic regions??
-    def weight_table(self):
-        """
-        The weights for every enumerated branch (srm + gmcm) of the logic tree.
-
-        Parameters:
-            logic_tree: the complete (srm + gmcm combined) logic tree
-
-        Returns:
-            weights:
-            a table for joining branch weights with realisations
-        """
-        source_digests = []
-        gmm_digests = []
-        weights = []
-
-        # testing
-        count = 0
-        comp_count = 0
-
-        for composite_branch in self.composite_branches:
-            log.debug(f"composite_branch wt: {composite_branch.weight:.3f} is {count} of {self.n_composite_branches}")
-            for branch in composite_branch.branches:
-                # if composite_branch.weight > 0:
-                log.debug(f"    component_branch {comp_count} {branch.source_hash_digest} {branch.gmcm_hash_digest}")
-                source_digests.append(branch.source_hash_digest)
-                gmm_digests.append(branch.gmcm_hash_digest)
-                weights.append(composite_branch.weight)
-                comp_count += 1
-            count += 1
-            # TESTING CODE
-            # if count >= 1000000:
-            #     break
-
-        print(weights[-10:])
-
-        # build the table
-        source_digest = pa.array(source_digests)
-        gmm_digest = pa.array(gmm_digests)
-        weight = pa.array(weights)
-        table = pa.table([source_digest, gmm_digest, weight], names=["sources_digest", "gmms_digest", "weight"])
-        return table

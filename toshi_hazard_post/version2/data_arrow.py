@@ -15,13 +15,13 @@ from toshi_hazard_post.version2.local_config import ARROW_DIR
 if TYPE_CHECKING:
     from nzshm_common.location.code_location import CodedLocation
 
-    from toshi_hazard_post.version2.logic_tree import HazardLogicTree
+    from toshi_hazard_post.version2.logic_tree import HazardLogicTree, HazardComponentBranch
 
 log = logging.getLogger(__name__)
 
 
 def load_realizations(
-    logic_tree: 'HazardLogicTree',
+    component_branches: List['HazardComponentBranch'],
     imt: str,
     location: 'CodedLocation',
     vs30: int,
@@ -48,8 +48,8 @@ def load_realizations(
     dataset = ds.dataset(f'{root}/{partition}', format='parquet', filesystem=filesystem)
     t1 = time.monotonic()
 
-    gmms_digests = [branch.gmcm_hash_digest for branch in logic_tree.component_branches]
-    sources_digests = [branch.source_hash_digest for branch in logic_tree.component_branches]
+    gmms_digests = [branch.gmcm_hash_digest for branch in component_branches]
+    sources_digests = [branch.source_hash_digest for branch in component_branches]
 
     flt0 = (
         (pc.field('nloc_001') == pc.scalar(location.downsample(0.001).code))
