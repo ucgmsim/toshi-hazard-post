@@ -127,7 +127,9 @@ class HazardLogicTree:
             composite_branches: the composite branches that make up all full realizations of the complete hazard
             logic tree
         """
-        return self._composite_branches if self._composite_branches else list(self._generate_composite_branches())
+        if not self._composite_branches:
+            self._generate_composite_branches()
+        return self._composite_branches
 
     @property
     def component_branches(self) -> List[HazardComponentBranch]:
@@ -137,7 +139,9 @@ class HazardLogicTree:
         Returns:
             component_branches: the component branches that make up the independent realizations of the logic tree
         """
-        return self._component_branches if self._component_branches else list(self._generate_component_branches())
+        if not self._component_branches:
+            self._generate_component_branches()
+        return self._component_branches
 
     @property
     def weights(self) -> 'npt.NDArray':
@@ -163,7 +167,9 @@ class HazardLogicTree:
             hashes.append([branch.hash_digest for branch in composite_branch])
         return hashes
 
-    def _generate_composite_branches(self):
+    def _generate_composite_branches(self) -> None:
+        log.debug("generating composite branches")
+        self._composite_branches = []
         for srm_composite_branch, gmcm_composite_branch in product(
             self.srm_logic_tree.composite_branches, self.gmcm_logic_tree.composite_branches
         ):
@@ -173,13 +179,16 @@ class HazardLogicTree:
                 trts = srm_branch.tectonic_region_types
                 gmcm_branches = tuple(branch for branch in gmcm_composite_branch if branch.tectonic_region_type in trts)
                 hbranches.append(HazardComponentBranch(source_branch=srm_branch, gmcm_branches=gmcm_branches))
-            yield HazardCompositeBranch(hbranches)
+            self._composite_branches.append(HazardCompositeBranch(hbranches))
 
-    def _generate_component_branches(self):
+    def _generate_component_branches(self) -> None:
+        self._component_branches = []
         for srm_branch in self.srm_logic_tree:
             trts = srm_branch.tectonic_region_types
             branch_sets = [
                 branch_set for branch_set in self.gmcm_logic_tree.branch_sets if branch_set.tectonic_region_type in trts
             ]
             for gmcm_branches in product(*[bs.branches for bs in branch_sets]):
-                yield HazardComponentBranch(source_branch=srm_branch.to_branch(), gmcm_branches=gmcm_branches)
+                self._component_branches.append(
+                    HazardComponentBranch(source_branch=srm_branch.to_branch(), gmcm_branches=gmcm_branches)
+                )

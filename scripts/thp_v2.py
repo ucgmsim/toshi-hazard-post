@@ -9,7 +9,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)
 logging.getLogger('toshi_hazard_post.version2.aggregation_calc').setLevel(logging.DEBUG)
 logging.getLogger('toshi_hazard_post.version2.aggregation_arrow').setLevel(logging.DEBUG)
-logging.getLogger('toshi_hazard_post.version2.aggregation_calc_arrow').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_post.version2.aggregation_calc').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_post.version2.logic_tree').setLevel(logging.DEBUG)
 logging.getLogger('toshi_hazard_post.version2').setLevel(logging.INFO)
 
 

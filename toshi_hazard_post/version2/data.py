@@ -7,12 +7,8 @@ import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
 
-from toshi_hazard_post.version2.calculators import rate_to_prob
 from toshi_hazard_post.version2.local_config import ARROW_DIR
 from toshi_hazard_post.version2.ths_mock import write_aggs_to_ths
-
-# from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
-
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -42,7 +38,6 @@ def save_aggregations(
         agg_types: the statistical aggregate types (e.g. "mean", "0.5")
         hazard_model_id: the model id for storing in the database
     """
-    hazard = rate_to_prob(hazard, 1.0)
     write_aggs_to_ths(hazard, location, vs30, imt, agg_types, hazard_model_id)
 
 
@@ -92,7 +87,7 @@ def load_realizations(
     rlz_table = arrow_scanner.to_table()
     t3 = time.monotonic()
 
-    log.info(f"load dataset: {round(t1-t0, 6)}, scanner:{round(t2-t1, 6)}, to_arrow {round(t3-t2, 6)}")
+    log.info(f"load dataset: {round(t1-t0, 6)}s, scanner:{round(t2-t1, 6)}s, to_arrow {round(t3-t2, 6)}s")
     log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
     log.info("loaded %s realizations in arrow", rlz_table.shape[0])
     return rlz_table

@@ -187,7 +187,23 @@ def build_branch_rates(branch_hash_table: List[List[str]], component_rates: Dict
     return np.array([calc_composite_rates(branch, component_rates, nimtl) for branch in branch_hash_table])
 
 
-def calc_aggregation_arrow(
+def create_component_dict(component_rates: pa.Table) -> Dict[str, 'npt.NDArray']:
+    component_rates = component_rates.append_column(
+        'digest',
+        pc.binary_join_element_wise(
+            pc.cast(component_rates['sources_digest'], pa.string()),
+            pc.cast(component_rates['gmms_digest'], pa.string()),
+            "",
+        ),
+    )
+    component_rates = component_rates.drop_columns(['sources_digest', 'gmms_digest'])
+    component_rates = component_rates.to_pandas()
+    component_rates.set_index('digest', inplace=True)
+    # component_rates = component_rates['rates']
+    return component_rates['rates'].to_dict()
+
+
+def calc_aggregation(
     site: 'Site',
     imt: str,
     agg_types: List[str],
@@ -196,7 +212,7 @@ def calc_aggregation_arrow(
     branch_hash_table: List[List[str]],
     compatibility_key: str,
     hazard_model_id: str,
-) -> pa.table:
+) -> None:
     """
     Calculate hazard aggregation for a single site and imt and save result
 
@@ -223,8 +239,6 @@ def calc_aggregation_arrow(
     toc = time.perf_counter()
     log.debug(f'time to load realizations {toc-tic:.2f} seconds')
     log.debug(f"rlz_table {component_probs.shape}")
-    # log.debug(rlz_table.to_pandas())
-    # print(weights)
 
     # convert probabilities to rates
     tic = time.perf_counter()
@@ -234,23 +248,9 @@ def calc_aggregation_arrow(
     log.debug(f'time to convert_probs_to_rates() {toc-tic:.2f} seconds')
 
     tic = time.perf_counter()
-    # make the digest the index
-    component_rates = component_rates.append_column(
-        'digest',
-        pc.binary_join_element_wise(
-            pc.cast(component_rates['sources_digest'], pa.string()),
-            pc.cast(component_rates['gmms_digest'], pa.string()),
-            "",
-        ),
-    )
-    component_rates = component_rates.drop_columns(['sources_digest', 'gmms_digest'])
-    component_rates = component_rates.to_pandas()
-    component_rates.set_index('digest', inplace=True)
-    # component_rates = component_rates['rates']
-    component_rates = component_rates['rates'].to_dict()
+    component_rates = create_component_dict(component_rates)
     toc = time.perf_counter()
-    log.debug(f'time to convert to pandas and set digest index {toc-tic:.2f} seconds')
-    # log.debug(f"rates_table {component_rates.shape}")
+    log.debug(f'time to convert to dict and set digest index {toc-tic:.2f} seconds')
     log.debug(f"rates_table {len(component_rates)}")
 
     tic = time.perf_counter()
@@ -265,6 +265,6 @@ def calc_aggregation_arrow(
     log.debug(f'time to calculate aggs {toc-tic:.2f} seconds')
 
     log.info("saving result . . . ")
-    save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)
+    save_aggregations(calculators.rate_to_prob(hazard, 1.0), location, vs30, imt, agg_types, hazard_model_id)
 
     return None

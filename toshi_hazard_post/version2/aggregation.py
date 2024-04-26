@@ -1,7 +1,8 @@
 import logging
+import sys
 import time
 
-from toshi_hazard_post.version2.aggregation_calc import calc_aggregation_arrow
+from toshi_hazard_post.version2.aggregation_calc import calc_aggregation
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites  # , get_levels
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
@@ -20,32 +21,27 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
         config: the aggregation configuration
     """
 
-    arrow_0 = time.perf_counter()
+    time0 = time.perf_counter()
     # get the sites
     log.info("getting sites . . .")
     sites = get_sites(config.locations, config.vs30s)
 
     # create the logic tree objects and build the full logic tree
-    # TODO: pre-calculating the logic tree will require serialization if dsitributing in cloud. However,
-    # the object cannot be serialized due to use of FilteredBranch
     log.info("getting logic trees . . . ")
     srm_lt, gmcm_lt = get_lts(config)
-    log.info("building hazard logic tree . . .")
-    tic = time.perf_counter()
     logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
-    toc = time.perf_counter()
-    log.info(f'time to build HazardLogicTree {toc-tic:.2f} seconds')
 
-    log.info("arrow method")
-
+    log.info("calculating weights and branch hash table . . . ")
     tic = time.perf_counter()
     weights = logic_tree.weights
-    component_branches = logic_tree.component_branches
     branch_hash_table = logic_tree.branch_hash_table
-
     toc = time.perf_counter()
-    log.info(f'time to build weight array {toc-tic:.2f} seconds')
+
+    log.info(f'time to build weight array and hash table {toc-tic:.2f} seconds')
     log.info("Size of weight array: {}MB".format(weights.nbytes >> 20))
+    log.info("Size of hash table: {}MB".format(sys.getsizeof(branch_hash_table) >> 20))
+
+    component_branches = logic_tree.component_branches
 
     for site in sites:
         for imt in config.imts:
@@ -53,7 +49,7 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
             log.info(f"working on hazard for site: {site}, imts: {imt}")
             tic = time.perf_counter()
 
-            calc_aggregation_arrow(
+            calc_aggregation(
                 site=site,
                 imt=imt,
                 agg_types=config.agg_types,
@@ -67,8 +63,8 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
             toc = time.perf_counter()
             log.info(f'time to perform aggregation for one location, {len(config.imts)} imt: {toc-tic:.2f} seconds')
 
-    arrow_1 = time.perf_counter()
-    log.info(f"total arrow time: {round(arrow_1 - arrow_0, 3)}")
+    time1 = time.perf_counter()
+    log.info(f"total toshi-hazard-post time: {round(time1 - time0, 3)}")
 
 
 # if __name__ == "__main__":
