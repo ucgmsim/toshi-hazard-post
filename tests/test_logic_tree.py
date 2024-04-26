@@ -1,13 +1,13 @@
-from pathlib import Path
 import json
-from unittest import mock, TestCase
+from pathlib import Path
 from typing import List
+from unittest import TestCase, mock
 
 from dacite import from_dict
-
 from nzshm_model.source_logic_tree.logic_tree import FlattenedSourceLogicTree
+
+from toshi_hazard_post.logic_tree.logic_tree import GMCMBranch, HazardLogicTree
 from toshi_hazard_post.toshi_api_support import SourceSolutionMap
-from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree, GMCMBranch
 
 
 def test_sourcesolutionmap():

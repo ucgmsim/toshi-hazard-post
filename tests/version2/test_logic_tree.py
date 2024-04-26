@@ -1,10 +1,12 @@
-import pytest
 from functools import reduce
 from operator import mul
 from pathlib import Path
-from toshi_hazard_post.version2.logic_tree import HazardLogicTree
+
+import pytest
 from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 from nzshm_model.logic_tree.correlation import LogicTreeCorrelations
+
+from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 
 
 @pytest.fixture(scope='function')

@@ -1,16 +1,17 @@
-import numpy as np
-import pytest
 from pathlib import Path
 
-from toshi_hazard_post.version2.logic_tree import HazardLogicTree
-from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree
+import numpy as np
+import pytest
+from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 
 from toshi_hazard_post.version2.aggregation_calc import (
-    calc_composite_rates,
     build_branch_rates,
-    weighted_stats,
+    calc_composite_rates,
     calculate_aggs,
+    weighted_stats,
 )
+from toshi_hazard_post.version2.logic_tree import HazardLogicTree
+
 # from toshi_hazard_post.version2.data import ValueStore
 
 NLEVELS = 10
@@ -44,6 +45,7 @@ def value_store_small(logic_tree):
         component_rates[branch.hash_digest] = values
     return component_rates
 
+
 @pytest.fixture(scope='function')
 def branch_hashes(logic_tree):
     return logic_tree.branch_hash_list
@@ -64,6 +66,7 @@ def test_calc_composite_rates2(logic_tree, branch_hashes, value_store_small):
         rates_expected += np.linspace(0, 1, NLEVELS) * i
 
     assert np.array_equal(rates, rates_expected)
+
 
 def test_build_branch_rates1(logic_tree, branch_hashes, component_rates_all):
 

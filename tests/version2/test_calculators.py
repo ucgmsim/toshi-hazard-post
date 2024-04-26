@@ -1,14 +1,15 @@
 import json
 import unittest
 from pathlib import Path
-import pytest
+
 import numpy as np
+import pytest
 
 from toshi_hazard_post.version2.calculators import (
+    calculate_weighted_quantiles,
     prob_to_rate,
     rate_to_prob,
     weighted_avg_and_std,
-    calculate_weighted_quantiles,
 )
 
 

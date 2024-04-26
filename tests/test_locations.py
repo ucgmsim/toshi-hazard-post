@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from toshi_hazard_post.locations import get_locations
 from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig
+from toshi_hazard_post.locations import get_locations
 
 
 def test_locations():

@@ -2,9 +2,8 @@ import logging
 
 import click
 
-from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 from toshi_hazard_post.version2.aggregation import run_aggregation_arrow
-
+from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)

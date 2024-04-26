@@ -2,9 +2,10 @@ from pathlib import Path
 
 from nzshm_common.location.location import LOCATION_LISTS
 from nzshm_model import get_model_version
-from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree
-from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites
+from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
+
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
+from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites
 
 config_filepath = Path(__file__).parent / 'fixtures/hazard.toml'
 config = AggregationConfig(config_filepath)

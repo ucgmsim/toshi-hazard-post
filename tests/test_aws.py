@@ -2,13 +2,14 @@ import json
 import tempfile
 import unittest
 from collections import namedtuple
-from unittest import mock
 from pathlib import Path
+from unittest import mock
+
 from dacite import from_dict
 
+import toshi_hazard_post.hazard_aggregation.aggregation_task
 import toshi_hazard_post.hazard_aggregation.aws_aggregation
 import toshi_hazard_post.hazard_aggregation.aws_deaggregation
-import toshi_hazard_post.hazard_aggregation.aggregation_task
 import toshi_hazard_post.hazard_aggregation.deaggregation_task
 from toshi_hazard_post.logic_tree.logic_tree import HazardLogicTree
 

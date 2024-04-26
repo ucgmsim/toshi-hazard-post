@@ -1,14 +1,13 @@
 import copy
 import logging
 from dataclasses import dataclass, field
-from functools import reduce, cached_property
+from functools import reduce
 from itertools import chain, product
 from operator import mul
-from typing import TYPE_CHECKING, Generator, List, Tuple
+from typing import TYPE_CHECKING, List, Tuple
 
 import numpy as np
 import nzshm_model.branch_registry
-import pyarrow as pa
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -130,7 +129,6 @@ class HazardLogicTree:
         """
         return self._composite_branches if self._composite_branches else list(self._generate_composite_branches())
 
-
     @property
     def component_branches(self) -> List[HazardComponentBranch]:
         """
@@ -140,7 +138,7 @@ class HazardLogicTree:
             component_branches: the component branches that make up the independent realizations of the logic tree
         """
         return self._component_branches if self._component_branches else list(self._generate_component_branches())
-    
+
     @property
     def weights(self) -> 'npt.NDArray':
         """
@@ -165,7 +163,6 @@ class HazardLogicTree:
             hashes.append([branch.hash_digest for branch in composite_branch])
         return hashes
 
-    
     def _generate_composite_branches(self):
         for srm_composite_branch, gmcm_composite_branch in product(
             self.srm_logic_tree.composite_branches, self.gmcm_logic_tree.composite_branches

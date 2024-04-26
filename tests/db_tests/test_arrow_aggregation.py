@@ -5,27 +5,23 @@ final test is a slow performance comparison of the four main methods
 
 """
 import pathlib
-import time
 import random
+import time
 
-import pytest
-import pyarrow as pa
-import pandas as pd
-import numpy as np
 import duckdb
+import numpy as np
+import pandas as pd
+import pyarrow as pa
+import pytest
 
-from toshi_hazard_post.version2.aggregation_config import AggregationConfig
-from toshi_hazard_post.version2.aggregation_calc import calc_aggregation_arrow
-from toshi_hazard_post.version2.logic_tree import HazardLogicTree
-from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites
 from toshi_hazard_post.version2 import calculators
 
 ## for original tests
-from toshi_hazard_post.version2.aggregation_calc import (
-    build_branch_rates,
-    calculate_aggs,
-)
+from toshi_hazard_post.version2.aggregation_calc import build_branch_rates, calc_aggregation_arrow, calculate_aggs
+from toshi_hazard_post.version2.aggregation_config import AggregationConfig
+from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites
 from toshi_hazard_post.version2.data import load_realizations
+from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 
 DEMO_PATH = pathlib.Path(__file__).parent.parent.parent / "demo"
 

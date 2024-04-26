@@ -7,18 +7,18 @@ import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
 
+from toshi_hazard_post.version2.calculators import rate_to_prob
 from toshi_hazard_post.version2.local_config import ARROW_DIR
-from toshi_hazard_post.version2.calculators import prob_to_rate, rate_to_prob
-from toshi_hazard_post.version2.ths_mock import query_realizations, write_aggs_to_ths
-
+from toshi_hazard_post.version2.ths_mock import write_aggs_to_ths
 
 # from toshi_hazard_post.version2.calculators import rate_to_prob, prob_to_rate
 
 
 if TYPE_CHECKING:
+    import numpy.typing as npt
     from nzshm_common.location.code_location import CodedLocation
 
-    from toshi_hazard_post.version2.logic_tree import HazardLogicTree, HazardComponentBranch
+    from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
 
 log = logging.getLogger(__name__)
 
@@ -92,9 +92,7 @@ def load_realizations(
     rlz_table = arrow_scanner.to_table()
     t3 = time.monotonic()
 
-    log.info(
-        f"load dataset: {round(t1-t0, 6)}, scanner:{round(t2-t1, 6)}, to_arrow {round(t3-t2, 6)}"
-    )
+    log.info(f"load dataset: {round(t1-t0, 6)}, scanner:{round(t2-t1, 6)}, to_arrow {round(t3-t2, 6)}")
     log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
     log.info("loaded %s realizations in arrow", rlz_table.shape[0])
     return rlz_table

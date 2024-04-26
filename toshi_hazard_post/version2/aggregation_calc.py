@@ -1,56 +1,23 @@
 import logging
 import time
-from typing import TYPE_CHECKING, List, Sequence, Optional
+from typing import TYPE_CHECKING, List, Optional, Sequence
 
-import duckdb
 import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
 
 import toshi_hazard_post.version2.calculators as calculators
-from toshi_hazard_post.version2.data import save_aggregations
 
 # from toshi_hazard_post.version2.data import load_realizations, save_aggregations
-from toshi_hazard_post.version2.data import load_realizations
+from toshi_hazard_post.version2.data import load_realizations, save_aggregations
 
 if TYPE_CHECKING:
-    from toshi_hazard_post.version2.aggregation_setup import Site
-    from toshi_hazard_post.version2.logic_tree import HazardLogicTree, HazardCompositeBranch, HazardComponentBranch
     import numpy.typing as npt
 
+    from toshi_hazard_post.version2.aggregation_setup import Site
+    from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
+
 log = logging.getLogger(__name__)
-
-
-def join_rates_weights(rlz_table: pa.Table, weights: pa.Table) -> pa.Table:
-    """join the tables using the two digest columns
-
-    Using duckdb for now because ...
-      - still using our in-memory dataframes
-      - SQL syntax
-      - hides some complexity
-    """
-    con = duckdb.connect()
-    joined = con.execute(
-        f"SELECT r.sources_digest, r.gmms_digest, r.rates, w.weight FROM rlz_table r JOIN "
-        f"weights w ON r.sources_digest = w.sources_digest AND r.gmms_digest = w.gmms_digest;"
-    )
-    rates_weights_joined = joined.arrow()
-
-    if True:
-        # af9ec2b004d7 380a95154af2
-        smpl = con.execute(
-            "SELECT * FROM rates_weights_joined WHERE sources_digest = 'af9ec2b004d7' "
-            "AND gmms_digest = '380a95154af2';"
-        )
-        smpl_df = smpl.arrow().to_pandas()
-        print(smpl_df)
-
-    log.info(f"rates_weights_joined shape: {rates_weights_joined.shape}")
-    # log.debug(rates_weights_joined.to_pandas()) # Don't do this for logging it takes significant time
-    log.info(
-        "RSS: {}MB".format(pa.total_allocated_bytes() >> 20)
-    )  #     value_store.set_values(values, component_branch)
-    return rates_weights_joined
 
 
 def convert_probs_to_rates(rlz_table):
@@ -129,7 +96,6 @@ def weighted_stats(
     return wq
 
 
-
 def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_types: Sequence[str]) -> 'npt.NDArray':
     """
     Calculate weighted aggregate statistics of the composite realizations
@@ -161,10 +127,11 @@ def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_type
     log.debug(f"agg with shape {aggs.shape}")
     return aggs
 
+
 def calc_composite_rates(branch_hashes: List[str], component_rates: pa.Table, nlevels: int) -> 'npt.NDArray':
 
     # option 1, iterate and lookup on dict or pd.Series
-    rates = np.zeros((nlevels, ))
+    rates = np.zeros((nlevels,))
     for branch_hash in branch_hashes:
         rates += component_rates[branch_hash]
     return rates
@@ -188,9 +155,6 @@ def calc_composite_rates(branch_hashes: List[str], component_rates: pa.Table, nl
     # return rates.sum(axis=0)
 
 
-
-
-
 def build_branch_rates(branch_hash_list: List[List[str]], component_rates) -> 'npt.NDArray':
 
     # nimtl = len(component_rates.column('rates')[0])
@@ -203,8 +167,6 @@ def build_branch_rates(branch_hash_list: List[List[str]], component_rates) -> 'n
     #     branch_rates[i_branch, :] = calc_composite_rates(branch, component_rates, nimtl)
     # return branch_rates
     return np.array([calc_composite_rates(branch, component_rates, nimtl) for branch in branch_hash_list])
-
-
 
 
 def calc_aggregation_arrow(
@@ -252,15 +214,15 @@ def calc_aggregation_arrow(
     toc = time.perf_counter()
     log.debug(f'time to convert_probs_to_rates() {toc-tic:.2f} seconds')
 
-    tic = time.perf_counter() 
+    tic = time.perf_counter()
     # make the digest the index
     component_rates = component_rates.append_column(
         'digest',
         pc.binary_join_element_wise(
             pc.cast(component_rates['sources_digest'], pa.string()),
             pc.cast(component_rates['gmms_digest'], pa.string()),
-            ""
-        )
+            "",
+        ),
     )
     component_rates = component_rates.drop_columns(['sources_digest', 'gmms_digest'])
     component_rates = component_rates.to_pandas()
@@ -276,7 +238,7 @@ def calc_aggregation_arrow(
     composite_rates = build_branch_rates(branch_hash_list, component_rates)
     toc = time.perf_counter()
     log.debug(f'time to build_ranch_rates() {toc-tic:.2f} seconds')
-    
+
     tic = time.perf_counter()
     log.info("calculating aggregates . . . ")
     hazard = calculate_aggs(composite_rates, weights, agg_types)
@@ -285,7 +247,6 @@ def calc_aggregation_arrow(
 
     log.info("saving result . . . ")
     save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)
-
 
     log.info("saving result . . . ")
     # save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)

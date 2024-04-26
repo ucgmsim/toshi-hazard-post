@@ -1,8 +1,8 @@
-from unittest import mock
-import unittest
-from pathlib import Path
 import json
+import unittest
 from collections import namedtuple
+from pathlib import Path
+from unittest import mock
 
 from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig
 from toshi_hazard_post.hazard_aggregation.deaggregation import get_deagg_gtids

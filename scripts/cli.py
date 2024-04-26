@@ -3,20 +3,20 @@
 import logging
 import os
 import sys
-import toml
 
 import click
+import toml
 from toshi_hazard_store.model import migrate as migrate_ths
 
 # from toshi_hazard_post.hazard_aggregation import AggregationConfig, process_aggregation, process_deaggregation
 from toshi_hazard_post.hazard_aggregation.aggregation import process_aggregation
 from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig
-from toshi_hazard_post.hazard_aggregation.deaggregation import process_deaggregation
 from toshi_hazard_post.hazard_aggregation.aws_aggregation import distribute_aggregation, push_test_message
 from toshi_hazard_post.hazard_aggregation.aws_deaggregation import distribute_deaggregation
-from toshi_hazard_post.hazard_grid.misc import get_site_lists, migrate, get_filter_locations
-from toshi_hazard_post.hazard_grid.gridded_hazard import calc_gridded_hazard
+from toshi_hazard_post.hazard_aggregation.deaggregation import process_deaggregation
 from toshi_hazard_post.hazard_grid.aws_gridded_hazard import distribute_gridded_hazard
+from toshi_hazard_post.hazard_grid.gridded_hazard import calc_gridded_hazard
+from toshi_hazard_post.hazard_grid.misc import get_filter_locations, get_site_lists, migrate
 
 log = logging.getLogger()
 logging.basicConfig(level=logging.INFO)

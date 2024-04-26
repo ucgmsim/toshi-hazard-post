@@ -3,22 +3,21 @@
 import json
 import unittest
 from pathlib import Path
+
 import numpy as np
 import pytest
-
 from dacite import from_dict
-
-from toshi_hazard_post.logic_tree.logic_tree import GMCMBranch, HazardLogicTree
 
 from toshi_hazard_post.calculators import prob_to_rate, rate_to_prob
 from toshi_hazard_post.data_functions import ValueStore
 from toshi_hazard_post.hazard_aggregation.aggregate_rlzs import (
-    weighted_stats,
-    calc_weighted_sum,
-    get_branch_weights,
     build_branches,
+    calc_weighted_sum,
     calculate_aggs,
+    get_branch_weights,
+    weighted_stats,
 )
+from toshi_hazard_post.logic_tree.logic_tree import GMCMBranch, HazardLogicTree
 
 INV_TIME = 1.0
 

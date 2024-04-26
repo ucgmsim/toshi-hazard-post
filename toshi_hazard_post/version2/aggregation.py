@@ -1,8 +1,6 @@
 import logging
 import time
 
-import pyarrow as pa
-
 from toshi_hazard_post.version2.aggregation_calc import calc_aggregation_arrow
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites  # , get_levels
@@ -37,7 +35,6 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
     logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
     toc = time.perf_counter()
     log.info(f'time to build HazardLogicTree {toc-tic:.2f} seconds')
-
 
     log.info("arrow method")
 

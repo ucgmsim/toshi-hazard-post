@@ -1,11 +1,11 @@
+import copy
 from pathlib import Path
 from unittest import mock
+
 import pytest
-import copy
 import toml
 
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
-
 
 config_filepath = Path(__file__).parent / 'fixtures/hazard.toml'
 
