@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import TYPE_CHECKING, List, Optional, Sequence, Dict
+from typing import TYPE_CHECKING, Dict, List, Optional, Sequence
 
 import numpy as np
 import pyarrow as pa
@@ -128,7 +128,20 @@ def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_type
     return aggs
 
 
-def calc_composite_rates(branch_hashes: List[str], component_rates: Dict[str, 'npt.NDArray'], nlevels: int) -> 'npt.NDArray':
+def calc_composite_rates(
+    branch_hashes: List[str], component_rates: Dict[str, 'npt.NDArray'], nlevels: int
+) -> 'npt.NDArray':
+    """
+    Calculate the rate for a single composite branch of the logic tree by summing rates of the component branches
+
+    Parameters:
+        branch_hashes: the branch hashes for the component branches that comprise the composite branch
+        component_rates: component realization rates keyed by component branch hash
+        nlevels: the number of levels (IMTLs) in the rate array
+
+    Returns:
+        rates: hazard rates for the composite realization D(nlevels,)
+    """
 
     # option 1, iterate and lookup on dict or pd.Series
     rates = np.zeros((nlevels,))
@@ -155,18 +168,23 @@ def calc_composite_rates(branch_hashes: List[str], component_rates: Dict[str, 'n
     # return rates.sum(axis=0)
 
 
-def build_branch_rates(branch_hash_list: List[List[str]], component_rates: Dict[str, 'npt.NDArray']) -> 'npt.NDArray':
+def build_branch_rates(branch_hash_table: List[List[str]], component_rates: Dict[str, 'npt.NDArray']) -> 'npt.NDArray':
+    """
+    Calculate the rate for the composite branches in the logic tree (all combination of SRM branch sets and applicable
+    GMCM models).
 
-    # nimtl = len(component_rates.column('rates')[0])
-    # nimtl = len(component_rates.iloc[0])
+    Output is a numpy array with dimensions (branch, IMTL)
+
+    Parameters:
+        branch_hash_table: composite branches represented as a list of hashes of the component branches
+        component_rates: component realization rates keyed by component branch hash
+
+    Returns:
+        rates
+    """
+
     nimtl = len(next(iter(component_rates.values())))
-    # nbranches = logic_tree.n_composite_branches
-    # log.info(f'building branch rates for {nbranches} composite branches')
-    # branch_rates = np.empty((nbranches, nimtl))
-    # for i_branch, branch in enumerate(logic_tree.composite_branches):
-    #     branch_rates[i_branch, :] = calc_composite_rates(branch, component_rates, nimtl)
-    # return branch_rates
-    return np.array([calc_composite_rates(branch, component_rates, nimtl) for branch in branch_hash_list])
+    return np.array([calc_composite_rates(branch, component_rates, nimtl) for branch in branch_hash_table])
 
 
 def calc_aggregation_arrow(
@@ -175,7 +193,7 @@ def calc_aggregation_arrow(
     agg_types: List[str],
     weights: 'npt.NDArray',
     component_branches: List['HazardComponentBranch'],
-    branch_hash_list: List[List[str]],
+    branch_hash_table: List[List[str]],
     compatibility_key: str,
     hazard_model_id: str,
 ) -> pa.table:
@@ -188,7 +206,8 @@ def calc_aggregation_arrow(
         agg_types: the aggregate statistics to be calculated (e.g., "mean", "0.5")
         levels: IMTLs for the hazard curve
         weights: weights for the branches of the logic tree
-        logic_tree: the complete (srm + gmcm combined) logic tree
+        component_branches: list of the component branches that are combined to construct the full logic tree
+        branch_hash_table: composite branches represented as a list of hashes of the component branches
         compatibility_key: the key identifying the hazard calculation compatibility entry
         hazard_model_id: the id of the hazard model for storing results in the database
 
@@ -235,7 +254,7 @@ def calc_aggregation_arrow(
     log.debug(f"rates_table {len(component_rates)}")
 
     tic = time.perf_counter()
-    composite_rates = build_branch_rates(branch_hash_list, component_rates)
+    composite_rates = build_branch_rates(branch_hash_table, component_rates)
     toc = time.perf_counter()
     log.debug(f'time to build_ranch_rates() {toc-tic:.2f} seconds')
 

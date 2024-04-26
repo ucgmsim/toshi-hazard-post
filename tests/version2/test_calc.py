@@ -48,7 +48,7 @@ def value_store_small(logic_tree):
 
 @pytest.fixture(scope='function')
 def branch_hashes(logic_tree):
-    return logic_tree.branch_hash_list
+    return logic_tree.branch_hash_table
 
 
 # here we use value_store_all to make sure that component_branches and composite_branches.branches load into

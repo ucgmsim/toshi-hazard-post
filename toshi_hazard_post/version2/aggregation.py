@@ -41,7 +41,7 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
     tic = time.perf_counter()
     weights = logic_tree.weights
     component_branches = logic_tree.component_branches
-    branch_hash_list = logic_tree.branch_hash_list
+    branch_hash_table = logic_tree.branch_hash_table
 
     toc = time.perf_counter()
     log.info(f'time to build weight array {toc-tic:.2f} seconds')
@@ -59,7 +59,7 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
                 agg_types=config.agg_types,
                 weights=weights,
                 component_branches=component_branches,
-                branch_hash_list=branch_hash_list,
+                branch_hash_table=branch_hash_table,
                 compatibility_key=config.compat_key,
                 hazard_model_id=config.hazard_model_id,
             )

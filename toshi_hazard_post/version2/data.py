@@ -57,7 +57,7 @@ def load_realizations(
     Load component realizations from the database.
 
     Parameters:
-        logic_tree: the full (srm + gmcm) logic tree
+        component_branches: list of the component branches that are combined to construct the full logic tree
         imt: the intensity measure type (e.g. "PGA", "SA(1.5)")
         location: the site location
         vs30: the site vs30

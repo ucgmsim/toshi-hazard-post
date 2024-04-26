@@ -120,7 +120,7 @@ class HazardLogicTree:
     @property
     def composite_branches(self) -> List[HazardCompositeBranch]:
         """
-        Yield the composite branches combining the SRM branches with the appropraite GMCM branches by matching tectonic
+        Get the composite branches combining the SRM branches with the appropraite GMCM branches by matching tectonic
         region type.
 
         Returns:
@@ -132,7 +132,7 @@ class HazardLogicTree:
     @property
     def component_branches(self) -> List[HazardComponentBranch]:
         """
-        Yield the component branches (each SRM branch with all possible GMCM branch matches)
+        Get the component branches (each SRM branch with all possible GMCM branch matches)
 
         Returns:
             component_branches: the component branches that make up the independent realizations of the logic tree
@@ -150,7 +150,7 @@ class HazardLogicTree:
         return np.array([branch.weight for branch in self.composite_branches])
 
     @property
-    def branch_hash_list(self) -> List[List[str]]:
+    def branch_hash_table(self) -> List[List[str]]:
         """
         The simplist structure used to iterate though the realization hashes. Each element of the list represents a
         composite branch as a list of hashes of the component branches that make up the composite branch.
