@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import TYPE_CHECKING, List, Optional, Sequence
+from typing import TYPE_CHECKING, List, Optional, Sequence, Dict
 
 import numpy as np
 import pyarrow as pa
@@ -20,17 +20,17 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def convert_probs_to_rates(rlz_table):
+def convert_probs_to_rates(probs: pa.Table) -> pa.Table:
     """all aggregations must be performed in rates space, but rlz have probablities
 
     here we're only vectorising internally to the row, maybe this could be done over the entire columns ??
     """
-    probs_array = rlz_table.column(2).to_numpy()
+    probs_array = probs.column(2).to_numpy()
 
     vpr = np.vectorize(calculators.prob_to_rate, otypes=[object])
 
     rates_array = np.apply_along_axis(vpr, 0, probs_array, inv_time=1.0)
-    return rlz_table.set_column(2, 'rates', pa.array(rates_array))
+    return probs.set_column(2, 'rates', pa.array(rates_array))
 
 
 def weighted_stats(
@@ -128,7 +128,7 @@ def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_type
     return aggs
 
 
-def calc_composite_rates(branch_hashes: List[str], component_rates: pa.Table, nlevels: int) -> 'npt.NDArray':
+def calc_composite_rates(branch_hashes: List[str], component_rates: Dict[str, 'npt.NDArray'], nlevels: int) -> 'npt.NDArray':
 
     # option 1, iterate and lookup on dict or pd.Series
     rates = np.zeros((nlevels,))
@@ -155,7 +155,7 @@ def calc_composite_rates(branch_hashes: List[str], component_rates: pa.Table, nl
     # return rates.sum(axis=0)
 
 
-def build_branch_rates(branch_hash_list: List[List[str]], component_rates) -> 'npt.NDArray':
+def build_branch_rates(branch_hash_list: List[List[str]], component_rates: Dict[str, 'npt.NDArray']) -> 'npt.NDArray':
 
     # nimtl = len(component_rates.column('rates')[0])
     # nimtl = len(component_rates.iloc[0])
@@ -247,8 +247,5 @@ def calc_aggregation_arrow(
 
     log.info("saving result . . . ")
     save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)
-
-    log.info("saving result . . . ")
-    # save_aggregations(hazard, location, vs30, imt, agg_types, hazard_model_id)
 
     return None

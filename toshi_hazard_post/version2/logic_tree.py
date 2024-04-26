@@ -114,8 +114,8 @@ class HazardLogicTree:
             lambda bs: bs.tectonic_region_type in self.trts, gmcm_logic_tree.branch_sets
         )
 
-        self._composite_branches = []
-        self._component_branches = []
+        self._composite_branches: List[HazardCompositeBranch] = []
+        self._component_branches: List[HazardComponentBranch] = []
 
     @property
     def composite_branches(self) -> List[HazardCompositeBranch]:
