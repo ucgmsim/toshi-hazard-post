@@ -11,7 +11,7 @@ from toshi_hazard_post.version2.aggregation_calc import (
     weighted_stats,
     calculate_aggs,
 )
-from toshi_hazard_post.version2.data import ValueStore
+# from toshi_hazard_post.version2.data import ValueStore
 
 NLEVELS = 10
 
@@ -26,45 +26,48 @@ def logic_tree():
 
 
 @pytest.fixture(scope='function')
-def value_store_all(logic_tree):
+def component_rates_all(logic_tree):
 
-    value_store = ValueStore()
+    component_rates = dict()
     for i, branch in enumerate(logic_tree.component_branches):
         values = np.linspace(0, 1, 10) * i
-        value_store.set_values(values, branch)
-    return value_store
+        component_rates[branch.hash_digest] = values
+    return component_rates
 
 
 @pytest.fixture(scope='function')
 def value_store_small(logic_tree):
 
-    value_store = ValueStore()
-    for i, branch in enumerate(next(logic_tree.composite_branches).branches):
+    component_rates = dict()
+    for i, branch in enumerate(logic_tree.composite_branches[0].branches):
         values = np.linspace(0, 1, 10) * i
-        value_store.set_values(values, branch)
-    return value_store
+        component_rates[branch.hash_digest] = values
+    return component_rates
+
+@pytest.fixture(scope='function')
+def branch_hashes(logic_tree):
+    return logic_tree.branch_hash_list
 
 
 # here we use value_store_all to make sure that component_branches and composite_branches.branches load into
 # ValueStore the same way
-def test_calc_composite_rates1(logic_tree, value_store_all):
-    rates = calc_composite_rates(next(logic_tree.composite_branches), value_store_all, NLEVELS)
+def test_calc_composite_rates1(branch_hashes, component_rates_all):
+    rates = calc_composite_rates(branch_hashes[0], component_rates_all, NLEVELS)
     assert rates.shape == (NLEVELS,)
 
 
 # here we use values_store_small to make sure that the calculated rate is correct
-def test_calc_composite_rates2(logic_tree, value_store_small):
+def test_calc_composite_rates2(logic_tree, branch_hashes, value_store_small):
     rates_expected = np.zeros((NLEVELS,))
-    rates = calc_composite_rates(next(logic_tree.composite_branches), value_store_small, NLEVELS)
-    for i in range(len(next(logic_tree.composite_branches).branches)):
+    rates = calc_composite_rates(branch_hashes[0], value_store_small, NLEVELS)
+    for i in range(len(logic_tree.composite_branches[0].branches)):
         rates_expected += np.linspace(0, 1, NLEVELS) * i
 
     assert np.array_equal(rates, rates_expected)
 
+def test_build_branch_rates1(logic_tree, branch_hashes, component_rates_all):
 
-def test_build_branch_rates1(logic_tree, value_store_all):
-
-    rates = build_branch_rates(logic_tree, value_store_all, NLEVELS)
+    rates = build_branch_rates(branch_hashes, component_rates_all)
     nbranches = len(list(logic_tree.composite_branches))
     assert rates.shape == (nbranches, NLEVELS)
 

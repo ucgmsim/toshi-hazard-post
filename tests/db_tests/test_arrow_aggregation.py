@@ -15,7 +15,7 @@ import numpy as np
 import duckdb
 
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
-from toshi_hazard_post.version2.aggregation_calc_arrow import calc_aggregation_arrow
+from toshi_hazard_post.version2.aggregation_calc import calc_aggregation_arrow
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites
 from toshi_hazard_post.version2 import calculators

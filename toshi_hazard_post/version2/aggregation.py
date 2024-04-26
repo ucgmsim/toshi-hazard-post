@@ -1,18 +1,20 @@
 import logging
 import time
 
-from toshi_hazard_post.version2.aggregation_calc import calc_aggregation
+import pyarrow as pa
+
+from toshi_hazard_post.version2.aggregation_calc import calc_aggregation_arrow
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
-from toshi_hazard_post.version2.aggregation_setup import get_levels, get_lts, get_sites
+from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites  # , get_levels
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 
 log = logging.getLogger(__name__)
 
 
 ############
-# ORIGINAL
+# ARROW
 ############
-def run_aggregation(config: AggregationConfig) -> None:
+def run_aggregation_arrow(config: AggregationConfig) -> None:
     """
     Main entry point for running aggregation caculations.
 
@@ -20,6 +22,7 @@ def run_aggregation(config: AggregationConfig) -> None:
         config: the aggregation configuration
     """
 
+    arrow_0 = time.perf_counter()
     # get the sites
     log.info("getting sites . . .")
     sites = get_sites(config.locations, config.vs30s)
@@ -30,48 +33,52 @@ def run_aggregation(config: AggregationConfig) -> None:
     log.info("getting logic trees . . . ")
     srm_lt, gmcm_lt = get_lts(config)
     log.info("building hazard logic tree . . .")
+    tic = time.perf_counter()
     logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
+    toc = time.perf_counter()
+    log.info(f'time to build HazardLogicTree {toc-tic:.2f} seconds')
 
-    # for each independent thing (location, imt, vs30) (do we want to allow looping over vs30s?)
-    # each of these can be placed in a multiprocessing queue
-    log.info("original method")
-    log.info("starting aggregation for %s sites and %s imts . . . ", len(sites), len(config.imts))
-    og_0 = time.perf_counter()
 
-    # get the weights (this code could be moved to nzshm-model)
-    # TODO: this could be done in calc_aggregation() which would avoid passing the weights array when running in
-    # parrallel, however, it may be slow? determine speed and decide
-    log.info("calculating weights . . . ")
+    log.info("arrow method")
+
     tic = time.perf_counter()
     weights = logic_tree.weights
+    component_branches = logic_tree.component_branches
+    branch_hash_list = logic_tree.branch_hash_list
+
     toc = time.perf_counter()
-    log.info(f'time to calculate weights {toc-tic:.2f} seconds')
-
-    print(len(weights))
-
-    # get the levels for the compatibility
-    log.info("getting levels . . .")
-    levels = get_levels(config.compat_key)
+    log.info(f'time to build weight array {toc-tic:.2f} seconds')
+    log.info("Size of weight array: {}MB".format(weights.nbytes >> 20))
 
     for site in sites:
         for imt in config.imts:
 
-            log.info("site: %s, imt: %s", site, imt)
+            log.info(f"working on hazard for site: {site}, imts: {imt}")
             tic = time.perf_counter()
-            exception = calc_aggregation(
-                site, imt, config.agg_types, levels, weights, logic_tree, config.compat_key, config.hazard_model_id
+
+            calc_aggregation_arrow(
+                site=site,
+                imt=imt,
+                agg_types=config.agg_types,
+                weights=weights,
+                component_branches=component_branches,
+                branch_hash_list=branch_hash_list,
+                compatibility_key=config.compat_key,
+                hazard_model_id=config.hazard_model_id,
             )
+
             toc = time.perf_counter()
-            log.info(f'time to perform aggregation for one location-imt pair {toc-tic:.2f} seconds')
-            if exception:
-                raise exception
+            log.info(f'time to perform aggregation for one location, {len(config.imts)} imt: {toc-tic:.2f} seconds')
 
-    og_1 = time.perf_counter()
-    log.info(f"total OG time: {round(og_1 - og_0, 6)}")
+    arrow_1 = time.perf_counter()
+    log.info(f"total arrow time: {round(arrow_1 - arrow_0, 3)}")
 
 
-if __name__ == "__main__":
-
-    config_filepath = "tests/version2/fixtures/hazard.toml"
-    config = AggregationConfig(config_filepath)
-    run_aggregation(config)
+# if __name__ == "__main__":
+#     config_filepath = "tests/version2/fixtures/hazard.toml"
+#     config = AggregationConfig(config_filepath)
+#     run_aggregation(config)
+#     print()
+#     print()
+#     print()
+#     run_aggregation_arrow(config)
