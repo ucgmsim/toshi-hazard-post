@@ -11,7 +11,7 @@ from nzshm_model.branch_registry import identity_digest
 from nzshm_model.logic_tree import GMCMBranch, SourceBranch
 from pyarrow import fs
 
-from toshi_hazard_post.version2.local_config import ARROW_DIR, ARROW_FS, ArrowFS
+from toshi_hazard_post.version2.local_config import THS_DIR, THS_FS, ArrowFS
 from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
 
 if TYPE_CHECKING:
@@ -117,7 +117,7 @@ def query_realizations(
     session = boto3.session.Session()
     credentials = session.get_credentials()
 
-    if ARROW_FS is ArrowFS.AWS:
+    if THS_FS is ArrowFS.AWS:
         log.info("reading from S3 dataset")
         filesystem = fs.S3FileSystem(
             secret_key=credentials.secret_key,
@@ -130,10 +130,10 @@ def query_realizations(
         filesystem = fs.S3FileSystem(
             region='ap-southeast-2',
         )
-    elif ARROW_FS is ArrowFS.LOCAL:
+    elif THS_FS is ArrowFS.LOCAL:
         log.info("reading from local dataset")
         filesystem = fs.LocalFileSystem()
-        root = str(ARROW_DIR)
+        root = str(THS_DIR)
 
     partition = f"nloc_0={loc.downsample(1).code}"
     dataset = ds.dataset(f'{root}/{partition}', format='parquet', filesystem=filesystem)
@@ -200,7 +200,7 @@ def pyarrow_demo(loc, imt, vs30, compat_key):
     sources_digest = 'ef55f8757069'
     gmms_digest = 'a7d8c5d537e1'
 
-    if ARROW_FS is ArrowFS.AWS:
+    if THS_FS is ArrowFS.AWS:
         session = boto3.session.Session()
         credentials = session.get_credentials()
 
@@ -214,7 +214,7 @@ def pyarrow_demo(loc, imt, vs30, compat_key):
         filesystem = fs.S3FileSystem(
             region='ap-southeast-2',
         )
-    elif ARROW_FS is ArrowFS.LOCAL:
+    elif THS_FS is ArrowFS.LOCAL:
         filesystem = fs.LocalFileSystem()
 
     partition = f"nloc_0={loc.downsample(1).code}"

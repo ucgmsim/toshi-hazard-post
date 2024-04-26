@@ -2,12 +2,13 @@ import logging
 import time
 from typing import TYPE_CHECKING, List
 
+import boto3
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
 
-from toshi_hazard_post.version2.local_config import ARROW_DIR
+from toshi_hazard_post.version2.local_config import THS_DIR, THS_S3_BUCKET, THS_FS, ArrowFS, THS_S3_REGION
 from toshi_hazard_post.version2.ths_mock import write_aggs_to_ths
 
 if TYPE_CHECKING:
@@ -40,6 +41,33 @@ def save_aggregations(
     """
     write_aggs_to_ths(hazard, location, vs30, imt, agg_types, hazard_model_id)
 
+def get_local_fs(local_dir):
+    return fs.LocalFileSystem(), str(local_dir)
+
+def get_s3_fs(region, bucket):
+    session = boto3.session.Session()
+    credentials = session.get_credentials()
+    filesystem = fs.S3FileSystem(
+        secret_key=credentials.secret_key,
+        access_key=credentials.access_key,
+        region=region,
+        session_token=credentials.token,
+    )
+    root = bucket
+    return filesystem, root
+    
+
+def get_arrow_filesystem():
+    if THS_FS is ArrowFS.LOCAL:
+        log.info(f"retrieving relization data from local repository {THS_DIR}")
+        filesystem, root = get_local_fs(THS_DIR)
+    elif THS_FS is ArrowFS.AWS:
+        log.info(f"retrieving relization data from S3 repository {THS_S3_REGION}:{THS_S3_BUCKET}")
+        filesystem, root = get_s3_fs(THS_S3_REGION, THS_S3_BUCKET)
+    else:
+        filesystem = root = None
+    return filesystem, root
+
 
 def load_realizations(
     component_branches: List['HazardComponentBranch'],
@@ -61,8 +89,7 @@ def load_realizations(
     Returns:
         values: the component realizations rates (not probabilities)
     """
-    filesystem = fs.LocalFileSystem()
-    root = str(ARROW_DIR)
+    filesystem, root = get_arrow_filesystem()
 
     partition = f"nloc_0={location.downsample(1).code}"
     t0 = time.monotonic()
