@@ -1,6 +1,7 @@
 import logging
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, Generator, Iterable, List, Sequence
 
 import boto3
@@ -11,7 +12,7 @@ from nzshm_model.branch_registry import identity_digest
 from nzshm_model.logic_tree import GMCMBranch, SourceBranch
 from pyarrow import fs
 
-from toshi_hazard_post.version2.local_config import THS_DIR, THS_FS, ArrowFS
+from toshi_hazard_post.version2.local_config import THS_DIR, THS_FS, WORK_PATH, ArrowFS
 from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
 
 if TYPE_CHECKING:
@@ -29,7 +30,10 @@ def write_aggs_to_ths(
     agg_types: List[str],
     hazard_model_id: str,
 ) -> None:
-    filepath = f"{hazard_model_id}_{vs30}_{imt}_{location.code}"
+    agg_dir = Path(WORK_PATH) / 'AGGREGATIONS'
+    if not agg_dir.is_dir():
+        agg_dir.mkdir()
+    filepath = agg_dir / f"{hazard_model_id}_{vs30}_{imt}_{location.code}"
     np.save(filepath, hazard)
 
 

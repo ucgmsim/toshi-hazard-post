@@ -2,12 +2,17 @@ import logging
 import sys
 import time
 
+from nzshm_common.location.code_location import bin_locations
+
 from toshi_hazard_post.version2.aggregation_calc import calc_aggregation
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
-from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites  # , get_levels
+from toshi_hazard_post.version2.aggregation_setup import Site, get_lts, get_sites  # , get_levels
+from toshi_hazard_post.version2.data import get_realizations_dataset
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 
 log = logging.getLogger(__name__)
+
+PARTITION_RESOLUTION = 1.0
 
 
 ############
@@ -43,25 +48,36 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
 
     component_branches = logic_tree.component_branches
 
-    for site in sites:
-        for imt in config.imts:
+    # NEXT:
+    # 1. can this be broken into some functions to make easier to read and make testing possible?
+    # 2. parallelize (don't know if we need to share weights and hash_table data, they're pretty small. might as well as a cherry on top?)
+    locations = [site.location for site in sites]
+    vs30s = [site.vs30 for site in sites]
+    for location_bin in bin_locations(locations, PARTITION_RESOLUTION).values():
+        dataset = get_realizations_dataset(location_bin, component_branches, config.compat_key)
 
-            log.info(f"working on hazard for site: {site}, imts: {imt}")
-            tic = time.perf_counter()
+        for location in location_bin:
+            idx = locations.index(location)
+            locations.pop(idx)
+            vs30 = vs30s.pop(idx)
+            site = Site(location=location, vs30=vs30)
+            for imt in config.imts:
 
-            calc_aggregation(
-                site=site,
-                imt=imt,
-                agg_types=config.agg_types,
-                weights=weights,
-                component_branches=component_branches,
-                branch_hash_table=branch_hash_table,
-                compatibility_key=config.compat_key,
-                hazard_model_id=config.hazard_model_id,
-            )
+                log.info(f"working on hazard for site: {site}, imts: {imt}")
+                tic = time.perf_counter()
 
-            toc = time.perf_counter()
-            log.info(f'time to perform aggregation for one location, {len(config.imts)} imt: {toc-tic:.2f} seconds')
+                calc_aggregation(
+                    dataset=dataset,
+                    site=site,
+                    imt=imt,
+                    agg_types=config.agg_types,
+                    weights=weights,
+                    branch_hash_table=branch_hash_table,
+                    hazard_model_id=config.hazard_model_id,
+                )
+
+                toc = time.perf_counter()
+                log.info(f'time to perform one aggregation {toc-tic:.2f} seconds')
 
     time1 = time.perf_counter()
     log.info(f"total toshi-hazard-post time: {round(time1 - time0, 3)}")

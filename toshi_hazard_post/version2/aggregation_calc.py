@@ -13,9 +13,9 @@ from toshi_hazard_post.version2.data import load_realizations, save_aggregations
 
 if TYPE_CHECKING:
     import numpy.typing as npt
+    import pyarrow.dataset as ds
 
     from toshi_hazard_post.version2.aggregation_setup import Site
-    from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
 
 log = logging.getLogger(__name__)
 
@@ -204,13 +204,12 @@ def create_component_dict(component_rates: pa.Table) -> Dict[str, 'npt.NDArray']
 
 
 def calc_aggregation(
+    dataset: 'ds.Dataset',
     site: 'Site',
     imt: str,
     agg_types: List[str],
     weights: 'npt.NDArray',
-    component_branches: List['HazardComponentBranch'],
     branch_hash_table: List[List[str]],
-    compatibility_key: str,
     hazard_model_id: str,
 ) -> None:
     """
@@ -235,7 +234,8 @@ def calc_aggregation(
 
     log.info("loading realizations . . .")
     tic = time.perf_counter()
-    component_probs = load_realizations(component_branches, imt, location, vs30, compatibility_key)
+
+    component_probs = load_realizations(dataset, imt, location, vs30)
     toc = time.perf_counter()
     log.debug(f'time to load realizations {toc-tic:.2f} seconds')
     log.debug(f"rlz_table {component_probs.shape}")
