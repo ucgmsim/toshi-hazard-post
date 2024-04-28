@@ -1,6 +1,7 @@
 import logging
 import sys
 import time
+from typing import TYPE_CHECKING, Generator, List, Tuple
 
 from nzshm_common.location.code_location import bin_locations
 
@@ -10,15 +11,43 @@ from toshi_hazard_post.version2.aggregation_setup import Site, get_lts, get_site
 from toshi_hazard_post.version2.data import get_realizations_dataset
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 
+if TYPE_CHECKING:
+    import pyarrow.dataset as ds
+    from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
+
 log = logging.getLogger(__name__)
 
 PARTITION_RESOLUTION = 1.0
 
 
-############
-# ARROW
-############
-def run_aggregation_arrow(config: AggregationConfig) -> None:
+class TaskGenerator:
+    def __init__(
+        self,
+        sites: List[Site],
+        imts: List[str],
+        component_branches: List['HazardComponentBranch'],
+        compatability_key: str,
+    ):
+        self.imts = imts
+        self.component_branches = component_branches
+        self.compatability_key = compatability_key
+
+        self.locations = [site.location for site in sites]
+        self.vs30s = [site.vs30 for site in sites]
+
+    def task_generator(self) -> Generator[Tuple[Site, str, 'ds.Dataset'], None, None]:
+        for location_bin in bin_locations(self.locations, PARTITION_RESOLUTION).values():
+            dataset = get_realizations_dataset(location_bin, self.component_branches, self.compatability_key)
+            for location in location_bin:
+                idx = self.locations.index(location)
+                self.locations.pop(idx)
+                vs30 = self.vs30s.pop(idx)
+                site = Site(location=location, vs30=vs30)
+                for imt in self.imts:
+                    yield site, imt, dataset
+
+
+def run_aggregation(config: AggregationConfig) -> None:
     """
     Main entry point for running aggregation caculations.
 
@@ -48,39 +77,29 @@ def run_aggregation_arrow(config: AggregationConfig) -> None:
 
     component_branches = logic_tree.component_branches
 
-    # NEXT:
-    # 1. can this be broken into some functions to make easier to read and make testing possible?
-    # 2. parallelize (don't know if we need to share weights and hash_table data, they're pretty small. might as well as a cherry on top?)
-    locations = [site.location for site in sites]
-    vs30s = [site.vs30 for site in sites]
-    for location_bin in bin_locations(locations, PARTITION_RESOLUTION).values():
-        dataset = get_realizations_dataset(location_bin, component_branches, config.compat_key)
+    task_generator = TaskGenerator(sites, config.imts, component_branches, config.compat_key)
+    i = 0
+    for site, imt, dataset in task_generator.task_generator():
 
-        for location in location_bin:
-            idx = locations.index(location)
-            locations.pop(idx)
-            vs30 = vs30s.pop(idx)
-            site = Site(location=location, vs30=vs30)
-            for imt in config.imts:
+        log.info(f"working on hazard for site: {site}, imt: {imt}")
+        tic = time.perf_counter()
 
-                log.info(f"working on hazard for site: {site}, imts: {imt}")
-                tic = time.perf_counter()
+        calc_aggregation(
+            dataset=dataset,
+            site=site,
+            imt=imt,
+            agg_types=config.agg_types,
+            weights=weights,
+            branch_hash_table=branch_hash_table,
+            hazard_model_id=config.hazard_model_id,
+        )
+        i += 1
 
-                calc_aggregation(
-                    dataset=dataset,
-                    site=site,
-                    imt=imt,
-                    agg_types=config.agg_types,
-                    weights=weights,
-                    branch_hash_table=branch_hash_table,
-                    hazard_model_id=config.hazard_model_id,
-                )
-
-                toc = time.perf_counter()
-                log.info(f'time to perform one aggregation {toc-tic:.2f} seconds')
+        toc = time.perf_counter()
+        log.info(f'time to perform one aggregation {toc-tic:.2f} seconds')
 
     time1 = time.perf_counter()
-    log.info(f"total toshi-hazard-post time: {round(time1 - time0, 3)}")
+    log.info(f"processed {i} calculations in {round(time1 - time0, 3)} seconds")
 
 
 # if __name__ == "__main__":
