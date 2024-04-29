@@ -8,6 +8,7 @@ class ArrowFS(Enum):
     AWS = auto()
 
 
+NUM_WORKERS = int(os.getenv('NZSHM22_HAZARD_POST_WORKERS', 1))
 WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', PurePath(os.getcwd(), "tmp"))
 THS_DIR = os.getenv('NZSHM22_THS_LOCAL_DIR', PurePath(os.getcwd(), "tmp"))
 THS_S3_BUCKET = os.getenv('NSHM22_THS_S3_BUCKET')

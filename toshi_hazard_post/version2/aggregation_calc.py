@@ -1,5 +1,6 @@
 import logging
 import time
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence
 
 import numpy as np
@@ -18,6 +19,17 @@ if TYPE_CHECKING:
     from toshi_hazard_post.version2.aggregation_setup import Site
 
 log = logging.getLogger(__name__)
+
+
+@dataclass
+class AggTaskArgs:
+    dataset: Dict[str, 'ds.Dataset']
+    site: 'Site'
+    imt: str
+    agg_types: List[str]
+    weights: 'npt.NDArray'
+    branch_hash_table: List[List[str]]
+    hazard_model_id: str
 
 
 def convert_probs_to_rates(probs: pa.Table) -> pa.Table:
@@ -203,15 +215,7 @@ def create_component_dict(component_rates: pa.Table) -> Dict[str, 'npt.NDArray']
     return component_rates['rates'].to_dict()
 
 
-def calc_aggregation(
-    dataset: 'ds.Dataset',
-    site: 'Site',
-    imt: str,
-    agg_types: List[str],
-    weights: 'npt.NDArray',
-    branch_hash_table: List[List[str]],
-    hazard_model_id: str,
-) -> None:
+def calc_aggregation(task_args: AggTaskArgs) -> None:
     """
     Calculate hazard aggregation for a single site and imt and save result
 
@@ -229,13 +233,22 @@ def calc_aggregation(
     Returns:
         exception: the raised exception if any part of the calculation fails
     """
+    dataset_and_flt = task_args.dataset
+    site = task_args.site
+    imt = task_args.imt
+    agg_types = task_args.agg_types
+    weights = task_args.weights
+    branch_hash_table = task_args.branch_hash_table
+    hazard_model_id = task_args.hazard_model_id
+
+    time0 = time.perf_counter()
     location = site.location
     vs30 = site.vs30
 
     log.info("loading realizations . . .")
     tic = time.perf_counter()
 
-    component_probs = load_realizations(dataset, imt, location, vs30)
+    component_probs = load_realizations(dataset_and_flt, imt, location, vs30)
     toc = time.perf_counter()
     log.debug(f'time to load realizations {toc-tic:.2f} seconds')
     log.debug(f"rlz_table {component_probs.shape}")
@@ -266,5 +279,7 @@ def calc_aggregation(
 
     log.info("saving result . . . ")
     save_aggregations(calculators.rate_to_prob(hazard, 1.0), location, vs30, imt, agg_types, hazard_model_id)
+    time1 = time.perf_counter()
+    log.info(f'time to perform one aggregation {time1-time0:.2f} seconds')
 
     return None

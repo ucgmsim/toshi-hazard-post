@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Dict, List
 
 import boto3
 import pyarrow as pa
@@ -61,10 +61,10 @@ def get_s3_fs(region, bucket):
 
 def get_arrow_filesystem():
     if THS_FS is ArrowFS.LOCAL:
-        log.info(f"retrieving relization data from local repository {THS_DIR}")
+        log.info(f"retrieving realization data from local repository {THS_DIR}")
         filesystem, root = get_local_fs(THS_DIR)
     elif THS_FS is ArrowFS.AWS:
-        log.info(f"retrieving relization data from S3 repository {THS_S3_REGION}:{THS_S3_BUCKET}")
+        log.info(f"retrieving realization data from S3 repository {THS_S3_REGION}:{THS_S3_BUCKET}")
         filesystem, root = get_s3_fs(THS_S3_REGION, THS_S3_BUCKET)
     else:
         filesystem = root = None
@@ -102,15 +102,16 @@ def get_realizations_dataset(
 
     t0 = time.monotonic()
     dataset = ds.dataset(f'{root}/{partition}', format='parquet', filesystem=filesystem)
-    dataset = dataset.filter(flt0)
+    # TODO: need to put this filter back in somewhere
+    # dataset = dataset.filter(flt0)
     t1 = time.monotonic()
     log.info(f"time to get realizations dataset {t1-t0:.6f}")
 
-    return dataset
+    return {'dataset': dataset, 'filter': flt0}
 
 
 def load_realizations(
-    dataset: ds.Dataset,
+    dataset_and_flt: Dict[str, ds.Dataset],
     imt: str,
     location: 'CodedLocation',
     vs30: int,
@@ -128,9 +129,11 @@ def load_realizations(
     Returns:
         values: the component realizations rates (not probabilities)
     """
+    dataset = dataset_and_flt['dataset']
 
     flt = (
-        (pc.field('nloc_001') == pc.scalar(location.downsample(0.001).code))
+        dataset_and_flt['filter']
+        & (pc.field('nloc_001') == pc.scalar(location.downsample(0.001).code))
         & (pc.field('imt') == pa.scalar(imt))
         & (pc.field('vs30') == pc.scalar(vs30))
     )

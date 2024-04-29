@@ -5,12 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from toshi_hazard_post.version2.calculators import (
-    weighted_quantiles,
-    prob_to_rate,
-    rate_to_prob,
-    weighted_avg_and_std,
-)
+from toshi_hazard_post.version2.calculators import prob_to_rate, rate_to_prob, weighted_avg_and_std, weighted_quantiles
 
 
 class TestProbRate(unittest.TestCase):
