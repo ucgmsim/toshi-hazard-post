@@ -61,7 +61,7 @@ def weighted_avg_and_std(values: 'npt.NDArray', weights: 'npt.NDArray') -> Tuple
     return (average, math.sqrt(variance))
 
 
-def calculate_weighted_quantiles(
+def weighted_quantiles(
     values: 'npt.NDArray', weights: 'npt.NDArray', quantiles: Union[List[float], 'npt.NDArray']
 ) -> 'npt.NDArray':
     """Calculate weighed quantiles of array

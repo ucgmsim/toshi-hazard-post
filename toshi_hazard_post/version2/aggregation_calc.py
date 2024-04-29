@@ -84,7 +84,7 @@ def weighted_stats(
 
     assert np.all(quants >= 0) and np.all(quants <= 1), 'quantiles should be in [0, 1]'
 
-    wq = calculators.calculate_weighted_quantiles(values, sample_weight, quants)
+    wq = calculators.weighted_quantiles(values, sample_weight, quants)
 
     if get_cov:
         wq = np.append(np.append(wq[0:cov_ind], np.array([cov])), wq[cov_ind:])
@@ -113,16 +113,16 @@ def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_type
     log.debug(f"weights with shape {weights.shape}")
     log.debug(f"agg_types {agg_types}")
 
-    try:
-        nrows = branch_rates.shape[1]
-    except Exception:
-        nrows = len(branch_rates)
+    # try:
+    #     nrows = branch_rates.shape[1]
+    # except Exception:
+    #     nrows = len(branch_rates)
+    nrows = branch_rates.shape[1]
 
     ncols = len(agg_types)
     aggs = np.empty((nrows, ncols))  # (IMTL, agg_type)
     for i in range(nrows):
-        quantiles = weighted_stats(branch_rates[:, i], list(agg_types), sample_weight=weights)
-        aggs[i, :] = np.array(quantiles)
+        aggs[i, :] = weighted_stats(branch_rates[:, i], list(agg_types), sample_weight=weights)
 
     log.debug(f"agg with shape {aggs.shape}")
     return aggs

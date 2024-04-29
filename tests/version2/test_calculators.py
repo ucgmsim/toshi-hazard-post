@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from toshi_hazard_post.version2.calculators import (
-    calculate_weighted_quantiles,
+    weighted_quantiles,
     prob_to_rate,
     rate_to_prob,
     weighted_avg_and_std,
@@ -67,7 +67,7 @@ class TestQuantiles(unittest.TestCase):
         quantiles = [0.5]
         values = np.array((1, 2, 3, 4, 5))
         weights = np.array((1, 0, 0, 1, 1))
-        weighted_quantiles = calculate_weighted_quantiles(np.array(values), np.array(weights), quantiles)
-        weighted_quantiles_expeced = [4]
+        quantiles = weighted_quantiles(np.array(values), np.array(weights), quantiles)
+        quantiles_expeced = [4]
 
-        assert np.allclose(weighted_quantiles, weighted_quantiles_expeced)
+        assert np.allclose(quantiles, quantiles_expeced)
