@@ -7,12 +7,22 @@ from typing import Callable, Tuple, Union
 
 log = logging.getLogger(__name__)
 
+
 def setup_parallel(
-        num_workers: int, func: Callable
-) -> Tuple[
-    Union[queue.Queue, multiprocessing.JoinableQueue],
-    Union[queue.Queue, multiprocessing.Queue],
-]:
+    num_workers: int, func: Callable
+) -> Tuple[Union[queue.Queue, multiprocessing.JoinableQueue], Union[queue.Queue, multiprocessing.Queue],]:
+    """
+    Create the task and results queus and setup workers for either parallel (multiprocessing) or serial mode
+
+    Parameters:
+        num_workers: the number of workers to create. If <1, then a serial process will be used
+        func: the callable object to be invoked
+
+    Returns:
+        task_queue: the task queue
+        results_queue: the results queue
+    """
+
     if num_workers > 1:
         return setup_multiproc(num_workers, func)
     return setup_serial(func)

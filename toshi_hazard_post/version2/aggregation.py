@@ -14,8 +14,9 @@ from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 from toshi_hazard_post.version2.parallel import setup_parallel
 
 if TYPE_CHECKING:
-    import queue
     import multiprocessing
+    import queue
+
     import pyarrow.dataset as ds
 
     from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
