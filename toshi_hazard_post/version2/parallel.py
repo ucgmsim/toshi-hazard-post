@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 def setup_parallel(
     num_workers: int, func: Callable
-) -> Tuple[Union[queue.Queue, multiprocessing.JoinableQueue], Union[queue.Queue, multiprocessing.Queue],]:
+) -> Tuple[Union[queue.Queue, multiprocessing.JoinableQueue], Union[queue.Queue, multiprocessing.Queue]]:
     """
     Create the task and results queus and setup workers for either parallel (multiprocessing) or serial mode
 
@@ -47,7 +47,33 @@ def setup_serial(func: Callable) -> Tuple[queue.Queue, queue.Queue]:
     return task_queue, result_queue
 
 
-class AggregationWorkerSerial(threading.Thread):
+class Worker:
+    def run(self):
+        log.info("worker %s running." % self.name)
+        proc_name = self.name
+
+        while True:
+            task_args = self.task_queue.get()
+            if task_args is None:
+                # Poison pill means shutdown
+                self.task_queue.task_done()
+                log.info('%s: Exiting' % proc_name)
+                break
+            log.info(f"worker {self.name} working on hazard for site: {task_args.site}, imt: {task_args.imt}")
+
+            try:
+                self.func(task_args)  # calc_aggregation
+                self.task_queue.task_done()
+                log.info('%s task done.' % self.name)
+                self.result_queue.put(str(task_args.imt))
+            except Exception:
+                log.error(traceback.format_exc())
+                args = f"{task_args.site}, {task_args.imt}"
+                self.result_queue.put(f'FAILED {args} {traceback.format_exc()}')
+                self.task_queue.task_done()
+
+
+class AggregationWorkerSerial(Worker, threading.Thread):
     """A serial worker"""
 
     def __init__(self, task_queue: queue.Queue, result_queue: queue.Queue, func: Callable):
@@ -57,31 +83,10 @@ class AggregationWorkerSerial(threading.Thread):
         self.func = func
 
     def run(self):
-        log.info("worker %s running." % self.name)
-        proc_name = self.name
-
-        while True:
-            task_args = self.task_queue.get()
-            if task_args is None:
-                # Poison pill means shutdown
-                self.task_queue.task_done()
-                log.info('%s: Exiting' % proc_name)
-                break
-            log.info(f"worker {self.name} working on hazard for site: {task_args.site}, imt: {task_args.imt}")
-
-            try:
-                self.func(task_args)  # calc_aggregation
-                self.task_queue.task_done()
-                log.info('%s task done.' % self.name)
-                self.result_queue.put(str(task_args.imt))
-            except Exception:
-                log.error(traceback.format_exc())
-                args = f"{task_args.site}, {task_args.imt}"
-                self.result_queue.put(f'FAILED {args} {traceback.format_exc()}')
-                self.task_queue.task_done()
+        super().run()
 
 
-class AggregationWorkerMP(multiprocessing.Process):
+class AggregationWorkerMP(Worker, multiprocessing.Process):
     """A worker that batches aggregation processing."""
 
     def __init__(self, task_queue: multiprocessing.JoinableQueue, result_queue: multiprocessing.Queue, func: Callable):
@@ -91,25 +96,4 @@ class AggregationWorkerMP(multiprocessing.Process):
         self.func = func
 
     def run(self):
-        log.info("worker %s running." % self.name)
-        proc_name = self.name
-
-        while True:
-            task_args = self.task_queue.get()
-            if task_args is None:
-                # Poison pill means shutdown
-                self.task_queue.task_done()
-                log.info('%s: Exiting' % proc_name)
-                break
-            log.info(f"worker {self.name} working on hazard for site: {task_args.site}, imt: {task_args.imt}")
-
-            try:
-                self.func(task_args)  # calc_aggregation
-                self.task_queue.task_done()
-                log.info('%s task done.' % self.name)
-                self.result_queue.put(str(task_args.imt))
-            except Exception:
-                log.error(traceback.format_exc())
-                args = f"{task_args.site}, {task_args.imt}"
-                self.result_queue.put(f'FAILED {args} {traceback.format_exc()}')
-                self.task_queue.task_done()
+        super().run()
