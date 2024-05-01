@@ -1,7 +1,7 @@
 import logging
 import time
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List, Optional, Sequence
+from typing import TYPE_CHECKING, Dict, List, Sequence
 
 import numpy as np
 import pyarrow as pa
@@ -45,69 +45,6 @@ def convert_probs_to_rates(probs: pa.Table) -> pa.Table:
     return probs.set_column(2, 'rates', pa.array(rates_array))
 
 
-def weighted_stats(
-    values: 'npt.NDArray',
-    quantiles: List[str],
-    sample_weight: Optional['npt.NDArray'] = None,
-) -> 'npt.NDArray':
-    """
-    Get weighted statistics for a 1D array like object.
-
-    Possble values for quantiles are:
-    statistics of interest. Possible values are
-        'mean' : weighted arithmetic mean
-        'std' : weighted standard deviation
-        'cov' : coefficient of varation (std/mean)
-        q : quantile where q is a float or the string representation of a float between 0 and 1
-
-    Parameters
-        values: the values for which to obtain statistics
-        quantiles: statistics of interest.
-        sample_weight: weights for values, same length as values
-
-    Returns
-        stats: statistics in same order as quantiles
-    """
-    if sample_weight is None:
-        sample_weight = np.ones(len(values))
-    sample_weight = sample_weight / sum(sample_weight)
-
-    get_mean = False
-    get_std = False
-    get_cov = False
-    if ('mean' in quantiles) | ('std' in quantiles) | ('cov' in quantiles):
-        mean, std = calculators.weighted_avg_and_std(values, sample_weight)
-        if 'mean' in quantiles:
-            get_mean = True
-            mean_ind = quantiles.index('mean')
-            quantiles = quantiles[0:mean_ind] + quantiles[mean_ind + 1 :]
-        if 'std' in quantiles:
-            get_std = True
-            std_ind = quantiles.index('std')
-            quantiles = quantiles[0:std_ind] + quantiles[std_ind + 1 :]
-        if 'cov' in quantiles:
-            get_cov = True
-            cov_ind = quantiles.index('cov')
-            quantiles = quantiles[0:cov_ind] + quantiles[cov_ind + 1 :]
-            cov = std / mean if mean > 0.0 else 0.0
-
-    quants = np.array([float(q) for q in quantiles])  # TODO this is hacky, need to tighten up API with typing
-    # print(f'QUANTILES: {quantiles}')
-
-    assert np.all(quants >= 0) and np.all(quants <= 1), 'quantiles should be in [0, 1]'
-
-    wq = calculators.weighted_quantiles(values, sample_weight, quants)
-
-    if get_cov:
-        wq = np.append(np.append(wq[0:cov_ind], np.array([cov])), wq[cov_ind:])
-    if get_std:
-        wq = np.append(np.append(wq[0:std_ind], np.array([std])), wq[std_ind:])
-    if get_mean:
-        wq = np.append(np.append(wq[0:mean_ind], np.array([mean])), wq[mean_ind:])
-
-    return wq
-
-
 def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_types: Sequence[str]) -> 'npt.NDArray':
     """
     Calculate weighted aggregate statistics of the composite realizations
@@ -118,23 +55,51 @@ def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_type
         agg_types: the aggregate statistics to be calculated (e.g., "mean", "0.5") with dimension (agg_type,)
 
     Returns:
-        hazard: aggregate rates array with dimension (IMTL, agg_type)
+        hazard: aggregate rates array with dimension (agg_type, IMTL)
     """
 
     log.debug(f"branch_rates with shape {branch_rates.shape}")
     log.debug(f"weights with shape {weights.shape}")
     log.debug(f"agg_types {agg_types}")
 
-    # try:
-    #     nrows = branch_rates.shape[1]
-    # except Exception:
-    #     nrows = len(branch_rates)
-    nrows = branch_rates.shape[1]
+    def is_float(value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
 
-    ncols = len(agg_types)
-    aggs = np.empty((nrows, ncols))  # (IMTL, agg_type)
-    for i in range(nrows):
-        aggs[i, :] = weighted_stats(branch_rates[:, i], list(agg_types), sample_weight=weights)
+    def index(lst, value):
+        try:
+            return lst.index(value)
+        except ValueError:
+            pass
+        return None
+
+    idx_mean = index(agg_types, "mean")
+    idx_std = index(agg_types, "std")
+    idx_cov = index(agg_types, "cov")
+    idx_quantile = [is_float(agg) for agg in agg_types]
+    quantile_points = [float(pt) for pt in filter(is_float, agg_types)]
+
+    nlevels = branch_rates.shape[1]
+    naggs = 3 + len(quantile_points)
+    aggs = np.empty((naggs, nlevels))
+
+    if (idx_mean is not None) | (idx_std is not None) | (idx_cov is not None):
+        mean, std = calculators.weighted_avg_and_std(branch_rates, weights)
+        cov = calculators.cov(mean, std)
+    if quantile_points:
+        #  Have not figured out a faster way to do this than a loop. Each level has an independent interpolation
+        for i in range(nlevels):
+            aggs[idx_quantile, i] = calculators.weighted_quantiles(branch_rates[:, i], weights, quantile_points)
+
+    if idx_mean is not None:
+        aggs[idx_mean, :] = mean
+    if idx_std is not None:
+        aggs[idx_std, :] = std
+    if idx_cov is not None:
+        aggs[idx_cov, :] = cov
 
     log.debug(f"agg with shape {aggs.shape}")
     return aggs
@@ -275,7 +240,7 @@ def calc_aggregation(task_args: AggTaskArgs) -> None:
     log.info("calculating aggregates . . . ")
     hazard = calculate_aggs(composite_rates, weights, agg_types)
     toc = time.perf_counter()
-    log.debug(f'time to calculate aggs {toc-tic:.2f} seconds')
+    log.debug(f'time to calculate aggs {toc-tic:.4f} seconds')
 
     log.info("saving result . . . ")
     save_aggregations(calculators.rate_to_prob(hazard, 1.0), location, vs30, imt, agg_types, hazard_model_id)

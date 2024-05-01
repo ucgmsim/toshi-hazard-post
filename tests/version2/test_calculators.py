@@ -5,7 +5,13 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from toshi_hazard_post.version2.calculators import prob_to_rate, rate_to_prob, weighted_avg_and_std, weighted_quantiles
+from toshi_hazard_post.version2.calculators import (
+    cov,
+    prob_to_rate,
+    rate_to_prob,
+    weighted_avg_and_std,
+    weighted_quantiles,
+)
 
 
 class TestProbRate(unittest.TestCase):
@@ -34,19 +40,25 @@ class TestProbRate(unittest.TestCase):
 class TestMeanStd(unittest.TestCase):
     def setUp(self):
         self._weights_values_file = Path(Path(__file__).parent, 'fixtures/calculators', 'weights_and_values.json')
-        self._mean_expected = 4.48577620473112
-        self._std_expected = 2.6294520822489
+        self._mean_expected = np.array([4.48577620473112, 4.48577620473112 * 2.0])
+        self._std_expected = np.array([2.6294520822489, 2.6294520822489 * 2.0])
 
         w_and_v = json.load(open(self._weights_values_file))
         self._weights = np.array(w_and_v['weights'])
         self._values = np.array(w_and_v['values'])
+        self._values = np.vstack((self._values, self._values * 2.0)).transpose()
 
     def test_weighted_avg_and_std(self):
-
         mean, std = weighted_avg_and_std(self._values, self._weights)
 
         assert mean == pytest.approx(self._mean_expected)
         assert std == pytest.approx(self._std_expected)
+
+    def test_zero_mean(self):
+        values = self._values * 0.0
+        mean, std = weighted_avg_and_std(values, self._weights)
+        weighted_cov = cov(mean, std)
+        assert (weighted_cov == 0).all()
 
 
 class TestQuantiles(unittest.TestCase):

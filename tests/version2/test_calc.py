@@ -4,12 +4,7 @@ import numpy as np
 import pytest
 from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 
-from toshi_hazard_post.version2.aggregation_calc import (
-    build_branch_rates,
-    calc_composite_rates,
-    calculate_aggs,
-    weighted_stats,
-)
+from toshi_hazard_post.version2.aggregation_calc import build_branch_rates, calc_composite_rates, calculate_aggs
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 
 # from toshi_hazard_post.version2.data import ValueStore
@@ -87,22 +82,6 @@ def stats():
     )
 
 
-def test_weighted_stats(stats):
-    stats_file = Path(__file__).parent / 'fixtures/calc/quantiles_expected.npy'
-    stats = weighted_stats(stats['probs'], stats['aggs'], stats['weights'])
-
-    print(stats)
-
-    stats_expected = np.load(stats_file)
-    assert np.allclose(stats, stats_expected)
-
-
-def test_zero_mean(stats):
-    probs = np.zeros(stats['probs'].shape)
-    stats_rec = weighted_stats(probs, stats['aggs'], stats['weights'])
-    assert stats_rec[stats['aggs'].index("cov")] == 0
-
-
 def test_calculate_aggs():
 
     branch_probs_filepath = Path(__file__).parent / 'fixtures/calc/branch_rates.npy'
@@ -112,5 +91,11 @@ def test_calculate_aggs():
 
     weights = np.array([0.1, 0.1, 0.2, 0.3, 0.1, 0.2])
     aggs = ['mean', 'std', 'cov', '0.6']
+    hazard_agg = calculate_aggs(branch_rates, weights, aggs)
+    assert np.allclose(hazard_agg, expected)
+
+    sorter = [1, 0, 3, 2]
+    aggs = list(np.array(aggs)[sorter])
+    expected = expected[sorter]
     hazard_agg = calculate_aggs(branch_rates, weights, aggs)
     assert np.allclose(hazard_agg, expected)

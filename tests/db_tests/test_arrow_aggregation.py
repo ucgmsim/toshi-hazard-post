@@ -17,7 +17,7 @@ import pytest
 from toshi_hazard_post.version2 import calculators
 
 ## for original tests
-from toshi_hazard_post.version2.aggregation_calc import build_branch_rates, calc_aggregation, calculate_aggs
+from toshi_hazard_post.version2.aggregation_calc import build_branch_rates, calc_aggregation, calculate_aggs_old
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites
 from toshi_hazard_post.version2.data import load_realizations
@@ -133,7 +133,7 @@ def test_original_aggregation(hazard_logic_tree, config):
         hazard_logic_tree, imt='PGA', location=site.location, vs30=site.vs30, compatibility_key=config.compat_key
     )
     branch_rates = build_branch_rates(hazard_logic_tree, value_store, len(levels))
-    hazard = calculate_aggs(branch_rates, weights=weights, agg_types=aggs)
+    hazard = calculate_aggs_old(branch_rates, weights=weights, agg_types=aggs)
     print(hazard.shape)
     assert hazard.shape[1] == len(aggs)
     assert hazard.shape[0] == len(levels)

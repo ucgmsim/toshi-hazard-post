@@ -1,7 +1,6 @@
 """A collection of calculation functions for hazard aggregation."""
 
 import logging
-import math
 from typing import TYPE_CHECKING, List, Tuple, Union
 
 import numpy as np
@@ -43,22 +42,37 @@ def rate_to_prob(rate: 'npt.NDArray', inv_time: float) -> 'npt.NDArray':
     return 1.0 - np.exp(-inv_time * rate)
 
 
-def weighted_avg_and_std(values: 'npt.NDArray', weights: 'npt.NDArray') -> Tuple[np.double, float]:
+def weighted_avg_and_std(values: 'npt.NDArray', weights: 'npt.NDArray') -> Tuple['npt.NDArray', 'npt.NDArray']:
     """Calculate weighted average and standard deviation of an array.
 
     Parameters:
-        values: array of values
-        weights: weights of values. Same length as values.
+        values: array of values (branch, IMTL)
+        weights: weights of values (branch, )
 
     Returns:
-        mean: weighted mean
-        std: standard deviation
+        mean: weighted mean (IMTL, )
+        std: standard deviation (IMTL, )
     """
-
-    average = np.average(values, weights=weights)
+    average = np.average(values, weights=weights, axis=0)
     # Fast and numerically precise:
-    variance = np.average((values - average) ** 2, weights=weights)
-    return (average, math.sqrt(variance))
+    variance = np.average((values - average) ** 2, weights=weights, axis=0)
+    return (average, np.sqrt(variance))
+
+
+def cov(mean: 'npt.NDArray', std: 'npt.NDArray') -> 'npt.NDArray':
+    """
+    Calculate the coeficient of variation handling zero mean by setting cov to zero
+
+    Parameters:
+        mean: array of mean values
+        std: array of standard deviation values
+
+    Returns:
+        cov: array of coeficient of variation values
+    """
+    cov = std / mean
+    cov[mean == 0] = 0
+    return cov
 
 
 def weighted_quantiles(
@@ -79,9 +93,9 @@ def weighted_quantiles(
     values = values[sorter]
     weights = weights[sorter]
 
-    weighted_quantiles = np.cumsum(weights) - 0.5 * weights
-    weighted_quantiles /= np.sum(weights)
+    quantiles_at_values = np.cumsum(weights) - 0.5 * weights
+    quantiles_at_values /= np.sum(weights)
 
-    wq = np.interp(quantiles, weighted_quantiles, values)
+    wq = np.interp(quantiles, quantiles_at_values, values)
 
     return wq
