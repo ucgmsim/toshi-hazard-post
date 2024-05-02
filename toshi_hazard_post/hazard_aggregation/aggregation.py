@@ -9,7 +9,7 @@ from typing import Any, Dict, Iterable, List
 
 import numpy as np
 import numpy.typing as npt
-from nzshm_common.location.code_location import CodedLocation
+from nzshm_common.location.coded_location import CodedLocation
 from toshi_hazard_store import model
 
 from toshi_hazard_post.calculators import rate_to_prob

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import boto3
-from nzshm_common.location.code_location import CodedLocation
+from nzshm_common.location.coded_location import CodedLocation
 
 import toshi_hazard_post.hazard_aggregation.aggregation_task
 from toshi_hazard_post.data_functions import get_levels

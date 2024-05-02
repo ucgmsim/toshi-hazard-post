@@ -5,7 +5,7 @@ from itertools import product
 from pathlib import Path
 from typing import TYPE_CHECKING, Generator, Iterable, List, Tuple, Union
 
-from nzshm_common.location.code_location import CodedLocation
+from nzshm_common.location.coded_location import CodedLocation
 from nzshm_common.location.location import get_locations
 from nzshm_model import get_model_version
 from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree

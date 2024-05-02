@@ -1,7 +1,7 @@
 from typing import Dict, List, Tuple
 
 from nzshm_common.grids.region_grid import load_grid
-from nzshm_common.location.code_location import CodedLocation
+from nzshm_common.location.coded_location import CodedLocation
 from nzshm_common.location.location import LOCATION_LISTS, location_by_id
 
 from toshi_hazard_post.hazard_aggregation.aggregation_config import AggregationConfig

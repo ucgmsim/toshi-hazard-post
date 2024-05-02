@@ -8,7 +8,7 @@ from toshi_hazard_post.version2.local_config import WORK_PATH
 
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from nzshm_common.location.code_location import CodedLocation
+    from nzshm_common.location.coded_location import CodedLocation
 
 log = logging.getLogger(__name__)
 

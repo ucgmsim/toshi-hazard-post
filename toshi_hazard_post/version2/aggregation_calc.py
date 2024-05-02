@@ -211,40 +211,38 @@ def calc_aggregation(task_args: AggTaskArgs) -> None:
     vs30 = site.vs30
 
     log.info("loading realizations . . .")
-    tic = time.perf_counter()
-
+    time1 = time.perf_counter()
     component_probs = load_realizations(dataset_and_flt, imt, location, vs30)
-    toc = time.perf_counter()
-    log.debug(f'time to load realizations {toc-tic:.2f} seconds')
+    time2 = time.perf_counter()
+    log.debug(f'time to load realizations {time2-time1:.2f} seconds')
     log.debug(f"rlz_table {component_probs.shape}")
 
     # convert probabilities to rates
-    tic = time.perf_counter()
     component_rates = convert_probs_to_rates(component_probs)
     del component_probs
-    toc = time.perf_counter()
-    log.debug(f'time to convert_probs_to_rates() {toc-tic:.2f} seconds')
+    time3 = time.perf_counter()
+    log.debug(f'time to convert_probs_to_rates() {time3-time2:.2f} seconds')
 
-    tic = time.perf_counter()
     component_rates = create_component_dict(component_rates)
-    toc = time.perf_counter()
-    log.debug(f'time to convert to dict and set digest index {toc-tic:.2f} seconds')
+    time4 = time.perf_counter()
+    log.debug(f'time to convert to dict and set digest index {time4-time3:.2f} seconds')
     log.debug(f"rates_table {len(component_rates)}")
 
-    tic = time.perf_counter()
     composite_rates = build_branch_rates(branch_hash_table, component_rates)
-    toc = time.perf_counter()
-    log.debug(f'time to build_ranch_rates() {toc-tic:.2f} seconds')
+    time5 = time.perf_counter()
+    log.debug(f'time to build_ranch_rates {time5-time4:.2f} seconds')
 
-    tic = time.perf_counter()
     log.info("calculating aggregates . . . ")
     hazard = calculate_aggs(composite_rates, weights, agg_types)
-    toc = time.perf_counter()
-    log.debug(f'time to calculate aggs {toc-tic:.4f} seconds')
+    time6 = time.perf_counter()
+    log.debug(f'time to calculate aggs {time6-time5:.2f} seconds')
+
+
 
     log.info("saving result . . . ")
     save_aggregations(calculators.rate_to_prob(hazard, 1.0), location, vs30, imt, agg_types, hazard_model_id)
-    time1 = time.perf_counter()
-    log.info(f'time to perform one aggregation {time1-time0:.2f} seconds')
+    time7 = time.perf_counter()
+    log.info(f'time to perform one aggregation after loading data {time7-time2:.2f} seconds')
+    log.info(f'time to perform one aggregation {time7-time0:.2f} seconds')
 
     return None

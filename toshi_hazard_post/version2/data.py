@@ -13,7 +13,7 @@ from toshi_hazard_post.version2.ths_mock import write_aggs_to_ths
 
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from nzshm_common.location.code_location import CodedLocation, CodedLocationBin
+    from nzshm_common.location.coded_location import CodedLocation, CodedLocationBin
 
     from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
 

@@ -2,7 +2,7 @@ from itertools import product
 from unittest import mock
 
 import pytest
-from nzshm_common.location.code_location import CodedLocation, bin_locations
+from nzshm_common.location.coded_location import CodedLocation, bin_locations
 
 from toshi_hazard_post.version2.aggregation import TaskGenerator
 from toshi_hazard_post.version2.aggregation_setup import Site

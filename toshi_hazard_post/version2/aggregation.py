@@ -3,7 +3,7 @@ import sys
 import time
 from typing import TYPE_CHECKING, Generator, List, Tuple, Union
 
-from nzshm_common.location.code_location import bin_locations
+from nzshm_common.location.coded_location import bin_locations
 
 from toshi_hazard_post.version2.aggregation_calc import AggTaskArgs, calc_aggregation
 from toshi_hazard_post.version2.aggregation_config import AggregationConfig
@@ -101,6 +101,7 @@ def run_aggregation(config: AggregationConfig) -> None:
             hazard_model_id=config.hazard_model_id,
         )
         task_queue.put(task_args)
+        time.sleep(5)
         num_jobs += 1
     total_jobs = num_jobs
 
