@@ -8,6 +8,10 @@ Config file format is toml
 
 Parameters in config file do not have THP_ prefix
 
+To use the local configuration, set local_config.config_override_filepath to the desired config file path. Then call
+get_config() inside a function. Note that get_config() must be called in function scope. If called in module scope, changes to
+config_coverride_filepath will not be effective
+
 Parameters:
     THP_NUM_WORKERS: number of parallel processes. if == 1, will run without spawning new processes
     THP_SCRIPT_WORK_PATH: path for saving any local files
