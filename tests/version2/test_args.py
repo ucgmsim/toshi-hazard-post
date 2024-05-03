@@ -5,7 +5,7 @@ from unittest import mock
 import pytest
 import toml
 
-from toshi_hazard_post.version2.aggregation_config import AggregationConfig
+from toshi_hazard_post.version2.aggregation_args import AggregationArgs
 
 config_filepath = Path(__file__).parent / 'fixtures/hazard.toml'
 
@@ -91,10 +91,10 @@ config_verror5['general']['compatibility_key'] = "Z"
 
 
 @pytest.mark.parametrize("config", [config1, config2, config3])
-@mock.patch('toshi_hazard_post.version2.aggregation_config.toml.load')
+@mock.patch('toshi_hazard_post.version2.aggregation_args.toml.load')
 def test_logic_tree_valid(mock_load, config):
     mock_load.return_value = config
-    assert AggregationConfig('dummy')
+    assert AggregationArgs('dummy')
 
 
 @pytest.mark.parametrize(
@@ -116,8 +116,8 @@ def test_logic_tree_valid(mock_load, config):
         (config_verror5, ValueError),
     ],
 )
-@mock.patch('toshi_hazard_post.version2.aggregation_config.toml.load')
+@mock.patch('toshi_hazard_post.version2.aggregation_args.toml.load')
 def test_logic_tree_error(mock_load, config, errortype):
     mock_load.return_value = config
     with pytest.raises(errortype):
-        AggregationConfig('dummy')
+        AggregationArgs('dummy')

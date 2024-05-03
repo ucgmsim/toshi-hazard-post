@@ -237,8 +237,6 @@ def calc_aggregation(task_args: AggTaskArgs) -> None:
     time6 = time.perf_counter()
     log.debug(f'time to calculate aggs {time6-time5:.2f} seconds')
 
-
-
     log.info("saving result . . . ")
     save_aggregations(calculators.rate_to_prob(hazard, 1.0), location, vs30, imt, agg_types, hazard_model_id)
     time7 = time.perf_counter()

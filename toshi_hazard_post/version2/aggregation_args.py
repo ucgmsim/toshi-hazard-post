@@ -9,9 +9,9 @@ from nzshm_model import all_model_versions
 from toshi_hazard_post.version2.ths_mock import query_compatibility
 
 
-class AggregationConfig:
-    def __init__(self, config_filepath: Union[str, Path]) -> None:
-        self._config = toml.load(config_filepath)
+class AggregationArgs:
+    def __init__(self, input_filepath: Union[str, Path]) -> None:
+        self._config = toml.load(input_filepath)
         model_spec = self._validate_logic_trees()
         self._validate_vs30s()
         self._validate_list('site', 'locations', str)

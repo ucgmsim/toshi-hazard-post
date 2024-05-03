@@ -8,7 +8,7 @@ import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
 
-from toshi_hazard_post.version2.local_config import THS_DIR, THS_FS, THS_S3_BUCKET, THS_S3_REGION, ArrowFS
+from toshi_hazard_post.version2.local_config import ArrowFS, get_config
 from toshi_hazard_post.version2.ths_mock import write_aggs_to_ths
 
 if TYPE_CHECKING:
@@ -60,12 +60,14 @@ def get_s3_fs(region, bucket):
 
 
 def get_arrow_filesystem():
-    if THS_FS is ArrowFS.LOCAL:
-        log.info(f"retrieving realization data from local repository {THS_DIR}")
-        filesystem, root = get_local_fs(THS_DIR)
-    elif THS_FS is ArrowFS.AWS:
-        log.info(f"retrieving realization data from S3 repository {THS_S3_REGION}:{THS_S3_BUCKET}")
-        filesystem, root = get_s3_fs(THS_S3_REGION, THS_S3_BUCKET)
+    config = get_config()
+
+    if config.THS_FS is ArrowFS.LOCAL:
+        log.info(f"retrieving realization data from local repository {config.THS_DIR}")
+        filesystem, root = get_local_fs(config.THS_DIR)
+    elif config.THS_FS is ArrowFS.AWS:
+        log.info(f"retrieving realization data from S3 repository {config.THS_S3_REGION}:{config.THS_S3_BUCKET}")
+        filesystem, root = get_s3_fs(config.THS_S3_REGION, config.THS_S3_BUCKET)
     else:
         filesystem = root = None
     return filesystem, root

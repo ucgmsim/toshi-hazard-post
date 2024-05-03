@@ -10,7 +10,7 @@ from nzshm_common.location.location import get_locations
 from nzshm_model import get_model_version
 from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 
-from toshi_hazard_post.version2.aggregation_config import AggregationConfig
+from toshi_hazard_post.version2.aggregation_args import AggregationArgs
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -49,7 +49,7 @@ def get_levels(compat_key: str) -> 'npt.NDArray':
     return query_levels(compat_key)
 
 
-def get_lts(config: AggregationConfig) -> Tuple[SourceLogicTree, GMCMLogicTree]:
+def get_lts(config: AggregationArgs) -> Tuple[SourceLogicTree, GMCMLogicTree]:
     """
     Get the SourceLogicTree and GMCMLogicTree objects
 

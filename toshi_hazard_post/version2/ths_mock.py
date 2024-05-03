@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Generator, List
 
 import numpy as np
 
-from toshi_hazard_post.version2.local_config import WORK_PATH
+from toshi_hazard_post.version2.local_config import get_config
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -21,7 +21,8 @@ def write_aggs_to_ths(
     agg_types: List[str],
     hazard_model_id: str,
 ) -> None:
-    agg_dir = Path(WORK_PATH) / 'AGGREGATIONS'
+    config = get_config()
+    agg_dir = Path(config.WORK_PATH) / 'AGGREGATIONS'
     if not agg_dir.is_dir():
         agg_dir.mkdir()
     filepath = agg_dir / f"{hazard_model_id}_{vs30}_{imt}_{location.code}"

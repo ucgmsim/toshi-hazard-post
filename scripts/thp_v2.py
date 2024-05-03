@@ -2,8 +2,9 @@ import logging
 
 import click
 
+import toshi_hazard_post.version2.local_config as local_config
 from toshi_hazard_post.version2.aggregation import run_aggregation
-from toshi_hazard_post.version2.aggregation_config import AggregationConfig
+from toshi_hazard_post.version2.aggregation_args import AggregationArgs
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)
@@ -20,13 +21,17 @@ def thp():
 
 
 @thp.command(name='aggregate', help='aggregate hazard curves')
-@click.argument('config_file', type=click.Path(exists=True))
-def aggregate(config_file):
+@click.argument('input_file', type=click.Path(exists=True))
+@click.option('--config_file', type=click.Path(exists=True))
+def aggregate(input_file, config_file):
 
-    config = AggregationConfig(config_file)
+    if config_file:
+        local_config.config_override_filepath = config_file
+
+    args = AggregationArgs(input_file)
     click.echo("Toshi Hazard Post: hazard curve aggregation")
     click.echo("=================================================")
-    run_aggregation(config)
+    run_aggregation(args)
 
 
 if __name__ == "__main__":

@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Generator, List, Tuple, Union
 
 from nzshm_common.location.coded_location import bin_locations
 
+from toshi_hazard_post.version2.aggregation_args import AggregationArgs
 from toshi_hazard_post.version2.aggregation_calc import AggTaskArgs, calc_aggregation
-from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 from toshi_hazard_post.version2.aggregation_setup import Site, get_lts, get_sites  # , get_levels
 from toshi_hazard_post.version2.data import get_realizations_dataset
-from toshi_hazard_post.version2.local_config import NUM_WORKERS
+from toshi_hazard_post.version2.local_config import get_config
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 from toshi_hazard_post.version2.parallel import setup_parallel
 
@@ -53,23 +53,24 @@ class TaskGenerator:
                     yield site, imt, dataset
 
 
-def run_aggregation(config: AggregationConfig) -> None:
+def run_aggregation(args: AggregationArgs) -> None:
     """
     Main entry point for running aggregation caculations.
 
     Parameters:
         config: the aggregation configuration
     """
-    num_workers = NUM_WORKERS
+    config = get_config()
+    num_workers = config.NUM_WORKERS
 
     time0 = time.perf_counter()
     # get the sites
     log.info("getting sites . . .")
-    sites = get_sites(config.locations, config.vs30s)
+    sites = get_sites(args.locations, args.vs30s)
 
     # create the logic tree objects and build the full logic tree
     log.info("getting logic trees . . . ")
-    srm_lt, gmcm_lt = get_lts(config)
+    srm_lt, gmcm_lt = get_lts(args)
     logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
 
     log.info("calculating weights and branch hash table . . . ")
@@ -88,17 +89,17 @@ def run_aggregation(config: AggregationConfig) -> None:
     result_queue: Union['queue.Queue', 'multiprocessing.Queue']
     task_queue, result_queue = setup_parallel(num_workers, calc_aggregation)
 
-    task_generator = TaskGenerator(sites, config.imts, component_branches, config.compat_key)
+    task_generator = TaskGenerator(sites, args.imts, component_branches, args.compat_key)
     num_jobs = 0
     for site, imt, dataset in task_generator.task_generator():
         task_args = AggTaskArgs(
             dataset=dataset,
             site=site,
             imt=imt,
-            agg_types=config.agg_types,
+            agg_types=args.agg_types,
             weights=weights,
             branch_hash_table=branch_hash_table,
-            hazard_model_id=config.hazard_model_id,
+            hazard_model_id=args.hazard_model_id,
         )
         task_queue.put(task_args)
         time.sleep(5)

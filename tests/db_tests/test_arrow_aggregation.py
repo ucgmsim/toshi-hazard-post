@@ -15,10 +15,10 @@ import pyarrow as pa
 import pytest
 
 from toshi_hazard_post.version2 import calculators
+from toshi_hazard_post.version2.aggregation_args import AggregationArgs
 
 ## for original tests
 from toshi_hazard_post.version2.aggregation_calc import build_branch_rates, calc_aggregation, calculate_aggs_old
-from toshi_hazard_post.version2.aggregation_config import AggregationConfig
 from toshi_hazard_post.version2.aggregation_setup import get_lts, get_sites
 from toshi_hazard_post.version2.data import load_realizations
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
@@ -30,7 +30,7 @@ DEMO_PATH = pathlib.Path(__file__).parent.parent.parent / "demo"
 def config():
     toml = DEMO_PATH / 'hazard_v2_micro.toml'
     assert toml.exists()
-    yield AggregationConfig(toml)
+    yield AggregationArgs(toml)
 
 
 @pytest.fixture(scope='module')
