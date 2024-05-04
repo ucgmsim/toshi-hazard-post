@@ -22,7 +22,7 @@ def thp():
 
 @thp.command(name='aggregate', help='aggregate hazard curves')
 @click.argument('input_file', type=click.Path(exists=True))
-@click.option('--config_file', type=click.Path(exists=True))
+@click.option('--config-file', type=click.Path(exists=True))
 def aggregate(input_file, config_file):
 
     if config_file:

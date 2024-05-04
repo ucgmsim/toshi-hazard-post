@@ -102,7 +102,7 @@ def run_aggregation(args: AggregationArgs) -> None:
             hazard_model_id=args.hazard_model_id,
         )
         task_queue.put(task_args)
-        time.sleep(5)
+        # time.sleep(5)
         num_jobs += 1
     total_jobs = num_jobs
 

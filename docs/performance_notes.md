@@ -1,468 +1,132 @@
-## Testing Speedup of different ways to represent the HazardBranch in the ValueStore
+# Processing Times
+- 4 locations
+- 2 IMTs
+- 20 agg types
+NB: there is a 5s sleep between putting jobs
 
-### Input File
+## FS: AWS, Bucket: CDC-2, NUM_WORKERS: 1
+thp_CDC2_AWS_W1.log 
+
+### Data Load Time
 ```
-[general]
-compatibility_key = "A_A"
-hazard_model_id = "SMALL_DEMO_MODEL"
-
-[logic_trees]
-# model_version = "NSHM_v1.0.4"
-
-# alternativly, specify a path to logic tree files
-srm_file = "demo/srm_logic_tree.json"
-gmcm_file = "demo/gmcm_logic_tree_medium.json"
-
-[site]
-vs30s = [275]
-# locations = ["WLG", "SRWG214", "-41.000~174.700", "myfile.csv"]
-locations = ["-34.500~173.000"]
-
-# alternativly specify a file with locations and vs30 values
-# site_file = "sites.csv"
-
-[calculation]
-imts = ["PGA", "SA(1.0)"]
-agg_types = ["mean", "cov", "std", "0.005", "0.01", "0.025"]
+2024-05-03 18:23:25,518 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 18.34 seconds
+2024-05-03 18:23:42,775 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 10.89 seconds
+2024-05-03 18:23:58,600 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 10.53 seconds
+2024-05-03 18:24:17,779 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 13.71 seconds
+2024-05-03 18:24:27,776 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 4.77 seconds
+2024-05-03 18:24:36,157 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 2.98 seconds
+2024-05-03 18:24:54,052 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 12.67 seconds
+2024-05-03 18:25:06,389 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 6.97 seconds
 ```
 
-### 1. encode json asdict
+### Processing Time
 ```
-chrisdc@hutl24256:~/.../CALCULATION/toshi-hazard-post$ time NZSHM22_THS_REPO=/home/chrisdc/NSHM/THS/pq-CDC2/ poetry run python ./scripts/thp_v2.py aggregate demo/hazard_v2.toml
-warning openquake module dependency not available, maybe you want to install
-                with nzshm-model[openquake]
-Toshi Hazard Post: hazard curve aggregation
-2024-04-13 07:15:58,975 - toshi_hazard_post.version2.aggregation - INFO - getting sites
-2024-04-13 07:15:58,975 - toshi_hazard_post.version2.aggregation - INFO - getting logic trees
-2024-04-13 07:15:59,012 - toshi_hazard_post.version2.aggregation - INFO - building hazard logic tree
-2024-04-13 07:15:59,012 - toshi_hazard_post.version2.aggregation - INFO - getting weights
-2024-04-13 07:15:59,832 - toshi_hazard_post.version2.aggregation - INFO - time to calculate weights 0.82 seconds
-2024-04-13 07:15:59,832 - toshi_hazard_post.version2.aggregation - INFO - getting levels
-2024-04-13 07:15:59,832 - toshi_hazard_post.version2.aggregation - INFO - starting aggregation for 1 sites and 2 imts
-2024-04-13 07:15:59,832 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: PGA
-2024-04-13 07:15:59,832 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations
-2024-04-13 07:15:59,840 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
-2024-04-13 07:16:00,635 - toshi_hazard_post.version2.data - INFO - loaded 425 realizations
-2024-04-13 07:16:00,636 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.80 seconds
-2024-04-13 07:16:00,636 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates
-2024-04-13 07:16:21,143 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 20.51 seconds
-2024-04-13 07:16:21,143 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates
-2024-04-13 07:16:21,575 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 0.43 seconds
-2024-04-13 07:16:21,575 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result
-2024-04-13 07:16:21,689 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 21.86 seconds
-2024-04-13 07:16:21,689 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: SA(1.0)
-2024-04-13 07:16:21,689 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations
-2024-04-13 07:16:21,697 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
-2024-04-13 07:16:22,305 - toshi_hazard_post.version2.data - INFO - loaded 425 realizations
-2024-04-13 07:16:22,306 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.62 seconds
-2024-04-13 07:16:22,306 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates
-2024-04-13 07:16:43,542 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 21.24 seconds
-2024-04-13 07:16:43,542 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates
-2024-04-13 07:16:43,924 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 0.38 seconds
-2024-04-13 07:16:43,924 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result
-2024-04-13 07:16:43,924 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 22.23 seconds
-
-real    0m45.931s
-user    0m47.206s
-sys     0m1.563s
+2024-05-03 18:23:31,876 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.36 seconds
+2024-05-03 18:23:48,066 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.29 seconds
+2024-05-03 18:24:04,069 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.47 seconds
+2024-05-03 18:24:23,003 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.22 seconds
+2024-05-03 18:24:33,100 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.32 seconds
+2024-05-03 18:24:41,329 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.17 seconds
+2024-05-03 18:24:59,323 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.27 seconds
+2024-05-03 18:25:11,530 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.14 seconds
+```
+### Total Time
+```
+2024-05-03 18:25:11,554 - toshi_hazard_post.version2.aggregation - INFO - processed 8 calculations in 158.944 seconds
 ```
 
-### 2. asdict
-```
-    def registry_identity(self) -> str:
-        return repr(asdict(self))
-```
-```
-chrisdc@hutl24256:~/.../CALCULATION/toshi-hazard-post$ time NZSHM22_THS_REPO=/home/chrisdc/NSHM/THS/pq-CDC2/ poetry run python ./scripts/thp_v2.py aggregate demo/hazard_v2.toml
-warning openquake module dependency not available, maybe you want to install
-                with nzshm-model[openquake]
-Toshi Hazard Post: hazard curve aggregation
-2024-04-13 07:21:19,578 - toshi_hazard_post.version2.aggregation - INFO - getting sites
-2024-04-13 07:21:19,578 - toshi_hazard_post.version2.aggregation - INFO - getting logic trees
-2024-04-13 07:21:19,613 - toshi_hazard_post.version2.aggregation - INFO - building hazard logic tree
-2024-04-13 07:21:19,614 - toshi_hazard_post.version2.aggregation - INFO - getting weights
-2024-04-13 07:21:20,365 - toshi_hazard_post.version2.aggregation - INFO - time to calculate weights 0.75 seconds
-2024-04-13 07:21:20,365 - toshi_hazard_post.version2.aggregation - INFO - getting levels
-2024-04-13 07:21:20,365 - toshi_hazard_post.version2.aggregation - INFO - starting aggregation for 1 sites and 2 imts
-2024-04-13 07:21:20,365 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: PGA
-2024-04-13 07:21:20,366 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations
-2024-04-13 07:21:20,373 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
-2024-04-13 07:21:21,114 - toshi_hazard_post.version2.data - INFO - loaded 425 realizations
-2024-04-13 07:21:21,114 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.75 seconds
-2024-04-13 07:21:21,114 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates
-2024-04-13 07:21:37,948 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 16.83 seconds
-2024-04-13 07:21:37,948 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates
-2024-04-13 07:21:38,270 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 0.32 seconds
-2024-04-13 07:21:38,270 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result
-2024-04-13 07:21:38,374 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 18.01 seconds
-2024-04-13 07:21:38,374 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: SA(1.0)
-2024-04-13 07:21:38,374 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations
-2024-04-13 07:21:38,381 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
-2024-04-13 07:21:38,844 - toshi_hazard_post.version2.data - INFO - loaded 425 realizations
-2024-04-13 07:21:38,844 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.47 seconds
-2024-04-13 07:21:38,844 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates
-2024-04-13 07:21:53,901 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 15.06 seconds
-2024-04-13 07:21:53,901 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates
-2024-04-13 07:21:54,218 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 0.32 seconds
-2024-04-13 07:21:54,218 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result
-2024-04-13 07:21:54,218 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 15.84 seconds
+## FS: AWS, Bucket: CDC-2, NUM_WORKERS: 8
+thp_CDC2_AWS_W8.log
 
-real    0m35.570s
-user    0m36.480s
-sys     0m1.407s
+### Data Load Time
+```
+2024-05-03 18:31:06,726 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 13.72 seconds
+2024-05-03 18:31:07,873 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 10.72 seconds
+2024-05-03 18:31:54,382 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 39.82 seconds
+2024-05-03 18:32:14,950 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 50.17 seconds
+2024-05-03 18:32:16,094 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 56.44 seconds
+2024-05-03 18:32:20,930 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 28.50 seconds
+2024-05-03 18:32:21,007 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 51.11 seconds
+2024-05-03 18:32:32,952 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 35.44 seconds
+```
+### Processing Time
+```
+2024-05-03 18:31:13,199 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.47 seconds
+2024-05-03 18:31:14,133 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.26 seconds
+2024-05-03 18:32:00,979 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.60 seconds
+2024-05-03 18:32:21,836 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.89 seconds
+2024-05-03 18:32:22,653 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.56 seconds
+2024-05-03 18:32:27,936 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 7.01 seconds
+2024-05-03 18:32:27,982 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.97 seconds
+2024-05-03 18:32:38,919 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.97 seconds
+```
+### Total Time
+```
+2024-05-03 18:32:39,063 - toshi_hazard_post.version2.aggregation - INFO - processed 8 calculations in 246.501 seconds
 ```
 
-### 3. branch registry_identidies
-```
-    def registry_identity(self) -> str:
-        return (
-            self.source_branch.registry_identity +
-            '|'.join([branch.registry_identity for branch in self.gmcm_branches])
-        )
-```
-```
-chrisdc@hutl24256:~/.../CALCULATION/toshi-hazard-post$ time NZSHM22_THS_REPO=/home/chrisdc/NSHM/THS/pq-CDC2/ poetry run python ./scripts/thp_v2.py aggregate demo/hazard_v2.toml
-warning openquake module dependency not available, maybe you want to install
-                with nzshm-model[openquake]
-Toshi Hazard Post: hazard curve aggregation
-2024-04-13 07:25:40,280 - toshi_hazard_post.version2.aggregation - INFO - getting sites
-2024-04-13 07:25:40,280 - toshi_hazard_post.version2.aggregation - INFO - getting logic trees
-2024-04-13 07:25:40,328 - toshi_hazard_post.version2.aggregation - INFO - building hazard logic tree
-2024-04-13 07:25:40,328 - toshi_hazard_post.version2.aggregation - INFO - getting weights
-2024-04-13 07:25:41,225 - toshi_hazard_post.version2.aggregation - INFO - time to calculate weights 0.90 seconds
-2024-04-13 07:25:41,225 - toshi_hazard_post.version2.aggregation - INFO - getting levels
-2024-04-13 07:25:41,225 - toshi_hazard_post.version2.aggregation - INFO - starting aggregation for 1 sites and 2 imts
-2024-04-13 07:25:41,225 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: PGA
-2024-04-13 07:25:41,225 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations
-2024-04-13 07:25:41,234 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
-2024-04-13 07:25:42,197 - toshi_hazard_post.version2.data - INFO - loaded 425 realizations
-2024-04-13 07:25:42,197 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.97 seconds
-2024-04-13 07:25:42,197 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates
-2024-04-13 07:25:51,306 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 9.11 seconds
-2024-04-13 07:25:51,306 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates
-2024-04-13 07:25:52,858 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 1.55 seconds
-2024-04-13 07:25:52,859 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result
-2024-04-13 07:25:53,387 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 12.16 seconds
-2024-04-13 07:25:53,387 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: SA(1.0)
-2024-04-13 07:25:53,387 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations
-2024-04-13 07:25:53,416 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
-2024-04-13 07:25:55,606 - toshi_hazard_post.version2.data - INFO - loaded 425 realizations
-2024-04-13 07:25:55,607 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 2.22 seconds
-2024-04-13 07:25:55,607 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates
-2024-04-13 07:26:03,834 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 8.23 seconds
-2024-04-13 07:26:03,835 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates
-2024-04-13 07:26:05,407 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 1.57 seconds
-2024-04-13 07:26:05,407 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result
-2024-04-13 07:26:05,409 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 12.02 seconds
+## FS: LOCAL, BUCKET: CDC-2, NUM_WOKERS: 1
+thp_CDC2_LOCAL_W1.log
 
-real    0m26.767s
-user    0m29.751s
-sys     0m2.448s
+### Data Load Time
+```
+2024-05-04 12:17:23,996 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.56 seconds
+2024-05-04 12:17:30,763 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.50 seconds
+2024-05-04 12:17:36,681 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.55 seconds
+2024-05-04 12:17:42,683 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.56 seconds
+2024-05-04 12:17:48,233 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.26 seconds
+2024-05-04 12:17:53,822 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.26 seconds
+2024-05-04 12:17:59,518 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.42 seconds
+2024-05-04 12:18:05,264 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.39 seconds
+```
+### Processing Time
+```
+2024-05-04 12:17:30,239 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.24 seconds
+2024-05-04 12:17:36,130 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.37 seconds
+2024-05-04 12:17:42,121 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.44 seconds
+2024-05-04 12:17:47,972 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.29 seconds
+2024-05-04 12:17:53,555 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.32 seconds
+2024-05-04 12:17:59,087 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.27 seconds
+2024-05-04 12:18:04,870 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.35 seconds
+2024-05-04 12:18:10,520 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 5.26 seconds
+```
+### Total Time
+```
+2024-05-04 12:18:10,523 - toshi_hazard_post.version2.aggregation - INFO - processed 8 calculations in 75.161 seconds
 ```
 
-### Use 3 with full LT
-```
-warning openquake module dependency not available, maybe you want to install
-                with nzshm-model[openquake]
-Toshi Hazard Post: hazard curve aggregation
-2024-04-13 07:27:04,085 - toshi_hazard_post.version2.aggregation - INFO - getting sites
-2024-04-13 07:27:04,086 - toshi_hazard_post.version2.aggregation - INFO - getting logic trees
-2024-04-13 07:27:04,289 - toshi_hazard_post.version2.aggregation - INFO - building hazard logic tree
-2024-04-13 07:27:04,291 - toshi_hazard_post.version2.aggregation - INFO - getting weights
-2024-04-13 07:27:51,191 - toshi_hazard_post.version2.aggregation - INFO - time to calculate weights 46.90 seconds
-2024-04-13 07:27:51,192 - toshi_hazard_post.version2.aggregation - INFO - getting levels
-2024-04-13 07:27:51,192 - toshi_hazard_post.version2.aggregation - INFO - starting aggregation for 1 sites and 2 imts
-2024-04-13 07:27:51,192 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: PGA
-2024-04-13 07:27:51,192 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations
-2024-04-13 07:27:51,226 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
-2024-04-13 07:27:55,896 - toshi_hazard_post.version2.data - INFO - loaded 912 realizations
-2024-04-13 07:27:55,897 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 4.71 seconds
-2024-04-13 07:27:55,898 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates
-2024-04-13 07:29:48,908 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 113.01 seconds
-2024-04-13 07:29:48,908 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates
-2024-04-13 07:29:53,409 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 4.50 seconds
-2024-04-13 07:29:53,409 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result
-2024-04-13 07:29:53,520 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 122.33 seconds
-2024-04-13 07:29:53,520 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: SA(1.0)
-2024-04-13 07:29:53,520 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations
-2024-04-13 07:29:53,527 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
-2024-04-13 07:29:54,113 - toshi_hazard_post.version2.data - INFO - loaded 912 realizations
-2024-04-13 07:29:54,114 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.59 seconds
-2024-04-13 07:29:54,114 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates
-2024-04-13 07:30:13,827 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 19.71 seconds
-2024-04-13 07:30:13,828 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates
-2024-04-13 07:30:18,392 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 4.56 seconds
-2024-04-13 07:30:18,392 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result
-2024-04-13 07:30:18,403 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 24.88 seconds
+## FS: LOCAL, BUCKET: CDC-2, NUM_WOKERS: 1
+thp_CDC2_LOCAL_W8.log
 
-real    3m18.219s
-user    3m18.289s
-sys     0m4.423s
+### Data Load Time
+```
+2024-05-04 12:21:12,176 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.57 seconds
+2024-05-04 12:21:17,197 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.58 seconds
+2024-05-04 12:21:22,210 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.59 seconds
+2024-05-04 12:21:27,261 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.58 seconds
+2024-05-04 12:21:31,926 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.25 seconds
+2024-05-04 12:21:36,902 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.26 seconds
+2024-05-04 12:21:42,097 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.42 seconds
+2024-05-04 12:21:47,111 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 0.45 seconds
 ```
 
-### Old THP on glacier
+### Processing Time
 ```
-chrisdc@glacier:~/.../DEV/toshi-hazard-post$ time NZSHM22_HAZARD_POST_WORKERS=34 poetry run python scripts/cli.py aggregate /home/chrisdc/NSHM/nzshm-model/Configs/slt_v9.toml
-logging config from: toshi_hazard_post/logging.yaml                                                                                                                                                                logging config from: toshi_hazard_post/logging.yaml
-Hazard post-processing pipeline as serverless AWS infrastructure.                                                                                                                                                  
-mode: LOCAL                                                                                                                                                                                                        
-{'hazard_model_id': 'TEST', 'stage': 'PROD', 'vs30s': [750], 'imts': ['PGA'], 'aggs': ['mean', 'cov', 'std', '0.005', '0.01', '0.025', '0.05', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '0.95
-', '0.975', '0.99', '0.995'], 'locations': ['/home/chrisdc/NSHM/nzshm-model/WeakMotionSiteLocs_one.csv'], 'logic_tree_file': '/home/chrisdc/NSHM/nzshm-model/SRM_LTs/python/SLT_v9p0p0.py', 'gtids': ['R2VuZXJhbFRh
-c2s6NjgwMjYyOA==']}                                                                                                                                                                                                
-2024-04-12 21:55:25,631 - toshi_hazard_post.logic_tree.branch_combinator - INFO - built FlattenedSourceLogicTree                                                                                                   
-2024-04-12 21:55:28,822 - toshi_hazard_post.logic_tree.branch_combinator - INFO - built HazardLogicTree                                                                                                            
-2024-04-12 21:55:28,822 - toshi_hazard_post.logic_tree.branch_combinator - INFO - hazard ids: ['T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4OQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgyMg==', 'T3BlbnF1YWtlSGF6YXJ
-kU29sdXRpb246NjgwMjc2OA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc3NQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5OQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwMA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMj
-czNA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwNA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwOQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxNg==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4NA==', 'T3BlbnF1Y
-WtlSGF6YXJkU29sdXRpb246NjgwMjczNw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjcyNw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjcxMQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwMw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRp
-b246NjgwMjc5Mw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjczMg==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxNQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5Nw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxMg==', 
-'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjcwOQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgyMQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4Nw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxNw==', 'T3BlbnF1YWtlSGF6YX
-JkU29sdXRpb246NjgwMjgyMw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc0Mg==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5MQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5MA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwM
-jgxMQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5NQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4NQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwNQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwNw==', 'T3BlbnF1
-YWtlSGF6YXJkU29sdXRpb246NjgwMjc5Mg==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4OA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgyNA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5Ng==', 'T3BlbnF1YWtlSGF6YXJkU29sdXR
-pb246NjgwMjgyMA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc1OQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjcwOA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4Ng==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc5OA==',
- 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgwMg==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxMw==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjczMQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxOQ==', 'T3BlbnF1YWtlSGF6Y
-XJkU29sdXRpb246NjgwMjgwMQ==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjgxOA==', 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjczNg==']                                                                                      
-2024-04-12 21:55:28,836 - botocore.credentials - INFO - Found credentials in shared credentials file: ~/.aws/credentials                                                                                           
-2024-04-12 21:55:28 INFO     Found credentials in shared credentials file: ~/.aws/credentials                                                                                                                      
-time to load metadata 2.9059813669882715 seconds                                                                                                                                                                   
-2024-04-12 21:55:31,728 - toshi_hazard_post.logic_tree.branch_combinator - INFO - loaded metadata                                                                                                                  
-2024-04-12 21:55:33,790 - toshi_hazard_post.logic_tree.branch_combinator - INFO - set gmcm branches      
-time to set gmcm branches 2.0616297251544893 seconds                                                     
-2024-04-12 21:55:33,790 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - finished building logic trees                                                                                                  
-2024-04-12 21:55:33,792 - toshi_hazard_post.data_functions - INFO - get_levels locs[0]: -36.600~174.832 vs30: 750, id T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4OQ==                                                 
-2024-04-12 21:55:33 INFO     get_levels locs[0]: -36.600~174.832 vs30: 750, id T3BlbnF1YWtlSGF6YXJkU29sdXRpb246NjgwMjc4OQ==                                                                                        
-2024-04-12 21:55:33,792 - toshi_hazard_store.query.hazard_query - INFO - hash_key -36.6~174.8            
-2024-04-12 21:55:33 INFO     hash_key -36.6~174.8                                                        
-2024-04-12 21:55:33,799 - botocore.credentials - INFO - Found credentials in shared credentials file: ~/.aws/credentials                                                                                           
-2024-04-12 21:55:33 INFO     Found credentials in shared credentials file: ~/.aws/credentials            
-2024-04-12 21:55:34,237 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - get values for 1 locations and 49 hazard_solutions                                                                             
-2024-04-12 21:55:34,238 - toshi_hazard_post.data_functions - INFO - loading 49 hazard IDs ...            
-2024-04-12 21:55:34 INFO     loading 49 hazard IDs ...                                                   
-2024-04-12 21:55:34,238 - toshi_hazard_store.query.hazard_query - INFO - hash_key -36.6~174.8            
-2024-04-12 21:55:34 INFO     hash_key -36.6~174.8   
-2024-04-12 21:56:26,582 - toshi_hazard_store.query.hazard_query - INFO - hash_key -36.6~174.8 has 912 hits                                                                                                         
-2024-04-12 21:56:26 INFO     hash_key -36.6~174.8 has 912 hits                                           
-2024-04-12 21:56:26,583 - toshi_hazard_store.query.hazard_query - INFO - Total 912 hits                  
-2024-04-12 21:56:26 INFO     Total 912 hits                                                              
-2024-04-12 21:56:26,697 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - working on imt: PGA                                                                                                            
-2024-04-12 21:56:26,697 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - working on loc -36.600~174.832                                                                                                 
-2024-04-12 21:56:38,181 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - time to calculate hazard for one stride 11.484137553256005 seconds                                                             
-2024-04-12 21:56:38,181 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - imt: PGA took 11.484 secs                                                                                                      
-2024-04-12 21:56:38,181 - toshi_hazard_post.hazard_aggregation.aggregation - INFO - process_location_list took 63.943 secs 
-
-real    1m19.145s                                   
-user    0m21.596s                                   
-sys     0m3.779s  
+2024-05-04 12:21:18,800 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.62 seconds
+2024-05-04 12:21:23,550 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.35 seconds
+2024-05-04 12:21:28,700 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.49 seconds
+2024-05-04 12:21:33,566 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.31 seconds
+2024-05-04 12:21:38,199 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.27 seconds
+2024-05-04 12:21:43,024 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.12 seconds
+2024-05-04 12:21:48,340 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.24 seconds
+2024-05-04 12:21:53,257 - toshi_hazard_post.version2.aggregation_calc - INFO - time to perform one aggregation after loading data 6.15 seconds
 ```
 
-### New THP on glacier
+### Total Time
 ```
-chrisdc@glacier:~/.../DEV/toshi-hazard-post$ time NZSHM22_THS_REPO=/home/chrisdc/NSHM/THS/pq-CDC2/ poetry run python ./scripts/thp_v2.py aggregate demo/hazard_v2.toml
-warning openquake module dependency not available, maybe you want to install
-                with nzshm-model[openquake]
-Toshi Hazard Post: hazard curve aggregation
-2024-04-13 10:32:05,148 - toshi_hazard_post.version2.aggregation - INFO - getting sites . . .
-2024-04-13 10:32:05,149 - toshi_hazard_post.version2.aggregation - INFO - getting logic trees . . . 
-2024-04-13 10:32:05,321 - toshi_hazard_post.version2.aggregation - INFO - building hazard logic tree . . .
-2024-04-13 10:32:05,323 - toshi_hazard_post.version2.aggregation - INFO - calculating weights . . . 
-2024-04-13 10:32:14,000 - toshi_hazard_post.version2.aggregation - INFO - time to calculate weights 8.68 seconds
-2024-04-13 10:32:14,000 - toshi_hazard_post.version2.aggregation - INFO - getting levels . . .
-2024-04-13 10:32:14,000 - toshi_hazard_post.version2.aggregation - INFO - starting aggregation for 1 sites and 1 imts . . . 
-2024-04-13 10:32:14,000 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: PGA
-2024-04-13 10:32:14,000 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations . . .
-2024-04-13 10:32:14,009 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
-2024-04-13 10:32:18,822 - toshi_hazard_post.version2.data - INFO - loaded 912 realizations
-2024-04-13 10:32:18,822 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 4.82 seconds
-2024-04-13 10:32:18,822 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates . . . 
-2024-04-13 10:32:40,173 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 21.35 seconds
-2024-04-13 10:32:40,173 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates . . . 
-2024-04-13 10:32:45,161 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 4.99 seconds
-2024-04-13 10:32:45,161 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result . . . 
-2024-04-13 10:32:45,279 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 31.28 seconds
-
-real    1m1.418s
-user    0m45.976s
-sys     0m4.532s
+2024-05-04 12:21:53,348 - toshi_hazard_post.version2.aggregation - INFO - processed 8 calculations in 72.234 seconds
 ```
-
-### Mini baseline
+Without the sleep(5)
 ```
-chrisdc@hutl24256:~/.../CALCULATION/toshi-hazard-post$ NZSHM22_THS_REPO=/home/chrisdc/NSHM/THS/pq-CDC2 poetry run thp aggregate demo/hazard_v2_mini.toml
-warning openquake module dependency not available, maybe you want to install
-                with nzshm-model[openquake]
-Toshi Hazard Post: hazard curve aggregation OG
-==============================================
-2024-04-23 13:56:48,109 - toshi_hazard_post.version2.aggregation - INFO - getting sites . . .
-2024-04-23 13:56:48,109 - toshi_hazard_post.version2.aggregation - INFO - getting logic trees . . . 
-2024-04-23 13:56:48,199 - toshi_hazard_post.version2.aggregation - INFO - building hazard logic tree . . .
-2024-04-23 13:56:48,200 - toshi_hazard_post.version2.aggregation - INFO - original method
-2024-04-23 13:56:48,200 - toshi_hazard_post.version2.aggregation - INFO - starting aggregation for 1 sites and 1 imts . . . 
-2024-04-23 13:56:48,200 - toshi_hazard_post.version2.aggregation - INFO - calculating weights . . . 
-2024-04-23 13:56:48,603 - toshi_hazard_post.version2.aggregation - INFO - time to calculate weights 0.40 seconds
-16200
-2024-04-23 13:56:48,603 - toshi_hazard_post.version2.aggregation - INFO - getting levels . . .
-2024-04-23 13:56:48,603 - toshi_hazard_post.version2.aggregation - INFO - site: Site(location=CodedLocation(lat=-34.5, lon=173.0, resolution=0.001), vs30=275), imt: PGA
-2024-04-23 13:56:48,603 - toshi_hazard_post.version2.aggregation_calc - INFO - loading realizations . . .
-2024-04-23 13:56:48,626 - toshi_hazard_post.version2.ths_mock - INFO - reading from local dataset
-2024-04-23 13:56:51,941 - toshi_hazard_post.version2.data - INFO - loaded 420 realizations and 420 entries
-2024-04-23 13:56:51,941 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to load realizations 3.34 seconds
-2024-04-23 13:56:51,941 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates . . . 
-2024-04-23 13:56:53,155 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 1.21 seconds
-2024-04-23 13:56:53,156 - toshi_hazard_post.version2.aggregation_calc - INFO - calculating aggregates . . . 
-2024-04-23 13:56:53,156 - toshi_hazard_post.version2.aggregation_calc - DEBUG - branch_rates with shape (16200, 44)
-2024-04-23 13:56:53,156 - toshi_hazard_post.version2.aggregation_calc - DEBUG - weights with shape (16200,)
-2024-04-23 13:56:53,156 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg_types ['mean', 'cov', 'std', '0.005', '0.01', '0.025']
-2024-04-23 13:56:53,372 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg with shape (44, 6)
-2024-04-23 13:56:53,373 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to calculate aggs 0.22 seconds
-2024-04-23 13:56:53,373 - toshi_hazard_post.version2.aggregation_calc - INFO - saving result . . . 
-2024-04-23 13:56:53,778 - toshi_hazard_post.version2.aggregation - INFO - time to perform aggregation for one location-imt pair 5.17 seconds
-2024-04-23 13:56:53,778 - toshi_hazard_post.version2.aggregation - INFO - total OG time: 5.57852
-
-```
-
-### Using pyarrow.Table for the datastore
-- no change to when data are loaded
-- using python looping for building rates
-```
-2024-04-23 13:57:27,668 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - building branch rates for 16200 composite branches
-2024-04-23 13:59:33,579 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 125.91 seconds
-
-```
-100x slower!
-
-### Using pandas.DataFrame with the concat hash as the index
-```
-2024-04-23 16:21:24,202 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - building branch rates for 16200 composite branches
-2024-04-23 16:21:24,859 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 0.66 seconds
-```
-
-### full NSHM_v1.0.4
-
-#### Arrow
-```
-2024-04-24 08:45:27,103 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table (912, 1)
-2024-04-24 08:46:18,926 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 51.82 seconds
-```
-
-#### OG
-```
-2024-04-24 08:49:45,649 - toshi_hazard_post.version2.aggregation_calc - INFO - building branch rates . . . 
-2024-04-24 08:50:07,914 - toshi_hazard_post.version2.aggregation_calc - DEBUG - time to build branch rates 22.27 seconds
-```
-
-
-## Pre-Calculating Branches
-
-### 1. component_branches and composite_branches are generators
-```
-chrisdc@glacier:~/.../DEV/toshi-hazard-post$ NZSHM22_THS_REPO=/home/chrisdc/NSHM/THS/pq-CDC2/ poetry run thp aggregate -M ARROW demo/hazard_v2.toml 
-warning openquake module dependency not available, maybe you want to install
-                with nzshm-model[openquake]
-Toshi Hazard Post: hazard curve aggregation ARROW
-=================================================
-2024-04-24 12:23:15,900 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting sites . . .
-2024-04-24 12:23:15,900 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting logic trees . . . 
-2024-04-24 12:23:15,961 - toshi_hazard_post.version2.aggregation_arrow - INFO - building hazard logic tree . . .
-2024-04-24 12:23:15,962 - toshi_hazard_post.version2.aggregation_arrow - INFO - arrow method
-2024-04-24 12:23:24,528 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to build weight array 8.57 seconds
-2024-04-24 12:23:24,528 - toshi_hazard_post.version2.aggregation_arrow - INFO - Size of weight array: 7MB
-2024-04-24 12:23:24,528 - toshi_hazard_post.version2.aggregation_arrow - INFO - working on hazard for site: -34.5, 173.0, vs30=275, imts: PGA
-2024-04-24 12:23:24,528 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - loading realizations . . .
-2024-04-24 12:23:24,766 - toshi_hazard_post.version2.data_arrow - INFO - load dataset: 0.001833, scanner:0.062499, to_arrow 0.172549
-2024-04-24 12:23:24,766 - toshi_hazard_post.version2.data_arrow - INFO - RSS: 0MB
-2024-04-24 12:23:24,766 - toshi_hazard_post.version2.data_arrow - INFO - loaded 912 realizations in arrow
-2024-04-24 12:23:24,772 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to load realizations 0.24 seconds
-2024-04-24 12:23:24,772 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rlz_table (912, 3)
-2024-04-24 12:23:25,189 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert_probs_to_rates() 0.42 seconds
-2024-04-24 12:23:25,193 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert to pandas and set digest index 0.00 seconds
-2024-04-24 12:23:25,193 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table 912
-2024-04-24 12:23:45,939 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 20.75 seconds
-2024-04-24 12:23:45,939 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - calculating aggregates . . . 
-2024-04-24 12:23:45,939 - toshi_hazard_post.version2.aggregation_calc - DEBUG - branch_rates with shape (979776, 44)
-2024-04-24 12:23:45,939 - toshi_hazard_post.version2.aggregation_calc - DEBUG - weights with shape (979776,)
-2024-04-24 12:23:45,939 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg_types ['mean', 'cov', 'std', '0.005', '0.01', '0.025']
-2024-04-24 12:23:50,954 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg with shape (44, 6)
-2024-04-24 12:23:50,954 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to calculate aggs 5.01 seconds
-2024-04-24 12:23:50,954 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
-2024-04-24 12:23:51,069 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
-2024-04-24 12:23:51,070 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to perform aggregation for one location, 2 imt: 26.54 seconds
-2024-04-24 12:23:51,070 - toshi_hazard_post.version2.aggregation_arrow - INFO - working on hazard for site: -34.5, 173.0, vs30=275, imts: SA(1.0)
-2024-04-24 12:23:51,071 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - loading realizations . . .
-2024-04-24 12:23:51,324 - toshi_hazard_post.version2.data_arrow - INFO - load dataset: 0.004364, scanner:0.081462, to_arrow 0.167203
-2024-04-24 12:23:51,324 - toshi_hazard_post.version2.data_arrow - INFO - RSS: 0MB
-2024-04-24 12:23:51,324 - toshi_hazard_post.version2.data_arrow - INFO - loaded 912 realizations in arrow
-2024-04-24 12:23:51,330 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to load realizations 0.26 seconds
-2024-04-24 12:23:51,331 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rlz_table (912, 3)
-2024-04-24 12:23:51,339 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert_probs_to_rates() 0.01 seconds
-2024-04-24 12:23:51,346 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert to pandas and set digest index 0.01 seconds
-2024-04-24 12:23:51,346 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table 912
-2024-04-24 12:24:12,286 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 20.94 seconds
-2024-04-24 12:24:12,286 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - calculating aggregates . . . 
-2024-04-24 12:24:12,286 - toshi_hazard_post.version2.aggregation_calc - DEBUG - branch_rates with shape (979776, 44)
-2024-04-24 12:24:12,286 - toshi_hazard_post.version2.aggregation_calc - DEBUG - weights with shape (979776,)
-2024-04-24 12:24:12,286 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg_types ['mean', 'cov', 'std', '0.005', '0.01', '0.025']
-2024-04-24 12:24:17,284 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg with shape (44, 6)
-2024-04-24 12:24:17,284 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to calculate aggs 5.00 seconds
-2024-04-24 12:24:17,284 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
-2024-04-24 12:24:17,290 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
-2024-04-24 12:24:17,291 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to perform aggregation for one location, 2 imt: 26.22 seconds
-2024-04-24 12:24:17,291 - toshi_hazard_post.version2.aggregation_arrow - INFO - total arrow time: 61.329
-```
-
-### 2. they are lists and all properties are pre-calculated
-```
-chrisdc@glacier:~/.../DEV/toshi-hazard-post$ NZSHM22_THS_REPO=/home/chrisdc/NSHM/THS/pq-CDC2/ poetry run thp aggregate -M ARROW demo/hazard_v2.toml 
-warning openquake module dependency not available, maybe you want to install
-                with nzshm-model[openquake]
-Toshi Hazard Post: hazard curve aggregation ARROW
-=================================================
-2024-04-24 12:27:56,189 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting sites . . .
-2024-04-24 12:27:56,189 - toshi_hazard_post.version2.aggregation_arrow - INFO - getting logic trees . . . 
-2024-04-24 12:27:56,240 - toshi_hazard_post.version2.aggregation_arrow - INFO - building hazard logic tree . . .
-2024-04-24 12:28:23,170 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to build HazardLogicTree 26.93 seconds
-2024-04-24 12:28:23,170 - toshi_hazard_post.version2.aggregation_arrow - INFO - arrow method
-2024-04-24 12:28:23,337 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to build weight array 0.17 seconds
-2024-04-24 12:28:23,337 - toshi_hazard_post.version2.aggregation_arrow - INFO - Size of weight array: 7MB
-2024-04-24 12:28:23,337 - toshi_hazard_post.version2.aggregation_arrow - INFO - working on hazard for site: -34.5, 173.0, vs30=275, imts: PGA
-2024-04-24 12:28:23,337 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - loading realizations . . .
-2024-04-24 12:28:23,546 - toshi_hazard_post.version2.data_arrow - INFO - load dataset: 0.020187, scanner:0.0081, to_arrow 0.180949
-2024-04-24 12:28:23,546 - toshi_hazard_post.version2.data_arrow - INFO - RSS: 0MB
-2024-04-24 12:28:23,547 - toshi_hazard_post.version2.data_arrow - INFO - loaded 912 realizations in arrow
-2024-04-24 12:28:23,553 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to load realizations 0.22 seconds
-2024-04-24 12:28:23,553 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rlz_table (912, 3)
-2024-04-24 12:28:24,100 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert_probs_to_rates() 0.55 seconds
-2024-04-24 12:28:24,103 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert to pandas and set digest index 0.00 seconds
-2024-04-24 12:28:24,103 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table 912
-2024-04-24 12:28:27,411 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 3.31 seconds
-2024-04-24 12:28:27,411 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - calculating aggregates . . . 
-2024-04-24 12:28:27,411 - toshi_hazard_post.version2.aggregation_calc - DEBUG - branch_rates with shape (979776, 44)
-2024-04-24 12:28:27,411 - toshi_hazard_post.version2.aggregation_calc - DEBUG - weights with shape (979776,)
-2024-04-24 12:28:27,411 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg_types ['mean', 'cov', 'std', '0.005', '0.01', '0.025']
-2024-04-24 12:28:32,535 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg with shape (44, 6)
-2024-04-24 12:28:32,535 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to calculate aggs 5.12 seconds
-2024-04-24 12:28:32,535 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
-2024-04-24 12:28:32,648 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
-2024-04-24 12:28:32,649 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to perform aggregation for one location, 2 imt: 9.31 seconds
-2024-04-24 12:28:32,649 - toshi_hazard_post.version2.aggregation_arrow - INFO - working on hazard for site: -34.5, 173.0, vs30=275, imts: SA(1.0)
-2024-04-24 12:28:32,649 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - loading realizations . . .
-2024-04-24 12:28:32,821 - toshi_hazard_post.version2.data_arrow - INFO - load dataset: 0.001757, scanner:0.004604, to_arrow 0.165577
-2024-04-24 12:28:32,821 - toshi_hazard_post.version2.data_arrow - INFO - RSS: 0MB
-2024-04-24 12:28:32,821 - toshi_hazard_post.version2.data_arrow - INFO - loaded 912 realizations in arrow
-2024-04-24 12:28:32,828 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to load realizations 0.18 seconds
-2024-04-24 12:28:32,828 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rlz_table (912, 3)
-2024-04-24 12:28:32,837 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert_probs_to_rates() 0.01 seconds
-2024-04-24 12:28:32,843 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to convert to pandas and set digest index 0.01 seconds
-2024-04-24 12:28:32,843 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - rates_table 912
-2024-04-24 12:28:36,016 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to build_ranch_rates() 3.17 seconds
-2024-04-24 12:28:36,016 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - calculating aggregates . . . 
-2024-04-24 12:28:36,016 - toshi_hazard_post.version2.aggregation_calc - DEBUG - branch_rates with shape (979776, 44)
-2024-04-24 12:28:36,016 - toshi_hazard_post.version2.aggregation_calc - DEBUG - weights with shape (979776,)
-2024-04-24 12:28:36,016 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg_types ['mean', 'cov', 'std', '0.005', '0.01', '0.025']
-2024-04-24 12:28:41,004 - toshi_hazard_post.version2.aggregation_calc - DEBUG - agg with shape (44, 6)
-2024-04-24 12:28:41,004 - toshi_hazard_post.version2.aggregation_calc_arrow - DEBUG - time to calculate aggs 4.99 seconds
-2024-04-24 12:28:41,004 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
-2024-04-24 12:28:41,011 - toshi_hazard_post.version2.aggregation_calc_arrow - INFO - saving result . . . 
-2024-04-24 12:28:41,012 - toshi_hazard_post.version2.aggregation_arrow - INFO - time to perform aggregation for one location, 2 imt: 8.36 seconds
-2024-04-24 12:28:41,012 - toshi_hazard_post.version2.aggregation_arrow - INFO - total arrow time: 44.824
+2024-05-04 12:26:53,251 - toshi_hazard_post.version2.aggregation - INFO - processed 8 calculations in 47.755 seconds
 ```
