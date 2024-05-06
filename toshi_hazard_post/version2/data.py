@@ -1,6 +1,7 @@
 import logging
 import time
-from typing import TYPE_CHECKING, Dict, List
+import urllib.parse
+from typing import TYPE_CHECKING, List
 
 import boto3
 import pyarrow as pa
@@ -63,10 +64,10 @@ def get_arrow_filesystem():
     config = get_config()
 
     if config.THS_FS is ArrowFS.LOCAL:
-        log.info(f"retrieving realization data from local repository {config.THS_DIR}")
+        log.info("retrieving realization data from local repository " % config.THS_DIR)
         filesystem, root = get_local_fs(config.THS_DIR)
     elif config.THS_FS is ArrowFS.AWS:
-        log.info(f"retrieving realization data from S3 repository {config.THS_S3_REGION}:{config.THS_S3_BUCKET}")
+        log.info("retrieving realization data from S3 repository %s:%s" % (config.THS_S3_REGION, config.THS_S3_BUCKET))
         filesystem, root = get_s3_fs(config.THS_S3_REGION, config.THS_S3_BUCKET)
     else:
         filesystem = root = None
@@ -75,48 +76,39 @@ def get_arrow_filesystem():
 
 def get_realizations_dataset(
     location_bin: 'CodedLocationBin',
-    component_branches: List['HazardComponentBranch'],
-    compatibility_key: str,
+    imt: str,
 ) -> ds.Dataset:
     """
-    Get a pyarrow Dataset filtered to a location bin (partition), component branches, and compatability key
+    Get a pyarrow Dataset filtered to a location bin (partition), component branches, and compatibility key
 
     Parameters:
         location_bin: the location bin that the database is partitioned on
         component_branches: the branches to filter into the dataset
-        compatability_key: the hazard engine compatability ley to filter into the dataset
+        compatibility_key: the hazard engine compatibility ley to filter into the dataset
 
     Returns:
         dataset: the dataset with the filteres applied
     """
     filesystem, root = get_arrow_filesystem()
 
-    partition = f"nloc_0={location_bin.code}"
-
-    gmms_digests = [branch.gmcm_hash_digest for branch in component_branches]
-    sources_digests = [branch.source_hash_digest for branch in component_branches]
-
-    flt0 = (
-        (pc.field('compatible_calc_fk') == pc.scalar(compatibility_key))
-        & (pc.is_in(pc.field('sources_digest'), pa.array(sources_digests)))
-        & (pc.is_in(pc.field('gmms_digest'), pa.array(gmms_digests)))
-    )
+    imt_code = urllib.parse.quote(imt)
+    partition = f"nloc_0={location_bin.code}/imt={imt_code}"
 
     t0 = time.monotonic()
     dataset = ds.dataset(f'{root}/{partition}', format='parquet', filesystem=filesystem)
-    # TODO: need to put this filter back in somewhere
-    # dataset = dataset.filter(flt0)
     t1 = time.monotonic()
-    log.info(f"time to get realizations dataset {t1-t0:.6f}")
+    log.info("time to get realizations dataset %0.6f" % (t1 - t0))
 
-    return {'dataset': dataset, 'filter': flt0}
+    return dataset
 
 
 def load_realizations(
-    dataset_and_flt: Dict[str, ds.Dataset],
     imt: str,
     location: 'CodedLocation',
     vs30: int,
+    location_bin: 'CodedLocationBin',
+    component_branches: List['HazardComponentBranch'],
+    compatibility_key: str,
 ) -> pa.table:
     """
     Load component realizations from the database.
@@ -131,18 +123,23 @@ def load_realizations(
     Returns:
         values: the component realizations rates (not probabilities)
     """
-    dataset = dataset_and_flt['dataset']
+    dataset = get_realizations_dataset(location_bin, imt)
+
+    gmms_digests = [branch.gmcm_hash_digest for branch in component_branches]
+    sources_digests = [branch.source_hash_digest for branch in component_branches]
 
     flt = (
-        dataset_and_flt['filter']
+        (pc.field('compatible_calc_fk') == pc.scalar(compatibility_key))
+        & (pc.is_in(pc.field('sources_digest'), pa.array(sources_digests)))
+        & (pc.is_in(pc.field('gmms_digest'), pa.array(gmms_digests)))
         & (pc.field('nloc_001') == pc.scalar(location.downsample(0.001).code))
-        & (pc.field('imt') == pa.scalar(imt))
+        # & (pc.field('imt') == pa.scalar(imt))
         & (pc.field('vs30') == pc.scalar(vs30))
     )
 
     t0 = time.monotonic()
     columns = ['sources_digest', 'gmms_digest', 'values']
-    arrow_scanner = ds.Scanner.from_dataset(dataset, filter=flt, columns=columns)
+    arrow_scanner = ds.Scanner.from_dataset(dataset, filter=flt, columns=columns, use_threads=False)
     t1 = time.monotonic()
 
     rlz_table = arrow_scanner.to_table()
@@ -150,7 +147,7 @@ def load_realizations(
     if len(rlz_table) == 0:
         raise Exception(f"no realizations were found in the database for {location=}, {imt=}, {vs30=}")
 
-    log.info(f"load scanner:{round(t1-t0, 6)}s, to_arrow {round(t2-t1, 6)}s")
+    log.info("load scanner:%0.6f, to_arrow %0.6fs" % (t1 - t0, t2 - t1))
     log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
     log.info("loaded %s realizations in arrow", rlz_table.shape[0])
     return rlz_table

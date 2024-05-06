@@ -8,28 +8,29 @@ import pyarrow as pa
 import pyarrow.compute as pc
 
 import toshi_hazard_post.version2.calculators as calculators
-
-# from toshi_hazard_post.version2.data import load_realizations, save_aggregations
 from toshi_hazard_post.version2.data import load_realizations, save_aggregations
 
 if TYPE_CHECKING:
     import numpy.typing as npt
-    import pyarrow.dataset as ds
+    from nzshm_common.location.coded_location import CodedLocationBin
 
     from toshi_hazard_post.version2.aggregation_setup import Site
+    from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
 
 log = logging.getLogger(__name__)
 
 
 @dataclass
 class AggTaskArgs:
-    dataset: Dict[str, 'ds.Dataset']
+    location_bin: 'CodedLocationBin'
     site: 'Site'
     imt: str
     agg_types: List[str]
     weights: 'npt.NDArray'
     branch_hash_table: List[List[str]]
     hazard_model_id: str
+    component_branches: List['HazardComponentBranch']
+    compatiblity_key: str
 
 
 def convert_probs_to_rates(probs: pa.Table) -> pa.Table:
@@ -180,7 +181,7 @@ def create_component_dict(component_rates: pa.Table) -> Dict[str, 'npt.NDArray']
     return component_rates['rates'].to_dict()
 
 
-def calc_aggregation(task_args: AggTaskArgs) -> None:
+def calc_aggregation(task_args: AggTaskArgs, worker_name: str) -> None:
     """
     Calculate hazard aggregation for a single site and imt and save result
 
@@ -198,49 +199,53 @@ def calc_aggregation(task_args: AggTaskArgs) -> None:
     Returns:
         exception: the raised exception if any part of the calculation fails
     """
-    dataset_and_flt = task_args.dataset
     site = task_args.site
     imt = task_args.imt
     agg_types = task_args.agg_types
     weights = task_args.weights
     branch_hash_table = task_args.branch_hash_table
     hazard_model_id = task_args.hazard_model_id
+    location_bin = task_args.location_bin
+    component_branches = task_args.component_branches
+    compatibility_key = task_args.compatiblity_key
 
     time0 = time.perf_counter()
     location = site.location
     vs30 = site.vs30
 
-    log.info("loading realizations . . .")
+    log.info("worker %s loading realizations . . ." % (worker_name))
     time1 = time.perf_counter()
-    component_probs = load_realizations(dataset_and_flt, imt, location, vs30)
+    component_probs = load_realizations(imt, location, vs30, location_bin, component_branches, compatibility_key)
     time2 = time.perf_counter()
-    log.debug(f'time to load realizations {time2-time1:.2f} seconds')
-    log.debug(f"rlz_table {component_probs.shape}")
+    log.debug('worker %s: time to load realizations %0.2f seconds' % (worker_name, time2 - time1))
+    log.debug("worker %s: %s rlz_table " % (worker_name, component_probs.shape))
 
     # convert probabilities to rates
     component_rates = convert_probs_to_rates(component_probs)
     del component_probs
     time3 = time.perf_counter()
-    log.debug(f'time to convert_probs_to_rates() {time3-time2:.2f} seconds')
+    log.debug('worker %s: time to convert_probs_to_rates() % 0.2f' % (worker_name, time3 - time2))
 
     component_rates = create_component_dict(component_rates)
     time4 = time.perf_counter()
-    log.debug(f'time to convert to dict and set digest index {time4-time3:.2f} seconds')
-    log.debug(f"rates_table {len(component_rates)}")
+    log.debug('worker %s: time to convert to dict and set digest index %0.2f seconds' % (worker_name, time4 - time3))
+    log.debug('worker %s: rates_table %d' % (worker_name, len(component_rates)))
 
     composite_rates = build_branch_rates(branch_hash_table, component_rates)
     time5 = time.perf_counter()
-    log.debug(f'time to build_ranch_rates {time5-time4:.2f} seconds')
+    log.debug('worker %s: time to build_ranch_rates %0.2f seconds' % (worker_name, time5 - time4))
 
-    log.info("calculating aggregates . . . ")
+    log.info("worker %s:  calculating aggregates . . . " % worker_name)
     hazard = calculate_aggs(composite_rates, weights, agg_types)
     time6 = time.perf_counter()
-    log.debug(f'time to calculate aggs {time6-time5:.2f} seconds')
+    log.debug('worker %s: time to calculate aggs %0.2f seconds' % (worker_name, time6 - time5))
 
-    log.info("saving result . . . ")
+    log.info("worker %s saving result . . . " % worker_name)
     save_aggregations(calculators.rate_to_prob(hazard, 1.0), location, vs30, imt, agg_types, hazard_model_id)
     time7 = time.perf_counter()
-    log.info(f'time to perform one aggregation after loading data {time7-time2:.2f} seconds')
-    log.info(f'time to perform one aggregation {time7-time0:.2f} seconds')
+    log.info(
+        'worker %s time to perform one aggregation after loading data %0.2f seconds' % (worker_name, time7 - time2)
+    )
+    log.info('worker %s time to perform one aggregation %0.2f seconds' % (worker_name, time7 - time0))
 
     return None

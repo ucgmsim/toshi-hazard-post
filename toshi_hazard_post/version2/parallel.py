@@ -29,7 +29,7 @@ def setup_parallel(
 
 
 def setup_multiproc(num_workers: int, func: Callable) -> Tuple[multiprocessing.JoinableQueue, multiprocessing.Queue]:
-    log.info(f"creating {num_workers} multiprocessing workers")
+    log.info("creating %d multiprocessing workers" % num_workers)
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
     workers = [AggregationWorkerMP(task_queue, result_queue, func) for i in range(num_workers)]
@@ -59,10 +59,10 @@ class Worker:
                 self.task_queue.task_done()
                 log.info('%s: Exiting' % proc_name)
                 break
-            log.info(f"worker {self.name} working on hazard for site: {task_args.site}, imt: {task_args.imt}")
+            log.info("worker %s: working on hazard for site: %s, imt: %s" % (self.name, task_args.site, task_args.imt))
 
             try:
-                self.func(task_args)  # calc_aggregation
+                self.func(task_args, self.name)  # calc_aggregation
                 self.task_queue.task_done()
                 log.info('%s task done.' % self.name)
                 self.result_queue.put(str(task_args.imt))

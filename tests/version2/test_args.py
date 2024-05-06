@@ -85,7 +85,7 @@ config_verror3['calculation']['imts'] = "SA(1.5)"
 config_verror4 = get_config()
 config_verror4['calculation']['agg_types'] = ["mean", "0.5", "1.1"]
 
-# compatability key must exist
+# compatibility key must exist
 config_verror5 = get_config()
 config_verror5['general']['compatibility_key'] = "Z"
 
