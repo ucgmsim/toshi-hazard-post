@@ -64,7 +64,7 @@ def get_arrow_filesystem():
     config = get_config()
 
     if config.THS_FS is ArrowFS.LOCAL:
-        log.info("retrieving realization data from local repository " % config.THS_DIR)
+        log.info("retrieving realization data from local repository %s" % config.THS_DIR)
         filesystem, root = get_local_fs(config.THS_DIR)
     elif config.THS_FS is ArrowFS.AWS:
         log.info("retrieving realization data from S3 repository %s:%s" % (config.THS_S3_REGION, config.THS_S3_BUCKET))

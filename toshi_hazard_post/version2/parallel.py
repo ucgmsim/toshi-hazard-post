@@ -32,10 +32,12 @@ def setup_multiproc(num_workers: int, func: Callable) -> Tuple[multiprocessing.J
     log.info("creating %d multiprocessing workers" % num_workers)
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
+    manager = multiprocessing.Manager()
+    manager_ns = manager.Namespace()
     workers = [AggregationWorkerMP(task_queue, result_queue, func) for i in range(num_workers)]
     for w in workers:
         w.start()
-    return task_queue, result_queue
+    return task_queue, result_queue, manager_ns
 
 
 def setup_serial(func: Callable) -> Tuple[queue.Queue, queue.Queue]:

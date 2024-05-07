@@ -80,21 +80,26 @@ def run_aggregation(args: AggregationArgs) -> None:
 
     task_queue: Union['queue.Queue', 'multiprocessing.JoinableQueue']
     result_queue: Union['queue.Queue', 'multiprocessing.Queue']
-    task_queue, result_queue = setup_parallel(num_workers, calc_aggregation)
+    task_queue, result_queue, manager_ns = setup_parallel(num_workers, calc_aggregation)
+    manager_ns.weights = weights
+    manager_ns.branch_hash_table = branch_hash_table
+    manager_ns.component_branches = component_branches
 
+    time_parallel_start = time.perf_counter()
     task_generator = TaskGenerator(sites, args.imts)
     num_jobs = 0
+    log.info("starting %d calculations" % (len(sites) * len(args.imts)))
     for site, imt, location_bin in task_generator.task_generator():
         task_args = AggTaskArgs(
-            location_bin=location_bin,
+            location_bin=location_bin, # does have a list of locations I only care about the code?
             site=site,
             imt=imt,
-            agg_types=args.agg_types,
-            weights=weights,
-            branch_hash_table=branch_hash_table,
-            hazard_model_id=args.hazard_model_id,
-            component_branches=component_branches,
-            compatiblity_key=args.compat_key,
+            agg_types=args.agg_types, # could share, but small List[str]
+            weights=weights, # share NDArray
+            branch_hash_table=branch_hash_table, # share List[List[str]] (could flatten, if necessary?)
+            hazard_model_id=args.hazard_model_id, # could share, but small str
+            component_branches=component_branches, # share  List[HazardCompnentBranch]
+            compatiblity_key=args.compat_key, # could share, but small str
         )
         task_queue.put(task_args)
         # time.sleep(5)
@@ -108,6 +113,7 @@ def run_aggregation(args: AggregationArgs) -> None:
     # Wait for all of the tasks to finish
     # TODO: prevent exceptions from stopping join() (main process will just sit there)
     task_queue.join()
+    time_parallel_end = time.perf_counter()
 
     # TODO: catch exceptions and report trace
     results: List[str] = []
@@ -117,6 +123,7 @@ def run_aggregation(args: AggregationArgs) -> None:
         num_jobs -= 1
 
     time1 = time.perf_counter()
+    log.info("time to perform parallel tasks %0.3f" % (time_parallel_end-time_parallel_start))
     log.info("processed %d calculations in %0.3f seconds" % (total_jobs, time1 - time0))
 
     n_failed = len(list(filter(lambda s: 'FAILED' in s, results)))
@@ -127,7 +134,7 @@ def run_aggregation(args: AggregationArgs) -> None:
             if 'FAILED' in result:
                 print(result)
 
-    # print(results[0])
+    print(results[0])
 
 
 # if __name__ == "__main__":

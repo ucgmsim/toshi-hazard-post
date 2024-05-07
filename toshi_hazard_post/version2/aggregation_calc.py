@@ -213,7 +213,7 @@ def calc_aggregation(task_args: AggTaskArgs, worker_name: str) -> None:
     location = site.location
     vs30 = site.vs30
 
-    log.info("worker %s loading realizations . . ." % (worker_name))
+    log.info("worker %s: loading realizations . . ." % (worker_name))
     time1 = time.perf_counter()
     component_probs = load_realizations(imt, location, vs30, location_bin, component_branches, compatibility_key)
     time2 = time.perf_counter()
