@@ -75,7 +75,7 @@ def get_arrow_filesystem():
 
 
 def get_realizations_dataset(
-    location_bin: 'CodedLocationBin',
+    location_bin_code: str,
     imt: str,
 ) -> ds.Dataset:
     """
@@ -92,7 +92,7 @@ def get_realizations_dataset(
     filesystem, root = get_arrow_filesystem()
 
     imt_code = urllib.parse.quote(imt)
-    partition = f"nloc_0={location_bin.code}/imt={imt_code}"
+    partition = f"nloc_0={location_bin_code}/imt={imt_code}"
 
     t0 = time.monotonic()
     dataset = ds.dataset(f'{root}/{partition}', format='parquet', filesystem=filesystem)
@@ -106,7 +106,7 @@ def load_realizations(
     imt: str,
     location: 'CodedLocation',
     vs30: int,
-    location_bin: 'CodedLocationBin',
+    location_bin_code: str,
     component_branches: List['HazardComponentBranch'],
     compatibility_key: str,
 ) -> pa.table:
@@ -123,7 +123,7 @@ def load_realizations(
     Returns:
         values: the component realizations rates (not probabilities)
     """
-    dataset = get_realizations_dataset(location_bin, imt)
+    dataset = get_realizations_dataset(location_bin_code, imt)
 
     gmms_digests = [branch.gmcm_hash_digest for branch in component_branches]
     sources_digests = [branch.source_hash_digest for branch in component_branches]

@@ -84,6 +84,9 @@ def run_aggregation(args: AggregationArgs) -> None:
     manager_ns.weights = weights
     manager_ns.branch_hash_table = branch_hash_table
     manager_ns.component_branches = component_branches
+    manager_ns.agg_types = args.agg_types
+    manager_ns.hazard_model_id = args.hazard_model_id
+    manager_ns.compatibility_key = args.compat_key
 
     time_parallel_start = time.perf_counter()
     task_generator = TaskGenerator(sites, args.imts)
@@ -91,15 +94,10 @@ def run_aggregation(args: AggregationArgs) -> None:
     log.info("starting %d calculations" % (len(sites) * len(args.imts)))
     for site, imt, location_bin in task_generator.task_generator():
         task_args = AggTaskArgs(
-            location_bin=location_bin, # does have a list of locations I only care about the code?
+            location_bin_code=location_bin.code, 
             site=site,
             imt=imt,
-            agg_types=args.agg_types, # could share, but small List[str]
-            weights=weights, # share NDArray
-            branch_hash_table=branch_hash_table, # share List[List[str]] (could flatten, if necessary?)
-            hazard_model_id=args.hazard_model_id, # could share, but small str
-            component_branches=component_branches, # share  List[HazardCompnentBranch]
-            compatiblity_key=args.compat_key, # could share, but small str
+            manager_ns=manager_ns,
         )
         task_queue.put(task_args)
         # time.sleep(5)
@@ -134,7 +132,6 @@ def run_aggregation(args: AggregationArgs) -> None:
             if 'FAILED' in result:
                 print(result)
 
-    print(results[0])
 
 
 # if __name__ == "__main__":

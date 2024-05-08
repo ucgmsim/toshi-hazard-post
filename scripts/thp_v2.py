@@ -12,10 +12,8 @@ logging.getLogger('toshi_hazard_post.version2.aggregation_calc').setLevel(loggin
 logging.getLogger('toshi_hazard_post.version2.aggregation').setLevel(logging.DEBUG)
 logging.getLogger('toshi_hazard_post.version2.aggregation_calc').setLevel(logging.DEBUG)
 logging.getLogger('toshi_hazard_post.version2.logic_tree').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_post.version2.parallel').setLevel(logging.DEBUG)
 logging.getLogger('toshi_hazard_post.version2').setLevel(logging.INFO)
-# logging.getLogger('boto3').setLevel(logging.DEBUG)
-# logging.getLogger('botocore').setLevel(logging.DEBUG)
-# logging.getLogger('s3transfer').setLevel(logging.DEBUG)
 
 
 @click.group()

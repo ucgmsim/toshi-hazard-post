@@ -16,21 +16,17 @@ if TYPE_CHECKING:
 
     from toshi_hazard_post.version2.aggregation_setup import Site
     from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
+    from multiprocessing.managers import Namespace
 
 log = logging.getLogger(__name__)
 
 
 @dataclass
 class AggTaskArgs:
-    location_bin: 'CodedLocationBin'
+    location_bin_code: str
     site: 'Site'
     imt: str
-    agg_types: List[str]
-    weights: 'npt.NDArray'
-    branch_hash_table: List[List[str]]
-    hazard_model_id: str
-    component_branches: List['HazardComponentBranch']
-    compatiblity_key: str
+    manager_ns: 'Namespace'
 
 
 def convert_probs_to_rates(probs: pa.Table) -> pa.Table:
@@ -201,13 +197,14 @@ def calc_aggregation(task_args: AggTaskArgs, worker_name: str) -> None:
     """
     site = task_args.site
     imt = task_args.imt
-    agg_types = task_args.agg_types
-    weights = task_args.weights
-    branch_hash_table = task_args.branch_hash_table
-    hazard_model_id = task_args.hazard_model_id
-    location_bin = task_args.location_bin
-    component_branches = task_args.component_branches
-    compatibility_key = task_args.compatiblity_key
+    location_bin_code = task_args.location_bin_code
+    
+    agg_types: List[str] = task_args.manager_ns.agg_types
+    compatibility_key: str = task_args.manager_ns.compatibility_key
+    hazard_model_id: str = task_args.manager_ns.hazard_model_id
+    weights: 'npt.NDArray' = task_args.manager_ns.weights
+    component_branches: List['HazardComponentBranch'] = task_args.manager_ns.component_branches
+    branch_hash_table: List[List[str]] = task_args.manager_ns.branch_hash_table
 
     time0 = time.perf_counter()
     location = site.location
@@ -215,7 +212,7 @@ def calc_aggregation(task_args: AggTaskArgs, worker_name: str) -> None:
 
     log.info("worker %s: loading realizations . . ." % (worker_name))
     time1 = time.perf_counter()
-    component_probs = load_realizations(imt, location, vs30, location_bin, component_branches, compatibility_key)
+    component_probs = load_realizations(imt, location, vs30, location_bin_code, component_branches, compatibility_key)
     time2 = time.perf_counter()
     log.debug('worker %s: time to load realizations %0.2f seconds' % (worker_name, time2 - time1))
     log.debug("worker %s: %s rlz_table " % (worker_name, component_probs.shape))

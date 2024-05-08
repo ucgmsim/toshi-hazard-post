@@ -55,6 +55,7 @@ class Worker:
         proc_name = self.name
 
         while True:
+            log.debug("worker %s: requesting task" % self.name)
             task_args = self.task_queue.get()
             if task_args is None:
                 # Poison pill means shutdown
