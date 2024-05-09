@@ -4,11 +4,11 @@ import urllib.parse
 from typing import TYPE_CHECKING, List
 
 import boto3
+import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
-import pandas as pd
 
 from toshi_hazard_post.version2.local_config import ArrowFS, get_config
 from toshi_hazard_post.version2.ths_mock import write_aggs_to_ths
@@ -65,8 +65,8 @@ def get_arrow_filesystem():
     config = get_config()
 
     if config.THS_FS is ArrowFS.LOCAL:
-        log.info("retrieving realization data from local repository %s" % config.THS_DIR)
-        filesystem, root = get_local_fs(config.THS_DIR)
+        log.info("retrieving realization data from local repository %s" % config.THS_LOCAL_DIR)
+        filesystem, root = get_local_fs(config.THS_LOCAL_DIR)
     elif config.THS_FS is ArrowFS.AWS:
         log.info("retrieving realization data from S3 repository %s:%s" % (config.THS_S3_REGION, config.THS_S3_BUCKET))
         filesystem, root = get_s3_fs(config.THS_S3_REGION, config.THS_S3_BUCKET)
@@ -102,6 +102,7 @@ def get_realizations_dataset(
 
     return dataset
 
+
 def load_realizations_mock(
     imt: str,
     location: 'CodedLocation',
@@ -109,7 +110,6 @@ def load_realizations_mock(
 ):
     filename = f"/work/chrisdc/NZSHM-WORKING/PROD/tmp_data/component_{location.code}_{vs30}_{imt}"
     return pd.read_pickle(filename).to_dict()['rates']
-
 
 
 def load_realizations(

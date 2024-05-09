@@ -8,7 +8,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 
 import toshi_hazard_post.version2.calculators as calculators
-from toshi_hazard_post.version2.data import load_realizations, save_aggregations, load_realizations_mock
+from toshi_hazard_post.version2.data import load_realizations, save_aggregations
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 
     from toshi_hazard_post.version2.aggregation_setup import Site
     from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
-    from multiprocessing.managers import Namespace
 
 log = logging.getLogger(__name__)
 
@@ -27,6 +26,7 @@ class AggTaskArgs:
     site: 'Site'
     imt: str
 
+
 @dataclass
 class AggSharedArgs:
     agg_types: List[str]
@@ -35,6 +35,7 @@ class AggSharedArgs:
     weights: 'npt.NDArray'
     component_branches: List['HazardComponentBranch']
     branch_hash_table: List[List[str]]
+
 
 def convert_probs_to_rates(probs: pa.Table) -> pa.Table:
     """all aggregations must be performed in rates space, but rlz have probablities
@@ -167,6 +168,7 @@ def build_branch_rates(branch_hash_table: List[List[str]], component_rates: Dict
     nimtl = len(next(iter(component_rates.values())))
     return np.array([calc_composite_rates(branch, component_rates, nimtl) for branch in branch_hash_table])
 
+
 def create_component_dict_save(component_rates, site, imt):
     component_rates = component_rates.append_column(
         'digest',
@@ -181,6 +183,7 @@ def create_component_dict_save(component_rates, site, imt):
     component_rates = component_rates.to_pandas()
     component_rates.set_index('digest', inplace=True)
     component_rates.to_pickle(filename)
+
 
 def create_component_dict(component_rates: pa.Table) -> Dict[str, 'npt.NDArray']:
     component_rates = component_rates.append_column(
@@ -219,7 +222,7 @@ def calc_aggregation(task_args: AggTaskArgs, shared_args: AggSharedArgs, worker_
     site = task_args.site
     imt = task_args.imt
     location_bin = task_args.location_bin
-    
+
     agg_types = shared_args.agg_types
     compatibility_key = shared_args.compatibility_key
     hazard_model_id = shared_args.hazard_model_id

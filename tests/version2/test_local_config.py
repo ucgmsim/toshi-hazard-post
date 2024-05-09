@@ -4,20 +4,21 @@ from pathlib import Path
 import pytest
 
 import toshi_hazard_post.version2.local_config as local_config
+from toshi_hazard_post.version2.local_config import ENV_NAMES as env_vars
 
-env_vars = [
-    "THP_NUM_WORKERS",
-    "THP_SCRIPT_WORK_PATH",
-    "THP_THS_LOCAL_DIR",
-    "THP_THS_S3_BUCKET",
-    "THP_THS_AWS_REGION",
-    "THP_THS_FS",
-]
+# env_vars = [
+#     "THP_NUM_WORKERS",
+#     "THP_WORK_PATH",
+#     "THP_THS_LOCAL_DIR",
+#     "THP_THS_S3_BUCKET",
+#     "THP_THS_AWS_REGION",
+#     "THP_THS_FS",
+# ]
 
 default_attrs = [
     ("NUM_WORKERS", 1),
     ("WORK_PATH", 'default work path'),
-    ("THS_DIR", 'default ths local dir'),
+    ("THS_LOCAL_DIR", 'default ths local dir'),
     ("THS_S3_BUCKET", 'default ths s3 bucket'),
     ("THS_S3_REGION", 'default ths aws region'),
     ("THS_FS", local_config.ArrowFS.LOCAL),
@@ -26,7 +27,7 @@ default_attrs = [
 user_attrs = [
     ("NUM_WORKERS", 2),
     ("WORK_PATH", 'user work path'),
-    ("THS_DIR", 'user ths local dir'),
+    ("THS_LOCAL_DIR", 'user ths local dir'),
     ("THS_S3_BUCKET", 'user ths s3 bucket'),
     ("THS_S3_REGION", 'user ths aws region'),
     ("THS_FS", local_config.ArrowFS.AWS),
@@ -38,7 +39,7 @@ def env_attr_val_fixture(request):
     env_attrs = [
         ["NUM_WORKERS", 3],
         ["WORK_PATH", 'env work path'],
-        ["THS_DIR", 'env ths local dir'],
+        ["THS_LOCAL_DIR", 'env ths local dir'],
         ["THS_S3_BUCKET", 'env ths s3 bucket'],
         ["THS_S3_REGION", 'env ths aws region'],
         ["THS_FS", local_config.ArrowFS.LOCAL],

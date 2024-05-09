@@ -1,5 +1,5 @@
 num_workers = 2
-script_work_path = 'user work path'
+work_path = 'user work path'
 ths_local_dir = 'user ths local dir'
 ths_s3_bucket = 'user ths s3 bucket'
 ths_aws_region = 'user ths aws region'

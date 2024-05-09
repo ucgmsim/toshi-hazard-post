@@ -1,11 +1,10 @@
 import logging
-import time
 import multiprocessing
-from functools import partial
 import queue
 import threading
 import traceback
-from typing import Callable, Tuple, Union, TYPE_CHECKING
+from functools import partial
+from typing import TYPE_CHECKING, Callable, Tuple, Union
 
 if TYPE_CHECKING:
     from toshi_hazard_post.version2.aggregation_calc import AggSharedArgs
@@ -14,7 +13,9 @@ log = logging.getLogger(__name__)
 
 
 def setup_parallel(
-    num_workers: int,  func: Callable, shared_args: 'AggSharedArgs',
+    num_workers: int,
+    func: Callable,
+    shared_args: 'AggSharedArgs',
 ) -> Tuple[Union[queue.Queue, multiprocessing.JoinableQueue], Union[queue.Queue, multiprocessing.Queue]]:
     """
     Create the task and results queus and setup workers for either parallel (multiprocessing) or serial mode
@@ -34,7 +35,9 @@ def setup_parallel(
     return setup_serial(func, shared_args)
 
 
-def setup_multiproc(num_workers: int, func: Callable, shared_args: 'AggSharedArgs') -> Tuple[multiprocessing.JoinableQueue, multiprocessing.Queue]:
+def setup_multiproc(
+    num_workers: int, func: Callable, shared_args: 'AggSharedArgs'
+) -> Tuple[multiprocessing.JoinableQueue, multiprocessing.Queue]:
     log.info("creating %d multiprocessing workers" % num_workers)
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
