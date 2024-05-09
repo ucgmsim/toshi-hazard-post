@@ -8,6 +8,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
+import pandas as pd
 
 from toshi_hazard_post.version2.local_config import ArrowFS, get_config
 from toshi_hazard_post.version2.ths_mock import write_aggs_to_ths
@@ -75,7 +76,7 @@ def get_arrow_filesystem():
 
 
 def get_realizations_dataset(
-    location_bin_code: str,
+    location_bin: 'CodedLocationBin',
     imt: str,
 ) -> ds.Dataset:
     """
@@ -92,7 +93,7 @@ def get_realizations_dataset(
     filesystem, root = get_arrow_filesystem()
 
     imt_code = urllib.parse.quote(imt)
-    partition = f"nloc_0={location_bin_code}/imt={imt_code}"
+    partition = f"nloc_0={location_bin.code}/imt={imt_code}"
 
     t0 = time.monotonic()
     dataset = ds.dataset(f'{root}/{partition}', format='parquet', filesystem=filesystem)
@@ -101,12 +102,21 @@ def get_realizations_dataset(
 
     return dataset
 
+def load_realizations_mock(
+    imt: str,
+    location: 'CodedLocation',
+    vs30: int,
+):
+    filename = f"/work/chrisdc/NZSHM-WORKING/PROD/tmp_data/component_{location.code}_{vs30}_{imt}"
+    return pd.read_pickle(filename).to_dict()['rates']
+
+
 
 def load_realizations(
     imt: str,
     location: 'CodedLocation',
     vs30: int,
-    location_bin_code: str,
+    location_bin: 'CodedLocationBin',
     component_branches: List['HazardComponentBranch'],
     compatibility_key: str,
 ) -> pa.table:
@@ -123,7 +133,7 @@ def load_realizations(
     Returns:
         values: the component realizations rates (not probabilities)
     """
-    dataset = get_realizations_dataset(location_bin_code, imt)
+    dataset = get_realizations_dataset(location_bin, imt)
 
     gmms_digests = [branch.gmcm_hash_digest for branch in component_branches]
     sources_digests = [branch.source_hash_digest for branch in component_branches]

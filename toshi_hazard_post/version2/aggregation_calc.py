@@ -8,7 +8,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 
 import toshi_hazard_post.version2.calculators as calculators
-from toshi_hazard_post.version2.data import load_realizations, save_aggregations
+from toshi_hazard_post.version2.data import load_realizations, save_aggregations, load_realizations_mock
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -23,11 +23,18 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class AggTaskArgs:
-    location_bin_code: str
+    location_bin: 'CodedLocationBin'
     site: 'Site'
     imt: str
-    manager_ns: 'Namespace'
 
+@dataclass
+class AggSharedArgs:
+    agg_types: List[str]
+    compatibility_key: str
+    hazard_model_id: str
+    weights: 'npt.NDArray'
+    component_branches: List['HazardComponentBranch']
+    branch_hash_table: List[List[str]]
 
 def convert_probs_to_rates(probs: pa.Table) -> pa.Table:
     """all aggregations must be performed in rates space, but rlz have probablities
@@ -160,6 +167,20 @@ def build_branch_rates(branch_hash_table: List[List[str]], component_rates: Dict
     nimtl = len(next(iter(component_rates.values())))
     return np.array([calc_composite_rates(branch, component_rates, nimtl) for branch in branch_hash_table])
 
+def create_component_dict_save(component_rates, site, imt):
+    component_rates = component_rates.append_column(
+        'digest',
+        pc.binary_join_element_wise(
+            pc.cast(component_rates['sources_digest'], pa.string()),
+            pc.cast(component_rates['gmms_digest'], pa.string()),
+            "",
+        ),
+    )
+    filename = f"/work/chrisdc/NZSHM-WORKING/PROD/tmp_data/component_{site.location.code}_{site.vs30}_{imt}"
+    component_rates = component_rates.drop_columns(['sources_digest', 'gmms_digest'])
+    component_rates = component_rates.to_pandas()
+    component_rates.set_index('digest', inplace=True)
+    component_rates.to_pickle(filename)
 
 def create_component_dict(component_rates: pa.Table) -> Dict[str, 'npt.NDArray']:
     component_rates = component_rates.append_column(
@@ -177,7 +198,7 @@ def create_component_dict(component_rates: pa.Table) -> Dict[str, 'npt.NDArray']
     return component_rates['rates'].to_dict()
 
 
-def calc_aggregation(task_args: AggTaskArgs, worker_name: str) -> None:
+def calc_aggregation(task_args: AggTaskArgs, shared_args: AggSharedArgs, worker_name: str) -> None:
     """
     Calculate hazard aggregation for a single site and imt and save result
 
@@ -197,14 +218,14 @@ def calc_aggregation(task_args: AggTaskArgs, worker_name: str) -> None:
     """
     site = task_args.site
     imt = task_args.imt
-    location_bin_code = task_args.location_bin_code
+    location_bin = task_args.location_bin
     
-    agg_types: List[str] = task_args.manager_ns.agg_types
-    compatibility_key: str = task_args.manager_ns.compatibility_key
-    hazard_model_id: str = task_args.manager_ns.hazard_model_id
-    weights: 'npt.NDArray' = task_args.manager_ns.weights
-    component_branches: List['HazardComponentBranch'] = task_args.manager_ns.component_branches
-    branch_hash_table: List[List[str]] = task_args.manager_ns.branch_hash_table
+    agg_types = shared_args.agg_types
+    compatibility_key = shared_args.compatibility_key
+    hazard_model_id = shared_args.hazard_model_id
+    weights = shared_args.weights
+    component_branches = shared_args.component_branches
+    branch_hash_table = shared_args.branch_hash_table
 
     time0 = time.perf_counter()
     location = site.location
@@ -212,7 +233,14 @@ def calc_aggregation(task_args: AggTaskArgs, worker_name: str) -> None:
 
     log.info("worker %s: loading realizations . . ." % (worker_name))
     time1 = time.perf_counter()
-    component_probs = load_realizations(imt, location, vs30, location_bin_code, component_branches, compatibility_key)
+
+    ### PYARROW MOCK
+    # time2 = time.perf_counter()
+    # time3 = time.perf_counter()
+    # component_rates = load_realizations_mock(imt, location, vs30)
+
+    ### PYARROW
+    component_probs = load_realizations(imt, location, vs30, location_bin, component_branches, compatibility_key)
     time2 = time.perf_counter()
     log.debug('worker %s: time to load realizations %0.2f seconds' % (worker_name, time2 - time1))
     log.debug("worker %s: %s rlz_table " % (worker_name, component_probs.shape))
@@ -224,6 +252,9 @@ def calc_aggregation(task_args: AggTaskArgs, worker_name: str) -> None:
     log.debug('worker %s: time to convert_probs_to_rates() % 0.2f' % (worker_name, time3 - time2))
 
     component_rates = create_component_dict(component_rates)
+    ### PYARROW
+
+    # component_rates = create_component_dict_save(component_rates, site, imt)
     time4 = time.perf_counter()
     log.debug('worker %s: time to convert to dict and set digest index %0.2f seconds' % (worker_name, time4 - time3))
     log.debug('worker %s: rates_table %d' % (worker_name, len(component_rates)))
@@ -244,5 +275,6 @@ def calc_aggregation(task_args: AggTaskArgs, worker_name: str) -> None:
         'worker %s time to perform one aggregation after loading data %0.2f seconds' % (worker_name, time7 - time2)
     )
     log.info('worker %s time to perform one aggregation %0.2f seconds' % (worker_name, time7 - time0))
+    # time.sleep(30)
 
     return None

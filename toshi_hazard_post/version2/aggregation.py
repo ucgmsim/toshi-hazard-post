@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Generator, List, Tuple, Union
 from nzshm_common.location.coded_location import bin_locations
 
 from toshi_hazard_post.version2.aggregation_args import AggregationArgs
-from toshi_hazard_post.version2.aggregation_calc import AggTaskArgs, calc_aggregation
+from toshi_hazard_post.version2.aggregation_calc import AggTaskArgs, calc_aggregation, AggSharedArgs
 from toshi_hazard_post.version2.aggregation_setup import Site, get_lts, get_sites  # , get_levels
 from toshi_hazard_post.version2.local_config import get_config
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
@@ -78,15 +78,18 @@ def run_aggregation(args: AggregationArgs) -> None:
 
     component_branches = logic_tree.component_branches
 
+    shared_args = AggSharedArgs(
+        weights = weights,
+        branch_hash_table = branch_hash_table,
+        component_branches = component_branches,
+        agg_types = args.agg_types,
+        hazard_model_id = args.hazard_model_id,
+        compatibility_key = args.compat_key,
+    )
+    
     task_queue: Union['queue.Queue', 'multiprocessing.JoinableQueue']
     result_queue: Union['queue.Queue', 'multiprocessing.Queue']
-    task_queue, result_queue, manager_ns = setup_parallel(num_workers, calc_aggregation)
-    manager_ns.weights = weights
-    manager_ns.branch_hash_table = branch_hash_table
-    manager_ns.component_branches = component_branches
-    manager_ns.agg_types = args.agg_types
-    manager_ns.hazard_model_id = args.hazard_model_id
-    manager_ns.compatibility_key = args.compat_key
+    task_queue, result_queue = setup_parallel(num_workers, calc_aggregation, shared_args)
 
     time_parallel_start = time.perf_counter()
     task_generator = TaskGenerator(sites, args.imts)
@@ -94,13 +97,11 @@ def run_aggregation(args: AggregationArgs) -> None:
     log.info("starting %d calculations" % (len(sites) * len(args.imts)))
     for site, imt, location_bin in task_generator.task_generator():
         task_args = AggTaskArgs(
-            location_bin_code=location_bin.code, 
+            location_bin=location_bin, 
             site=site,
             imt=imt,
-            manager_ns=manager_ns,
         )
         task_queue.put(task_args)
-        # time.sleep(5)
         num_jobs += 1
     total_jobs = num_jobs
 
@@ -109,7 +110,6 @@ def run_aggregation(args: AggregationArgs) -> None:
         task_queue.put(None)
 
     # Wait for all of the tasks to finish
-    # TODO: prevent exceptions from stopping join() (main process will just sit there)
     task_queue.join()
     time_parallel_end = time.perf_counter()
 

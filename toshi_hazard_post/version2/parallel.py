@@ -1,15 +1,20 @@
 import logging
+import time
 import multiprocessing
+from functools import partial
 import queue
 import threading
 import traceback
-from typing import Callable, Tuple, Union
+from typing import Callable, Tuple, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from toshi_hazard_post.version2.aggregation_calc import AggSharedArgs
 
 log = logging.getLogger(__name__)
 
 
 def setup_parallel(
-    num_workers: int, func: Callable
+    num_workers: int,  func: Callable, shared_args: 'AggSharedArgs',
 ) -> Tuple[Union[queue.Queue, multiprocessing.JoinableQueue], Union[queue.Queue, multiprocessing.Queue]]:
     """
     Create the task and results queus and setup workers for either parallel (multiprocessing) or serial mode
@@ -17,6 +22,7 @@ def setup_parallel(
     Parameters:
         num_workers: the number of workers to create. If <1, then a serial process will be used
         func: the callable object to be invoked
+        shared_args: the arguments of func common to every task
 
     Returns:
         task_queue: the task queue
@@ -24,27 +30,27 @@ def setup_parallel(
     """
 
     if num_workers > 1:
-        return setup_multiproc(num_workers, func)
-    return setup_serial(func)
+        return setup_multiproc(num_workers, func, shared_args)
+    return setup_serial(func, shared_args)
 
 
-def setup_multiproc(num_workers: int, func: Callable) -> Tuple[multiprocessing.JoinableQueue, multiprocessing.Queue]:
+def setup_multiproc(num_workers: int, func: Callable, shared_args: 'AggSharedArgs') -> Tuple[multiprocessing.JoinableQueue, multiprocessing.Queue]:
     log.info("creating %d multiprocessing workers" % num_workers)
     task_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
     result_queue: multiprocessing.Queue = multiprocessing.Queue()
-    manager = multiprocessing.Manager()
-    manager_ns = manager.Namespace()
-    workers = [AggregationWorkerMP(task_queue, result_queue, func) for i in range(num_workers)]
+    pfunc = partial(func, shared_args=shared_args)
+    workers = [AggregationWorkerMP(task_queue, result_queue, pfunc) for i in range(num_workers)]
     for w in workers:
         w.start()
-    return task_queue, result_queue, manager_ns
+    return task_queue, result_queue
 
 
-def setup_serial(func: Callable) -> Tuple[queue.Queue, queue.Queue]:
+def setup_serial(func: Callable, shared_args: 'AggSharedArgs') -> Tuple[queue.Queue, queue.Queue]:
     log.info("creating one serial worker")
     task_queue: queue.Queue = queue.Queue()
     result_queue: queue.Queue = queue.Queue()
-    worker = AggregationWorkerSerial(task_queue, result_queue, func)
+    pfunc = partial(func, shared_args=shared_args)
+    worker = AggregationWorkerSerial(task_queue, result_queue, pfunc)
     worker.start()
     return task_queue, result_queue
 
@@ -65,7 +71,7 @@ class Worker:
             log.info("worker %s: working on hazard for site: %s, imt: %s" % (self.name, task_args.site, task_args.imt))
 
             try:
-                self.func(task_args, self.name)  # calc_aggregation
+                self.func(task_args=task_args, worker_name=self.name)  # calc_aggregation
                 self.task_queue.task_done()
                 log.info('%s task done.' % self.name)
                 self.result_queue.put(str(task_args.imt))
@@ -79,11 +85,11 @@ class Worker:
 class AggregationWorkerSerial(Worker, threading.Thread):
     """A serial worker"""
 
-    def __init__(self, task_queue: queue.Queue, result_queue: queue.Queue, func: Callable):
+    def __init__(self, task_queue: queue.Queue, result_queue: queue.Queue, pfunc: Callable):
         threading.Thread.__init__(self)
         self.task_queue = task_queue
         self.result_queue = result_queue
-        self.func = func
+        self.func = pfunc
 
     def run(self):
         super().run()
@@ -92,11 +98,11 @@ class AggregationWorkerSerial(Worker, threading.Thread):
 class AggregationWorkerMP(Worker, multiprocessing.Process):
     """A worker that batches aggregation processing."""
 
-    def __init__(self, task_queue: multiprocessing.JoinableQueue, result_queue: multiprocessing.Queue, func: Callable):
+    def __init__(self, task_queue: multiprocessing.JoinableQueue, result_queue: multiprocessing.Queue, pfunc: Callable):
         multiprocessing.Process.__init__(self)
         self.task_queue = task_queue
         self.result_queue = result_queue
-        self.func = func
+        self.func = pfunc
 
     def run(self):
         super().run()
