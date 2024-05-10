@@ -119,7 +119,7 @@ def load_realizations(
     location_bin: 'CodedLocationBin',
     component_branches: List['HazardComponentBranch'],
     compatibility_key: str,
-) -> pa.table:
+) -> pd.DataFrame:
     """
     Load component realizations from the database.
 
@@ -160,7 +160,9 @@ def load_realizations(
     log.info("load scanner:%0.6f, to_arrow %0.6fs" % (t1 - t0, t2 - t1))
     log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
     log.info("loaded %s realizations in arrow", rlz_table.shape[0])
-    return rlz_table
+    rlz_table.to_pandas().to_pickle('rlz.pkl')
+    assert 0
+    return rlz_table.to_pandas()
 
 
 # def save_aggregations(

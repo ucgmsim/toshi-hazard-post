@@ -4,14 +4,13 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List, Sequence
 
 import numpy as np
-import pyarrow as pa
-import pyarrow.compute as pc
 
 import toshi_hazard_post.version2.calculators as calculators
 from toshi_hazard_post.version2.data import load_realizations, save_aggregations
 
 if TYPE_CHECKING:
     import numpy.typing as npt
+    import pandas as pd
     from nzshm_common.location.coded_location import CodedLocationBin
 
     from toshi_hazard_post.version2.aggregation_setup import Site
@@ -37,17 +36,13 @@ class AggSharedArgs:
     branch_hash_table: List[List[str]]
 
 
-def convert_probs_to_rates(probs: pa.Table) -> pa.Table:
-    """all aggregations must be performed in rates space, but rlz have probablities
-
-    here we're only vectorising internally to the row, maybe this could be done over the entire columns ??
+def convert_probs_to_rates(probs: 'pd.DataFrame') -> 'pd.DataFrame':
     """
-    probs_array = probs.column(2).to_numpy()
-
-    vpr = np.vectorize(calculators.prob_to_rate, otypes=[object])
-
-    rates_array = np.apply_along_axis(vpr, 0, probs_array, inv_time=1.0)
-    return probs.set_column(2, 'rates', pa.array(rates_array))
+    Convert probabilies to rates assuming probabilies are Poissonian
+    """
+    probs['rates'] = probs['values'].apply(calculators.prob_to_rate, inv_time=1.0)
+    probs.drop('values', axis=1)
+    return probs
 
 
 def calculate_aggs(branch_rates: 'npt.NDArray', weights: 'npt.NDArray', agg_types: Sequence[str]) -> 'npt.NDArray':
@@ -169,35 +164,11 @@ def build_branch_rates(branch_hash_table: List[List[str]], component_rates: Dict
     return np.array([calc_composite_rates(branch, component_rates, nimtl) for branch in branch_hash_table])
 
 
-def create_component_dict_save(component_rates, site, imt):
-    component_rates = component_rates.append_column(
-        'digest',
-        pc.binary_join_element_wise(
-            pc.cast(component_rates['sources_digest'], pa.string()),
-            pc.cast(component_rates['gmms_digest'], pa.string()),
-            "",
-        ),
-    )
-    filename = f"/work/chrisdc/NZSHM-WORKING/PROD/tmp_data/component_{site.location.code}_{site.vs30}_{imt}"
-    component_rates = component_rates.drop_columns(['sources_digest', 'gmms_digest'])
-    component_rates = component_rates.to_pandas()
+def create_component_dict(component_rates: 'pd.DataFrame') -> Dict[str, 'npt.NDArray']:
+    component_rates['digest'] = component_rates['sources_digest'] + component_rates['gmms_digest']
+    component_rates.drop(['sources_digest', 'gmms_digest'], axis=1)
     component_rates.set_index('digest', inplace=True)
-    component_rates.to_pickle(filename)
 
-
-def create_component_dict(component_rates: pa.Table) -> Dict[str, 'npt.NDArray']:
-    component_rates = component_rates.append_column(
-        'digest',
-        pc.binary_join_element_wise(
-            pc.cast(component_rates['sources_digest'], pa.string()),
-            pc.cast(component_rates['gmms_digest'], pa.string()),
-            "",
-        ),
-    )
-    component_rates = component_rates.drop_columns(['sources_digest', 'gmms_digest'])
-    component_rates = component_rates.to_pandas()
-    component_rates.set_index('digest', inplace=True)
-    # component_rates = component_rates['rates']
     return component_rates['rates'].to_dict()
 
 
@@ -237,12 +208,6 @@ def calc_aggregation(task_args: AggTaskArgs, shared_args: AggSharedArgs, worker_
     log.info("worker %s: loading realizations . . ." % (worker_name))
     time1 = time.perf_counter()
 
-    ### PYARROW MOCK
-    # time2 = time.perf_counter()
-    # time3 = time.perf_counter()
-    # component_rates = load_realizations_mock(imt, location, vs30)
-
-    ### PYARROW
     component_probs = load_realizations(imt, location, vs30, location_bin, component_branches, compatibility_key)
     time2 = time.perf_counter()
     log.debug('worker %s: time to load realizations %0.2f seconds' % (worker_name, time2 - time1))
@@ -255,9 +220,7 @@ def calc_aggregation(task_args: AggTaskArgs, shared_args: AggSharedArgs, worker_
     log.debug('worker %s: time to convert_probs_to_rates() % 0.2f' % (worker_name, time3 - time2))
 
     component_rates = create_component_dict(component_rates)
-    ### PYARROW
 
-    # component_rates = create_component_dict_save(component_rates, site, imt)
     time4 = time.perf_counter()
     log.debug('worker %s: time to convert to dict and set digest index %0.2f seconds' % (worker_name, time4 - time3))
     log.debug('worker %s: rates_table %d' % (worker_name, len(component_rates)))

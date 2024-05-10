@@ -43,7 +43,6 @@ config_default_filepath = Path(__file__).parent.parent.parent / 'thp_config.toml
 config_override_filepath: Optional[Path] = None
 
 
-
 @dataclass
 class Config:
     NUM_WORKERS: int
@@ -53,8 +52,10 @@ class Config:
     THS_S3_REGION: str
     THS_FS: ArrowFS
 
+
 PREFIX = 'THP_'
 ENV_NAMES = [PREFIX + key for key in Config.__dataclass_fields__.keys()]
+
 
 class DotDict(UserDict):
     """
