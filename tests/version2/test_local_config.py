@@ -7,45 +7,45 @@ import toshi_hazard_post.version2.local_config as local_config
 from toshi_hazard_post.version2.local_config import ENV_NAMES as env_vars
 
 # env_vars = [
-#     "THP_NUM_WORKERS",
-#     "THP_WORK_PATH",
-#     "THP_THS_LOCAL_DIR",
-#     "THP_THS_S3_BUCKET",
+#     "THP_num_workers",
+#     "THP_work_path",
+#     "THP_ths_local_dir",
+#     "THP_ths_s3_bucket",
 #     "THP_THS_AWS_REGION",
-#     "THP_THS_FS",
+#     "THP_ths_fs",
 # ]
 
 default_attrs = [
-    ("NUM_WORKERS", 1),
-    ("WORK_PATH", 'default work path'),
-    ("THS_LOCAL_DIR", 'default ths local dir'),
-    ("THS_S3_BUCKET", 'default ths s3 bucket'),
-    ("THS_S3_REGION", 'default ths aws region'),
-    ("THS_FS", local_config.ArrowFS.LOCAL),
+    ("num_workers", 1),
+    ("work_path", 'default work path'),
+    ("ths_local_dir", 'default ths local dir'),
+    ("ths_s3_bucket", 'default ths s3 bucket'),
+    ("ths_aws_region", 'default ths aws region'),
+    ("ths_fs", local_config.ArrowFS.LOCAL),
 ]
 
 user_attrs = [
-    ("NUM_WORKERS", 2),
-    ("WORK_PATH", 'user work path'),
-    ("THS_LOCAL_DIR", 'user ths local dir'),
-    ("THS_S3_BUCKET", 'user ths s3 bucket'),
-    ("THS_S3_REGION", 'user ths aws region'),
-    ("THS_FS", local_config.ArrowFS.AWS),
+    ("num_workers", 2),
+    ("work_path", 'user work path'),
+    ("ths_local_dir", 'user ths local dir'),
+    ("ths_s3_bucket", 'user ths s3 bucket'),
+    ("ths_aws_region", 'user ths aws region'),
+    ("ths_fs", local_config.ArrowFS.AWS),
 ]
 
 
 @pytest.fixture(scope='function', params=list(range(len(env_vars) - 1)))
 def env_attr_val_fixture(request):
     env_attrs = [
-        ["NUM_WORKERS", 3],
-        ["WORK_PATH", 'env work path'],
-        ["THS_LOCAL_DIR", 'env ths local dir'],
-        ["THS_S3_BUCKET", 'env ths s3 bucket'],
-        ["THS_S3_REGION", 'env ths aws region'],
-        ["THS_FS", local_config.ArrowFS.LOCAL],
+        ["num_workers", 3],
+        ["work_path", 'env work path'],
+        ["ths_local_dir", 'env ths local dir'],
+        ["ths_s3_bucket", 'env ths s3 bucket'],
+        ["ths_aws_region", 'env ths aws region'],
+        ["ths_fs", local_config.ArrowFS.LOCAL],
     ]
     env_attr_val = [[evar] + attr for evar, attr in zip(env_vars, env_attrs)]
-    # the way the fixture is parameterized makes the THS_FS annoying to check
+    # the way the fixture is parameterized makes the ths_fs annoying to check
     env_attr_val = env_attr_val[:-1]
     return env_attr_val[request.param]
 

@@ -22,7 +22,7 @@ def write_aggs_to_ths(
     hazard_model_id: str,
 ) -> None:
     config = get_config()
-    agg_dir = Path(config.WORK_PATH) / 'AGGREGATIONS'
+    agg_dir = Path(config.work_path) / 'AGGREGATIONS'
     if not agg_dir.is_dir():
         agg_dir.mkdir()
     filepath = agg_dir / f"{hazard_model_id}_{vs30}_{imt}_{location.code}"

@@ -64,12 +64,12 @@ def get_s3_fs(region, bucket):
 def get_arrow_filesystem():
     config = get_config()
 
-    if config.THS_FS is ArrowFS.LOCAL:
-        log.info("retrieving realization data from local repository %s" % config.THS_LOCAL_DIR)
-        filesystem, root = get_local_fs(config.THS_LOCAL_DIR)
-    elif config.THS_FS is ArrowFS.AWS:
-        log.info("retrieving realization data from S3 repository %s:%s" % (config.THS_S3_REGION, config.THS_S3_BUCKET))
-        filesystem, root = get_s3_fs(config.THS_S3_REGION, config.THS_S3_BUCKET)
+    if config.ths_fs is ArrowFS.LOCAL:
+        log.info("retrieving realization data from local repository %s" % config.ths_local_dir)
+        filesystem, root = get_local_fs(config.ths_local_dir)
+    elif config.ths_fs is ArrowFS.AWS:
+        log.info("retrieving realization data from S3 repository %s:%s" % (config.ths_aws_region, config.ths_s3_bucket))
+        filesystem, root = get_s3_fs(config.ths_aws_region, config.ths_s3_bucket)
     else:
         filesystem = root = None
     return filesystem, root
@@ -160,8 +160,6 @@ def load_realizations(
     log.info("load scanner:%0.6f, to_arrow %0.6fs" % (t1 - t0, t2 - t1))
     log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
     log.info("loaded %s realizations in arrow", rlz_table.shape[0])
-    rlz_table.to_pandas().to_pickle('rlz.pkl')
-    assert 0
     return rlz_table.to_pandas()
 
 

@@ -22,11 +22,10 @@ Parameters:
 """
 
 import os
-from collections import UserDict
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 import toml
 
@@ -45,40 +44,21 @@ config_override_filepath: Optional[Path] = None
 
 @dataclass
 class Config:
-    NUM_WORKERS: int
-    WORK_PATH: str
-    THS_LOCAL_DIR: str
-    THS_S3_BUCKET: str
-    THS_S3_REGION: str
-    THS_FS: ArrowFS
+    num_workers: Optional[int] = None
+    work_path: Optional[str] = None
+    ths_local_dir: Optional[str] = None
+    ths_s3_bucket: Optional[str] = None
+    ths_aws_region: Optional[str] = None
+    ths_fs: Optional[ArrowFS] = None
 
 
 PREFIX = 'THP_'
-ENV_NAMES = [PREFIX + key for key in Config.__dataclass_fields__.keys()]
-
-
-class DotDict(UserDict):
-    """
-    dot notation access to dictionary attributes
-    forces keys to lowercase
-    a dot notation request is equivelent to get and will return None if the key is not present
-    """
-
-    def __setitem__(self, key: Any, item: Any) -> None:
-        if not isinstance(key, str):
-            raise TypeError("key must be str type")
-        super().__setitem__(key.lower(), item)
-
-    def __getattr__(self, name) -> Any:
-        return self.get(name, None)
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        self.__dict__[name] = value  # instead of self[name] to avoid recusion problem
+ENV_NAMES = [(PREFIX + key).upper() for key in Config.__dataclass_fields__.keys()]
 
 
 def update_config_from_file(filepath: Union[str, Path]):
 
-    config_from_file = DotDict()
+    config_from_file = dict()
     file_config = toml.load(filepath)
     for k, v in file_config.items():
         config_from_file[k] = v
@@ -88,33 +68,24 @@ def update_config_from_file(filepath: Union[str, Path]):
 def get_config() -> Config:
 
     # loading order determines precidence
-    config_from_file = DotDict()
+    config_from_file = dict()
     if config_default_filepath.exists():
         config_from_file.update(update_config_from_file(config_default_filepath))
     if config_override_filepath:
         config_from_file.update(update_config_from_file(config_override_filepath))
 
     # env vars take highest precidence
-    NUM_WORKERS = int(os.getenv('THP_NUM_WORKERS', config_from_file.num_workers))
-    WORK_PATH = os.getenv('THP_WORK_PATH', config_from_file.work_path)
-    THS_LOCAL_DIR = os.getenv('THP_THS_LOCAL_DIR', config_from_file.ths_local_dir)
-    THS_S3_BUCKET = os.getenv('THP_THS_S3_BUCKET', config_from_file.ths_s3_bucket)
-    if THS_S3_BUCKET and THS_S3_BUCKET[-1] == '/':
-        THS_S3_BUCKET = THS_S3_BUCKET[:-1]
-    THS_S3_REGION = os.getenv('THP_THS_S3_REGION', config_from_file.ths_aws_region)
-    arrow_fs = os.getenv('THP_THS_FS', config_from_file.ths_fs).upper()
-
+    config = Config()
+    for name in Config.__dataclass_fields__.keys():
+        env_name = PREFIX + name.upper()
+        setattr(config, name, os.getenv(env_name, config_from_file.get(name)))
+    config.num_workers = int(config.num_workers)
+    if config.ths_s3_bucket and config.ths_s3_bucket[-1] == '/':
+        config.ths_s3_bucket = config.ths_s3_bucket[:-1]
     try:
-        THS_FS = ArrowFS[arrow_fs]
+        config.ths_fs = ArrowFS[config.ths_fs]
     except KeyError:
         msg = f"THP_THS_FS must be in {[x.name for x in ArrowFS]}"
         raise KeyError(msg)
 
-    return Config(
-        NUM_WORKERS=NUM_WORKERS,
-        WORK_PATH=WORK_PATH,
-        THS_LOCAL_DIR=THS_LOCAL_DIR,
-        THS_S3_BUCKET=THS_S3_BUCKET,
-        THS_S3_REGION=THS_S3_REGION,
-        THS_FS=THS_FS,
-    )
+    return config

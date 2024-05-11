@@ -54,7 +54,7 @@ def run_aggregation(args: AggregationArgs) -> None:
         config: the aggregation configuration
     """
     config = get_config()
-    num_workers = config.NUM_WORKERS
+    num_workers = config.num_workers
 
     time0 = time.perf_counter()
     # get the sites
