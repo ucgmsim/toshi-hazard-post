@@ -49,7 +49,7 @@ class Config:
     ths_local_dir: Optional[str] = None
     ths_s3_bucket: Optional[str] = None
     ths_aws_region: Optional[str] = None
-    ths_fs: ArrowFS = ArrowFS.LOCAL
+    ths_fs: Optional[ArrowFS] = None
 
 
 PREFIX = 'THP_'
@@ -83,7 +83,7 @@ def get_config() -> Config:
     if config.ths_s3_bucket and config.ths_s3_bucket[-1] == '/':
         config.ths_s3_bucket = config.ths_s3_bucket[:-1]
     try:
-        config.ths_fs = ArrowFS[config.ths_fs]  # type: ignore
+        config.ths_fs = ArrowFS[config.ths_fs.upper()]  # type: ignore
     except KeyError:
         msg = f"THS_FS must be in {[x.name for x in ArrowFS]}"
         raise KeyError(msg)

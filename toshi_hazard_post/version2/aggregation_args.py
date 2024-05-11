@@ -11,7 +11,8 @@ from toshi_hazard_post.version2.ths_mock import query_compatibility
 
 class AggregationArgs:
     def __init__(self, input_filepath: Union[str, Path]) -> None:
-        self._config = toml.load(input_filepath)
+        self.filepath = Path(input_filepath).resolve()
+        self._config = toml.load(self.filepath)
         model_spec = self._validate_logic_trees()
         self._validate_vs30s()
         self._validate_list('site', 'locations', str)
@@ -89,6 +90,8 @@ class AggregationArgs:
             if not lt_config.get("gmcm_file"):
                 raise KeyError("must specify gmcm_file")
             for lt_file in ("srm_file", "gmcm_file"):
+                if not Path(lt_config[lt_file]).is_absolute():
+                    lt_config[lt_file] = self.filepath.parent / lt_config[lt_file]
                 if not Path(lt_config[lt_file]).exists():
                     raise FileNotFoundError("{} {} does not exist".format(lt_file, lt_config["srm_file"]))
         if model_spec and lt_config["model_version"] not in all_model_versions():

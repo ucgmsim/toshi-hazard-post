@@ -6,8 +6,8 @@ hazard_model_id = "MINI_DEMO_MODEL"
 # model_version = "NSHM_v1.0.4"
 
 # alternativly, specify a path to logic tree files
-srm_file = "demo/srm_logic_tree_no_slab.json"
-gmcm_file = "demo/gmcm_logic_tree_medium.json"
+srm_file = "srm_logic_tree_no_slab.json"
+gmcm_file = "gmcm_logic_tree_medium.json"
 
 [site]
 vs30s = [275]
