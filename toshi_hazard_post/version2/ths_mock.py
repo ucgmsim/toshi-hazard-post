@@ -22,6 +22,8 @@ def write_aggs_to_ths(
     hazard_model_id: str,
 ) -> None:
     config = get_config()
+    if not config.work_path:
+        raise Exception(" a work path must be specified")
     agg_dir = Path(config.work_path) / 'AGGREGATIONS'
     if not agg_dir.is_dir():
         agg_dir.mkdir()

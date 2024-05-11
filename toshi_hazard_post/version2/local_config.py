@@ -44,12 +44,12 @@ config_override_filepath: Optional[Path] = None
 
 @dataclass
 class Config:
-    num_workers: Optional[int] = None
+    num_workers: int = 1
     work_path: Optional[str] = None
     ths_local_dir: Optional[str] = None
     ths_s3_bucket: Optional[str] = None
     ths_aws_region: Optional[str] = None
-    ths_fs: Optional[ArrowFS] = None
+    ths_fs: ArrowFS = ArrowFS.LOCAL
 
 
 PREFIX = 'THP_'
@@ -83,9 +83,9 @@ def get_config() -> Config:
     if config.ths_s3_bucket and config.ths_s3_bucket[-1] == '/':
         config.ths_s3_bucket = config.ths_s3_bucket[:-1]
     try:
-        config.ths_fs = ArrowFS[config.ths_fs]
+        config.ths_fs = ArrowFS[config.ths_fs]  # type: ignore
     except KeyError:
-        msg = f"THP_THS_FS must be in {[x.name for x in ArrowFS]}"
+        msg = f"THS_FS must be in {[x.name for x in ArrowFS]}"
         raise KeyError(msg)
 
     return config
