@@ -4,7 +4,6 @@ from unittest import mock
 
 import numpy as np
 import pandas as pd
-import pytest
 
 import toshi_hazard_post.version2.local_config as local_config
 from toshi_hazard_post.version2.aggregation import run_aggregation

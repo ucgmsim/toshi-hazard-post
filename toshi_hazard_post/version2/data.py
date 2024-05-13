@@ -1,6 +1,5 @@
 import logging
 import time
-import urllib.parse
 from typing import TYPE_CHECKING, List
 
 import boto3
