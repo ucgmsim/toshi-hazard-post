@@ -75,10 +75,7 @@ def get_arrow_filesystem():
     return filesystem, root
 
 
-def get_realizations_dataset(
-    location_bin: 'CodedLocationBin',
-    imt: str,
-) -> ds.Dataset:
+def get_realizations_dataset() -> ds.Dataset:
     """
     Get a pyarrow Dataset filtered to a location bin (partition), component branches, and compatibility key
 
@@ -92,11 +89,8 @@ def get_realizations_dataset(
     """
     filesystem, root = get_arrow_filesystem()
 
-    imt_code = urllib.parse.quote(imt)
-    partition = f"nloc_0={location_bin.code}/imt={imt_code}"
-
     t0 = time.monotonic()
-    dataset = ds.dataset(f'{root}/{partition}', format='parquet', filesystem=filesystem)
+    dataset = ds.dataset(f'{root}', format='parquet', filesystem=filesystem, partitioning='hive')
     t1 = time.monotonic()
     log.info("time to get realizations dataset %0.6f" % (t1 - t0))
 
@@ -133,7 +127,7 @@ def load_realizations(
     Returns:
         values: the component realizations rates (not probabilities)
     """
-    dataset = get_realizations_dataset(location_bin, imt)
+    dataset = get_realizations_dataset()
 
     gmms_digests = [branch.gmcm_hash_digest for branch in component_branches]
     sources_digests = [branch.source_hash_digest for branch in component_branches]
@@ -142,8 +136,9 @@ def load_realizations(
         (pc.field('compatible_calc_fk') == pc.scalar(compatibility_key))
         & (pc.is_in(pc.field('sources_digest'), pa.array(sources_digests)))
         & (pc.is_in(pc.field('gmms_digest'), pa.array(gmms_digests)))
+        & (pc.field('nloc_0') == pc.scalar(location_bin.code))
         & (pc.field('nloc_001') == pc.scalar(location.downsample(0.001).code))
-        # & (pc.field('imt') == pa.scalar(imt))
+        & (pc.field('imt') == pa.scalar(imt))
         & (pc.field('vs30') == pc.scalar(vs30))
     )
 
@@ -160,6 +155,15 @@ def load_realizations(
     log.info("load scanner:%0.6f, to_arrow %0.6fs" % (t1 - t0, t2 - t1))
     log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
     log.info("loaded %s realizations in arrow", rlz_table.shape[0])
+    # all_values = rlz_table.to_pandas()['values']
+    # from itertools import chain
+    # import numpy as np
+    # foo = [row for row in all_values.to_numpy()]
+    # all_values = np.array(list(chain(*[row for row in all_values.to_numpy()])))
+    # print(all_values.max())
+    # print(np.histogram(all_values, range=(0, .12)))
+    # breakpoint()
+    # assert 0
     return rlz_table.to_pandas()
 
 
