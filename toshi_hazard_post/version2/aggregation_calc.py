@@ -209,8 +209,6 @@ def calc_aggregation(task_args: AggTaskArgs, shared_args: AggSharedArgs, worker_
     time1 = time.perf_counter()
 
     component_probs = load_realizations(imt, location, vs30, location_bin, component_branches, compatibility_key)
-    component_probs.to_pickle('probs.pkl')
-    assert 0
     time2 = time.perf_counter()
     log.debug('worker %s: time to load realizations %0.2f seconds' % (worker_name, time2 - time1))
     log.debug("worker %s: %s rlz_table " % (worker_name, component_probs.shape))
