@@ -9,44 +9,52 @@ from toshi_hazard_post.version2.local_config import ENV_NAMES as env_vars
 # env_vars = [
 #     "THP_num_workers",
 #     "THP_work_path",
-#     "THP_ths_local_dir",
-#     "THP_ths_s3_bucket",
-#     "THP_THS_AWS_REGION",
-#     "THP_ths_fs",
+#     "THP_ths_rlz_local_dir",
+#     "THP_ths_rlz_s3_bucket",
+#     "THP_ths_rlz_aws_region",
+#     "THP_ths_rlz_fs",
 # ]
 
 default_attrs = [
     ("num_workers", 1),
     ("work_path", 'default work path'),
-    ("ths_local_dir", 'default ths local dir'),
-    ("ths_s3_bucket", 'default ths s3 bucket'),
-    ("ths_aws_region", 'default ths aws region'),
-    ("ths_fs", local_config.ArrowFS.LOCAL),
+    ("ths_rlz_local_dir", 'default ths local dir'),
+    ("ths_rlz_s3_bucket", 'default ths s3 bucket'),
+    ("ths_rlz_aws_region", 'default ths aws region'),
+    ("ths_rlz_fs", local_config.ArrowFS.LOCAL),
+    ("ths_agg_local_dir", 'default agg ths local dir'),
+    ("ths_agg_s3_bucket", 'default agg ths s3 bucket'),
+    ("ths_agg_aws_region", 'default agg ths aws region'),
+    ("ths_agg_fs", local_config.ArrowFS.LOCAL),
 ]
 
 user_attrs = [
     ("num_workers", 2),
     ("work_path", 'user work path'),
-    ("ths_local_dir", 'user ths local dir'),
-    ("ths_s3_bucket", 'user ths s3 bucket'),
-    ("ths_aws_region", 'user ths aws region'),
-    ("ths_fs", local_config.ArrowFS.AWS),
+    ("ths_rlz_local_dir", 'user ths local dir'),
+    ("ths_rlz_s3_bucket", 'user ths s3 bucket'),
+    ("ths_rlz_aws_region", 'user ths aws region'),
+    ("ths_rlz_fs", local_config.ArrowFS.AWS),
+    ("ths_agg_local_dir", 'user agg ths local dir'),
+    ("ths_agg_s3_bucket", 'user agg ths s3 bucket'),
+    ("ths_agg_aws_region", 'user agg ths aws region'),
+    ("ths_agg_fs", local_config.ArrowFS.AWS),
 ]
 
 
-@pytest.fixture(scope='function', params=list(range(len(env_vars) - 1)))
+@pytest.fixture(scope='function', params=list(range(8)))
 def env_attr_val_fixture(request):
-    env_attrs = [
+    attrs_vals = [
         ["num_workers", 3],
         ["work_path", 'env work path'],
-        ["ths_local_dir", 'env ths local dir'],
-        ["ths_s3_bucket", 'env ths s3 bucket'],
-        ["ths_aws_region", 'env ths aws region'],
-        ["ths_fs", local_config.ArrowFS.LOCAL],
+        ["ths_rlz_local_dir", 'env ths local dir'],
+        ["ths_rlz_s3_bucket", 'env ths s3 bucket'],
+        ["ths_rlz_aws_region", 'env ths aws region'],
+        ["ths_agg_local_dir", 'env agg ths local dir'],
+        ["ths_agg_s3_bucket", 'env agg ths s3 bucket'],
+        ["ths_agg_aws_region", 'env agg ths aws region'],
     ]
-    env_attr_val = [[evar] + attr for evar, attr in zip(env_vars, env_attrs)]
-    # the way the fixture is parameterized makes the ths_fs annoying to check
-    env_attr_val = env_attr_val[:-1]
+    env_attr_val = [[local_config.PREFIX + item[0].upper()] + item for item in attrs_vals]
     return env_attr_val[request.param]
 
 
@@ -81,6 +89,10 @@ def test_env_precidence(env_attr_val_fixture):
 
 
 def test_arrow_fs():
-    os.environ['THP_THS_FS'] = 'FOOBAR'
+    os.environ['THP_THS_RLZ_FS'] = 'FOOBAR'
+    with pytest.raises(KeyError):
+        local_config.get_config()
+
+    os.environ['THP_THS_AGG_FS'] = 'FOOBAR'
     with pytest.raises(KeyError):
         local_config.get_config()

@@ -15,11 +15,14 @@ changes to config_coverride_filepath will not be effective
 Parameters:
     THP_NUM_WORKERS: number of parallel processes. if == 1, will run without spawning new processes
     THP_WORK_PATH: path for saving any local files
-    THP_THS_FS: the filesystem to use for the realization datastore (LOCAL or AWS)
-    THP_THS_LOCAL_DIR: the path to the local realization datastore (required if NZHSM22_THS_FS == "LOCAL")
-    THP_THS_S3_BUCKET: the S3 bucket where the relaization datastore is kept (required if NZHSM22_THS_FS == "AWS")
-    THP_THS_AWS_REGION: the AWS region if using S3 datastore
+    THP_ths_rlz_fs: the filesystem to use for the realization datastore (LOCAL or AWS)
+    THP_ths_rlz_local_dir: the path to the local realization datastore (if NZHSM22_ths_rlz_fs == "LOCAL")
+    THP_ths_rlz_s3_bucket: the S3 bucket where the relaization datastore is kept (if NZHSM22_ths_rlz_fs == "AWS")
+    THP_ths_rlz_aws_region: the AWS region if using S3 datastore
 """
+
+# TODO: there's nothing to check that the minimum of config parameters are set
+# TODO: Config class has reduncancy. Can have one type for Arrow and have an instance for rlz and an insance for agg
 
 import os
 from dataclasses import dataclass
@@ -44,12 +47,35 @@ config_override_filepath: Optional[Path] = None
 
 @dataclass
 class Config:
+
     num_workers: int = 1
     work_path: Optional[str] = None
-    ths_local_dir: Optional[str] = None
-    ths_s3_bucket: Optional[str] = None
-    ths_aws_region: Optional[str] = None
-    ths_fs: Optional[ArrowFS] = None
+
+    ths_rlz_local_dir: Optional[str] = None
+    ths_rlz_s3_bucket: Optional[str] = None
+    ths_rlz_aws_region: Optional[str] = None
+    ths_rlz_fs: Optional[ArrowFS] = None
+
+    ths_agg_local_dir: Optional[str] = None
+    ths_agg_s3_bucket: Optional[str] = None
+    ths_agg_aws_region: Optional[str] = None
+    ths_agg_fs: Optional[ArrowFS] = None
+
+    @staticmethod
+    def set_bucket(bucket):
+        if bucket and bucket[-1] == '/':
+            return bucket[:-1]
+        return bucket
+
+    @staticmethod
+    def set_fs(fs):
+        if fs:
+            try:
+                fs = ArrowFS[fs.upper()]  # type: ignore
+            except KeyError:
+                msg = f"filesystem set to '{fs}', but ths_rlz_fs and ths_agg_fs must be in {[x.name for x in ArrowFS]}"
+                raise KeyError(msg)
+        return fs
 
 
 PREFIX = 'THP_'
@@ -80,12 +106,17 @@ def get_config() -> Config:
         env_name = PREFIX + name.upper()
         setattr(config, name, os.getenv(env_name, config_from_file.get(name)))
     config.num_workers = int(config.num_workers)
-    if config.ths_s3_bucket and config.ths_s3_bucket[-1] == '/':
-        config.ths_s3_bucket = config.ths_s3_bucket[:-1]
-    try:
-        config.ths_fs = ArrowFS[config.ths_fs.upper()]  # type: ignore
-    except KeyError:
-        msg = f"THS_FS must be in {[x.name for x in ArrowFS]}"
-        raise KeyError(msg)
+
+    config.ths_rlz_s3_bucket = config.set_bucket(config.ths_rlz_s3_bucket)
+    config.ths_agg_s3_bucket = config.set_bucket(config.ths_agg_s3_bucket)
+    # if config.ths_rlz_s3_bucket and config.ths_rlz_s3_bucket[-1] == '/':
+    #     config.ths_rlz_s3_bucket = config.ths_rlz_s3_bucket[:-1]
+    config.ths_rlz_fs = config.set_fs(config.ths_rlz_fs)
+    config.ths_agg_fs = config.set_fs(config.ths_agg_fs)
+    # try:
+    #     config.ths_rlz_fs = ArrowFS[config.ths_rlz_fs.upper()]  # type: ignore
+    # except KeyError:
+    #     msg = f"ths_rlz_fs must be in {[x.name for x in ArrowFS]}"
+    #     raise KeyError(msg)
 
     return config

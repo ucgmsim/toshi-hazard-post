@@ -32,7 +32,7 @@ def write_aggs_to_ths(
 
 
 def query_compatibility(compatibility_key: str) -> Generator[str, None, None]:
-    entries = {"A_A": "a", "B": "b", "C": "c"}
+    entries = {"A_A": "a", "NZSHM22-0": "nzshm22-0"}
 
     if compatibility_key in entries:
         yield entries[compatibility_key]

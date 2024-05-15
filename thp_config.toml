@@ -1,3 +1,4 @@
 num_workers = 1
 work_path = "/tmp"
-ths_fs = "local"
+ths_rlz_fs = "local"
+ths_agg_fs = "local"

@@ -236,7 +236,7 @@ def calc_aggregation(task_args: AggTaskArgs, shared_args: AggSharedArgs, worker_
 
     log.info("worker %s saving result . . . " % worker_name)
     probs = calculators.rate_to_prob(hazard, 1.0)
-    save_aggregations(probs, location, vs30, imt, agg_types, hazard_model_id)
+    save_aggregations(probs, location, vs30, imt, agg_types, hazard_model_id, compatibility_key)
     time7 = time.perf_counter()
     log.info(
         'worker %s time to perform one aggregation after loading data %0.2f seconds' % (worker_name, time7 - time2)

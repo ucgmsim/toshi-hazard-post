@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 import boto3
 import pandas as pd
@@ -8,9 +8,9 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
+from toshi_hazard_store.model.revision_4 import hazard_aggregate_curve, pyarrow_dataset
 
 from toshi_hazard_post.version2.local_config import ArrowFS, get_config
-from toshi_hazard_post.version2.ths_mock import write_aggs_to_ths
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -28,6 +28,7 @@ def save_aggregations(
     imt: str,
     agg_types: List[str],
     hazard_model_id: str,
+    compatability_key: str,
 ) -> None:
     """
     Save the aggregated hazard to the database. Converts hazard as rates to proabilities before saving.
@@ -40,14 +41,29 @@ def save_aggregations(
         agg_types: the statistical aggregate types (e.g. "mean", "0.5")
         hazard_model_id: the model id for storing in the database
     """
-    write_aggs_to_ths(hazard, location, vs30, imt, agg_types, hazard_model_id)
+
+    filesystem, root = get_agg_filesystem()
+
+    def generate_models():
+        for i, agg in enumerate(agg_types):
+            yield hazard_aggregate_curve.HazardAggregateCurve(
+                compatible_calc_fk=('A', compatability_key),
+                hazard_model_id=hazard_model_id,
+                values=hazard[i, :],
+                imt=imt,
+                vs30=vs30,
+                agg=agg,
+            ).set_location(location)
+
+    pyarrow_dataset.append_models_to_dataset(generate_models(), root, filesystem=filesystem)
+    # write_aggs_to_ths(hazard, location, vs30, imt, agg_types, hazard_model_id)
 
 
-def get_local_fs(local_dir):
+def get_local_fs(local_dir) -> Tuple[fs.FileSystem, str]:
     return fs.LocalFileSystem(), str(local_dir)
 
 
-def get_s3_fs(region, bucket):
+def get_s3_fs(region, bucket) -> Tuple[fs.FileSystem, str]:
     session = boto3.session.Session()
     credentials = session.get_credentials()
     filesystem = fs.S3FileSystem(
@@ -60,15 +76,33 @@ def get_s3_fs(region, bucket):
     return filesystem, root
 
 
-def get_arrow_filesystem():
+def get_rlz_filesystem() -> Tuple[fs.FileSystem, str]:
     config = get_config()
+    return get_arrow_filesystem(
+        config.ths_rlz_fs, config.ths_rlz_aws_region, config.ths_rlz_local_dir, config.ths_rlz_s3_bucket
+    )
 
-    if config.ths_fs is ArrowFS.LOCAL:
-        log.info("retrieving realization data from local repository %s" % config.ths_local_dir)
-        filesystem, root = get_local_fs(config.ths_local_dir)
-    elif config.ths_fs is ArrowFS.AWS:
-        log.info("retrieving realization data from S3 repository %s:%s" % (config.ths_aws_region, config.ths_s3_bucket))
-        filesystem, root = get_s3_fs(config.ths_aws_region, config.ths_s3_bucket)
+
+def get_agg_filesystem() -> Tuple[fs.FileSystem, str]:
+    config = get_config()
+    return get_arrow_filesystem(
+        config.ths_agg_fs, config.ths_agg_aws_region, config.ths_agg_local_dir, config.ths_agg_s3_bucket
+    )
+
+
+def get_arrow_filesystem(
+    fs_type: ArrowFS,
+    aws_region: Optional[str] = None,
+    local_dir: Optional[str] = None,
+    s3_bucket: Optional[str] = None,
+) -> Tuple[fs.FileSystem, str]:
+
+    if fs_type is ArrowFS.LOCAL:
+        log.info("getting local ArrowFS %s" % local_dir)
+        filesystem, root = get_local_fs(local_dir)
+    elif fs_type is ArrowFS.AWS:
+        log.info("getting S3 ArrowFS %s:%s" % (aws_region, s3_bucket))
+        filesystem, root = get_s3_fs(aws_region, s3_bucket)
     else:
         filesystem = root = None
     return filesystem, root
@@ -86,7 +120,7 @@ def get_realizations_dataset() -> ds.Dataset:
     Returns:
         dataset: the dataset with the filteres applied
     """
-    filesystem, root = get_arrow_filesystem()
+    filesystem, root = get_rlz_filesystem()
 
     t0 = time.monotonic()
     dataset = ds.dataset(f'{root}', format='parquet', filesystem=filesystem, partitioning='hive')
@@ -137,7 +171,7 @@ def load_realizations(
         & (pc.is_in(pc.field('gmms_digest'), pa.array(gmms_digests)))
         & (pc.field('nloc_0') == pc.scalar(location_bin.code))
         & (pc.field('nloc_001') == pc.scalar(location.downsample(0.001).code))
-        & (pc.field('imt') == pa.scalar(imt))
+        & (pc.field('imt') == pc.scalar(imt))
         & (pc.field('vs30') == pc.scalar(vs30))
     )
 
@@ -163,7 +197,10 @@ def load_realizations(
     # print(np.histogram(all_values, range=(0, .12)))
     # breakpoint()
     # assert 0
-    return rlz_table.to_pandas()
+    rlz_df = rlz_table.to_pandas()
+    rlz_df['sources_digest'] = rlz_df['sources_digest'].astype(str)
+    rlz_df['gmms_digest'] = rlz_df['gmms_digest'].astype(str)
+    return rlz_df
 
 
 # def save_aggregations(
