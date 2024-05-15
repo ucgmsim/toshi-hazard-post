@@ -48,7 +48,6 @@ boto3 = {version = "^1.34.82", optional = true}
 nzshm-model = {git = "https://github.com/GNS-Science/nzshm-model.git", rev = "srm-trt-merge-digest"}
 pyarrow = {version = "^15.0.2", extras = ["pandas"]}
 nshm-toshi-client = "^1.0.1"
-duckdb = "^0.10.1"
 nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "pre-release"}
 toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "50_epic_ths_table_overhaul_versioning_support_plus_arrow"}
 pandas = "~2.0.3"
