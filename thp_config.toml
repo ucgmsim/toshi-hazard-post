@@ -2,3 +2,6 @@ num_workers = 1
 work_path = "/tmp"
 ths_rlz_fs = "local"
 ths_agg_fs = "local"
+ths_rlz_local_dir = "/home/chrisdc/NSHM/DATA/toshi-hazard-store/THS_R4_DEFRAG"
+ths_agg_local_dir = "/home/chrisdc/NSHM/DATA/toshi-hazard-store/AGG"
+

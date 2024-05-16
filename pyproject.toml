@@ -29,7 +29,7 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-thp = 'scripts.thp_v2:thp'
+thp = 'scripts.cli:thp'
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
