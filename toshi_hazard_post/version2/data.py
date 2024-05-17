@@ -2,7 +2,6 @@ import logging
 import time
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
-import boto3
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -12,13 +11,18 @@ from toshi_hazard_store.model.revision_4 import hazard_aggregate_curve, pyarrow_
 
 from toshi_hazard_post.version2.local_config import ArrowFS, get_config
 
+log = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     import numpy.typing as npt
     from nzshm_common.location.coded_location import CodedLocation, CodedLocationBin
 
     from toshi_hazard_post.version2.logic_tree import HazardComponentBranch
 
-log = logging.getLogger(__name__)
+try:
+    import boto3
+except ModuleNotFoundError:
+    log.warning("warning boto3 module dependency not available, maybe you want to install with nzshm-model[boto3]")
 
 
 def save_aggregations(
