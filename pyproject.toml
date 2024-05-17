@@ -33,24 +33,16 @@ thp = 'scripts.cli:thp'
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-# boto3 = "^1.24.34"
-# nshm-toshi-client = "^1.0.0"
-# PyYAML = "^6.0"
 toml = "^0.10.2"
-# click = "^8.1.3"
-# dacite = "^1.7.0"
-# numba = "^0.56.0"
-# toshi-hazard-store = "^0.7.5"
-# pandas = "~2.0.3"
 numpy = "^1.26.4"
 numba = "^0.59.1"
 boto3 = {version = "^1.34.82", optional = true}
 nzshm-model = {git = "https://github.com/GNS-Science/nzshm-model.git", rev = "srm-trt-merge-digest"}
 pyarrow = {version = "^15.0.2", extras = ["pandas"]}
-nshm-toshi-client = "^1.0.1"
 nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "pre-release"}
 toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "50_epic_ths_table_overhaul_versioning_support_plus_arrow"}
 pandas = "~2.0.3"
+click = "^8.1.7"
 
 [tool.poetry.group.dev.dependencies]
 black  = { version = "^22.3"}
