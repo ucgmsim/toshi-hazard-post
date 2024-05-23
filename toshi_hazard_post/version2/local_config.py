@@ -15,10 +15,10 @@ changes to config_coverride_filepath will not be effective
 Parameters:
     THP_NUM_WORKERS: number of parallel processes. if == 1, will run without spawning new processes
     THP_WORK_PATH: path for saving any local files
-    THP_ths_rlz_fs: the filesystem to use for the realization datastore (LOCAL or AWS)
-    THP_ths_rlz_local_dir: the path to the local realization datastore (if NZHSM22_ths_rlz_fs == "LOCAL")
-    THP_ths_rlz_s3_bucket: the S3 bucket where the relaization datastore is kept (if NZHSM22_ths_rlz_fs == "AWS")
-    THP_ths_rlz_aws_region: the AWS region if using S3 datastore
+    THP_THS_{RLZ|AGG}_FS: the filesystem to use for the {realization or aggregate} datastore (LOCAL or AWS)
+    THP_THS_{RLZ|AGG}_LOCAL_DIR: the path to the local {realization or aggregate} datastore (if NZHSM22_ths_rlz_fs == "LOCAL")
+    THP_THS_{RLZ|AGG}_S3_BUCKET: the S3 bucket where the {realization or aggregate} datastore is kept (if NZHSM22_ths_rlz_fs == "AWS")
+    THP_THS_{RLZ|AGG}_AWS_REGION: the AWS region for {realization or aggregate} if using S3 datastore
 """
 
 # TODO: there's nothing to check that the minimum of config parameters are set
@@ -145,6 +145,6 @@ def get_config() -> Config:
 
     config = Config(num_workers=DEFAULT_NUM_WORKERS, ths_rlz_fs=DEFAULT_FS, ths_agg_fs=DEFAULT_FS)
     for k, v in config_dict.items():
-        setattr(config, k, v)
+        setattr(config, k.lower(), v)
 
     return config
