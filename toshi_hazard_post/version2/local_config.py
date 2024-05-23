@@ -50,7 +50,7 @@ class Config:
 
     num_workers: int
     _num_workers: int = field(init=False, repr=False)
-    
+
     ths_rlz_fs: ArrowFS
     _ths_rlz_fs: ArrowFS = field(init=False, repr=False)
     ths_agg_fs: ArrowFS
@@ -66,15 +66,15 @@ class Config:
     ths_agg_s3_bucket: Optional[str] = None
     ths_agg_aws_region: Optional[str] = None
 
-    @property
+    @property  # type: ignore
     def num_workers(self):
         return self._num_workers
-    
+
     @num_workers.setter
     def num_workers(self, value: int):
         self._num_workers = int(value)
-    
-    @property
+
+    @property  # type: ignore
     def ths_rlz_fs(self):
         return self._ths_rlz_fs
 
@@ -85,7 +85,7 @@ class Config:
         else:
             self._ths_rlz_fs = value
 
-    @property
+    @property  # type: ignore
     def ths_agg_fs(self):
         return self._ths_agg_fs
 
@@ -95,7 +95,6 @@ class Config:
             self._ths_agg_fs = Config.set_fs(value)
         else:
             self._ths_agg_fs = value
-
 
     @staticmethod
     def set_bucket(bucket):
@@ -107,11 +106,10 @@ class Config:
     def set_fs(fs: str):
         if fs:
             try:
-                fs = ArrowFS[fs.upper()]
+                return ArrowFS[fs.upper()]
             except KeyError:
                 msg = f"filesystem set to '{fs}', but ths_rlz_fs and ths_agg_fs must be in {[x.name for x in ArrowFS]}"
                 raise KeyError(msg)
-        return fs
 
 
 PREFIX = 'THP_'
@@ -126,6 +124,7 @@ def get_config_from_file(filepath: Union[str, Path]):
         config_from_file[k] = v
     return config_from_file
 
+
 def get_config_from_env():
 
     config_from_env = dict()
@@ -134,6 +133,7 @@ def get_config_from_env():
         if os.getenv(env_name):
             config_from_env[name] = os.getenv(env_name)
     return config_from_env
+
 
 def get_config() -> Config:
 

@@ -3,7 +3,7 @@ from collections import namedtuple
 from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
-from typing import TYPE_CHECKING, Generator, Iterable, List, Tuple, Union
+from typing import TYPE_CHECKING, Generator, Iterable, List, Union
 
 from nzshm_common.location.coded_location import CodedLocation
 from nzshm_common.location.location import get_locations

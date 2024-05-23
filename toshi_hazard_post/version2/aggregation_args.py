@@ -5,14 +5,12 @@ from typing import Union
 
 import toml
 from nzshm_model import all_model_versions, get_model_version
-from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree
+from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 
 from toshi_hazard_post.version2.ths_mock import query_compatibility
 
 
-
 class AggregationArgs:
-
     def __init__(self, input_filepath: Union[str, Path]) -> None:
         self.filepath = Path(input_filepath).resolve()
         self._config = toml.load(self.filepath)
@@ -86,7 +84,7 @@ class AggregationArgs:
             self.srm_logic_tree = model.source_logic_tree
             self.gmcm_logic_tree = model.gmm_logic_tree
             return
-        else: 
+        else:
             if not lt_config.get("srm_file"):
                 raise KeyError("must specify srm_file")
             if not lt_config.get("gmcm_file"):
@@ -100,7 +98,6 @@ class AggregationArgs:
             gmcm_file = self._config['logic_trees']['gmcm_file']
             self.srm_logic_tree = SourceLogicTree.from_json(srm_file)
             self.gmcm_logic_tree = GMCMLogicTree.from_json(gmcm_file)
-
 
     def _validate_vs30s(self) -> None:
         if self._config['site'].get('vs30s'):

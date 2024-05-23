@@ -1,34 +1,12 @@
 import logging
-from pathlib import Path
-from typing import TYPE_CHECKING, Generator, List
+from typing import TYPE_CHECKING, Generator
 
 import numpy as np
 
-from toshi_hazard_post.version2.local_config import get_config
-
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from nzshm_common.location.coded_location import CodedLocation
 
 log = logging.getLogger(__name__)
-
-
-def write_aggs_to_ths(
-    hazard: 'npt.NDArray',
-    location: 'CodedLocation',
-    vs30: int,
-    imt: str,
-    agg_types: List[str],
-    hazard_model_id: str,
-) -> None:
-    config = get_config()
-    if not config.work_path:
-        raise Exception(" a work path must be specified")
-    agg_dir = Path(config.work_path) / 'AGGREGATIONS'
-    if not agg_dir.is_dir():
-        agg_dir.mkdir()
-    filepath = agg_dir / f"{hazard_model_id}_{vs30}_{imt}_{location.code}"
-    np.save(filepath, hazard)
 
 
 def query_compatibility(compatibility_key: str) -> Generator[str, None, None]:

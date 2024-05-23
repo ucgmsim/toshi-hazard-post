@@ -1,13 +1,12 @@
 from pathlib import Path
-import toml
 
+import toml
 from nzshm_common.location.location import LOCATION_LISTS
 from nzshm_model import get_model_version
 from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 
 from toshi_hazard_post.version2.aggregation_args import AggregationArgs
 from toshi_hazard_post.version2.aggregation_setup import get_sites
-
 
 
 def test_model():
