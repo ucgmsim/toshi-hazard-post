@@ -7,7 +7,7 @@ ignore_missing_imports = true
 [tool.poetry]
 name = "toshi-hazard-post"
 version = "0.3.2"
-homepage = "https://github.com/chrisbc/toshi-hazard-post"
+homepage = "https://github.com/GNS-Science/toshi-hazard-post"
 description = "Hazard post-processing pipeline as serverless AWS infrastructure."
 authors = ["GNS Science New Zealand <chrisbc@artisan.co.nz>"]
 readme = "README.md"
@@ -18,7 +18,6 @@ classifiers=[
     'License :: OSI Approved :: MIT License',
     'Natural Language :: English',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
 ]
 
@@ -98,7 +97,7 @@ aws = ["boto3"]
 [tool.black]
 line-length = 120
 skip-string-normalization = true
-target-version = ['py39', 'py310']
+target-version = ['py310', 'py311']
 include = '\.pyi?$'
 exclude = '''
 /(

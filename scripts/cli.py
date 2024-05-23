@@ -2,18 +2,18 @@ import logging
 
 import click
 
-import toshi_hazard_post.version2.local_config as local_config
-from toshi_hazard_post.version2.aggregation import run_aggregation
-from toshi_hazard_post.version2.aggregation_args import AggregationArgs
+import toshi_hazard_post.local_config as local_config
+from toshi_hazard_post.aggregation import run_aggregation
+from toshi_hazard_post.aggregation_args import AggregationArgs
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)
-logging.getLogger('toshi_hazard_post.version2.aggregation_calc').setLevel(logging.DEBUG)
-logging.getLogger('toshi_hazard_post.version2.aggregation').setLevel(logging.DEBUG)
-logging.getLogger('toshi_hazard_post.version2.aggregation_calc').setLevel(logging.DEBUG)
-logging.getLogger('toshi_hazard_post.version2.logic_tree').setLevel(logging.DEBUG)
-logging.getLogger('toshi_hazard_post.version2.parallel').setLevel(logging.DEBUG)
-logging.getLogger('toshi_hazard_post.version2').setLevel(logging.INFO)
+logging.getLogger('toshi_hazard_post.aggregation_calc').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_post.aggregation').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_post.aggregation_calc').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_post.logic_tree').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_post.parallel').setLevel(logging.DEBUG)
+logging.getLogger('toshi_hazard_post').setLevel(logging.INFO)
 
 
 @click.group()
