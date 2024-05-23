@@ -92,7 +92,9 @@ config_verror5['general']['compatibility_key'] = "Z"
 
 @pytest.mark.parametrize("config", [config1, config2, config3])
 @mock.patch('toshi_hazard_post.version2.aggregation_args.toml.load')
-def test_logic_tree_valid(mock_load, config):
+@mock.patch('toshi_hazard_post.version2.aggregation_args.SourceLogicTree.from_json')
+@mock.patch('toshi_hazard_post.version2.aggregation_args.GMCMLogicTree.from_json')
+def test_logic_tree_valid(mock_gmcm, mock_srm, mock_load, config):
     mock_load.return_value = config
     assert AggregationArgs('dummy')
 

@@ -7,10 +7,6 @@ from typing import TYPE_CHECKING, Generator, Iterable, List, Tuple, Union
 
 from nzshm_common.location.coded_location import CodedLocation
 from nzshm_common.location.location import get_locations
-from nzshm_model import get_model_version
-from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
-
-from toshi_hazard_post.version2.aggregation_args import AggregationArgs
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -47,29 +43,6 @@ def get_levels(compat_key: str) -> 'npt.NDArray':
         levels: the IMTLs for the hazard calculation
     """
     return query_levels(compat_key)
-
-
-def get_lts(config: AggregationArgs) -> Tuple[SourceLogicTree, GMCMLogicTree]:
-    """
-    Get the SourceLogicTree and GMCMLogicTree objects
-
-    Parameters:
-        config: the aggregation configuration
-
-    Returns:
-        srm_logic_tree: the seismicity rate model logic tree
-        gmcm_logic_tree: the ground motion charactorization model logic tree
-    """
-
-    if config.model_version:
-        model = get_model_version(config.model_version)
-        srm_logic_tree = model.source_logic_tree
-        gmcm_logic_tree = model.gmm_logic_tree
-    else:
-        srm_logic_tree = SourceLogicTree.from_json(config.srm_file)
-        gmcm_logic_tree = GMCMLogicTree.from_json(config.gmcm_file)
-
-    return srm_logic_tree, gmcm_logic_tree
 
 
 def get_sites(locations: Iterable[str], vs30s: List[int]) -> List[Site]:

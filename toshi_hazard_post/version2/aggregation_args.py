@@ -4,31 +4,25 @@ from pathlib import Path
 from typing import Union
 
 import toml
-from nzshm_model import all_model_versions
+from nzshm_model import all_model_versions, get_model_version
+from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree
 
 from toshi_hazard_post.version2.ths_mock import query_compatibility
 
 
+
 class AggregationArgs:
+
     def __init__(self, input_filepath: Union[str, Path]) -> None:
         self.filepath = Path(input_filepath).resolve()
         self._config = toml.load(self.filepath)
-        model_spec = self._validate_logic_trees()
         self._validate_vs30s()
         self._validate_list('site', 'locations', str)
         self._validate_list('calculation', 'imts', str)
         self._validate_list('calculation', 'agg_types', str)
         self._validate_agg_types()
         self._validate_compatibility()
-
-        if model_spec:
-            self.model_version = self._config['logic_trees']['model_version']
-            self.srm_file = None
-            self.gmcm_file = None
-        else:
-            self.model_version = None
-            self.srm_file = self._config['logic_trees']['srm_file']
-            self.gmcm_file = self._config['logic_trees']['gmcm_file']
+        self._set_logic_trees()
 
         self.locations = self._config['site']['locations']
         self.vs30s = self._config['site'].get('vs30s')
@@ -75,16 +69,24 @@ class AggregationArgs:
             if not isinstance(loc, element_type):
                 raise ValueError("all location identifiers in [{}][{}] must be {}".format(table, name, element_type))
 
-    def _validate_logic_trees(self) -> bool:
+    def _set_logic_trees(self):
         lt_config = self._config["logic_trees"]
         model_spec = bool(lt_config.get("model_version"))
         file_spec = bool(lt_config.get("srm_file") or lt_config.get("gmcm_file"))
 
-        if model_spec and file_spec:
-            raise KeyError("specify EITHER a model_version or logic tree files, not both")
         if (not model_spec) and (not file_spec):
             raise KeyError("must specify a model_version or srm_file and gmcm_file")
-        if file_spec:
+        elif model_spec and file_spec:
+            raise KeyError("specify EITHER a model_version or logic tree files, not both")
+        elif model_spec:
+            if model_spec and lt_config["model_version"] not in all_model_versions():
+                raise KeyError("%s is not a valid model version" % lt_config["model_version"])
+            model_version = self._config['logic_trees']['model_version']
+            model = get_model_version(model_version)
+            self.srm_logic_tree = model.source_logic_tree
+            self.gmcm_logic_tree = model.gmm_logic_tree
+            return
+        else: 
             if not lt_config.get("srm_file"):
                 raise KeyError("must specify srm_file")
             if not lt_config.get("gmcm_file"):
@@ -94,10 +96,11 @@ class AggregationArgs:
                     lt_config[lt_file] = self.filepath.parent / lt_config[lt_file]
                 if not Path(lt_config[lt_file]).exists():
                     raise FileNotFoundError("{} {} does not exist".format(lt_file, lt_config["srm_file"]))
-        if model_spec and lt_config["model_version"] not in all_model_versions():
-            raise KeyError("{} is not a valid model version".format(lt_config["model_version"]))
+            srm_file = self._config['logic_trees']['srm_file']
+            gmcm_file = self._config['logic_trees']['gmcm_file']
+            self.srm_logic_tree = SourceLogicTree.from_json(srm_file)
+            self.gmcm_logic_tree = GMCMLogicTree.from_json(gmcm_file)
 
-        return model_spec
 
     def _validate_vs30s(self) -> None:
         if self._config['site'].get('vs30s'):

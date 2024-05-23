@@ -7,7 +7,7 @@ from nzshm_common.location.coded_location import bin_locations
 
 from toshi_hazard_post.version2.aggregation_args import AggregationArgs
 from toshi_hazard_post.version2.aggregation_calc import AggSharedArgs, AggTaskArgs, calc_aggregation
-from toshi_hazard_post.version2.aggregation_setup import Site, get_lts, get_sites  # , get_levels
+from toshi_hazard_post.version2.aggregation_setup import Site, get_sites
 from toshi_hazard_post.version2.local_config import get_config
 from toshi_hazard_post.version2.logic_tree import HazardLogicTree
 from toshi_hazard_post.version2.parallel import setup_parallel
@@ -63,8 +63,7 @@ def run_aggregation(args: AggregationArgs) -> None:
 
     # create the logic tree objects and build the full logic tree
     log.info("getting logic trees . . . ")
-    srm_lt, gmcm_lt = get_lts(args)
-    logic_tree = HazardLogicTree(srm_lt, gmcm_lt)
+    logic_tree = HazardLogicTree(args.srm_logic_tree, args.gmcm_logic_tree)
 
     log.info("calculating weights and branch hash table . . . ")
     tic = time.perf_counter()
