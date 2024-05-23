@@ -17,14 +17,7 @@ from toshi_hazard_post.version2.local_config import ENV_NAMES as env_vars
 
 default_attrs = [
     ("num_workers", 1),
-    ("work_path", 'default work path'),
-    ("ths_rlz_local_dir", 'default ths local dir'),
-    ("ths_rlz_s3_bucket", 'default ths s3 bucket'),
-    ("ths_rlz_aws_region", 'default ths aws region'),
     ("ths_rlz_fs", local_config.ArrowFS.LOCAL),
-    ("ths_agg_local_dir", 'default agg ths local dir'),
-    ("ths_agg_s3_bucket", 'default agg ths s3 bucket'),
-    ("ths_agg_aws_region", 'default agg ths aws region'),
     ("ths_agg_fs", local_config.ArrowFS.LOCAL),
 ]
 
@@ -58,7 +51,6 @@ def env_attr_val_fixture(request):
     return env_attr_val[request.param]
 
 
-config_default_filepath = Path(__file__).parent / 'fixtures/local_config/thp_config.toml'
 user_filepath = Path(__file__).parent / 'fixtures/local_config/user_config.toml'
 
 # clear env vars
@@ -69,20 +61,17 @@ for var in env_vars:
 
 @pytest.mark.parametrize("attr,value", default_attrs)
 def test_default_precidence(attr, value):
-    local_config.config_default_filepath = config_default_filepath
     assert getattr(local_config.get_config(), attr) == value
 
 
 @pytest.mark.parametrize("attr,value", user_attrs)
 def test_user_precidence(attr, value):
-    local_config.config_default_filepath = config_default_filepath
     local_config.config_override_filepath = user_filepath
     assert getattr(local_config.get_config(), attr) == value
 
 
 def test_env_precidence(env_attr_val_fixture):
     env_var, attr, value = env_attr_val_fixture
-    local_config.config_default_filepath = config_default_filepath
     local_config.config_override_filepath = user_filepath
     os.environ[env_var] = str(value)
     assert getattr(local_config.get_config(), attr) == value

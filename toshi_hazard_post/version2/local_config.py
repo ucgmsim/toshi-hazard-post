@@ -25,7 +25,7 @@ Parameters:
 # TODO: Config class has reduncancy. Can have one type for Arrow and have an instance for rlz and an insance for agg
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
 from typing import Optional, Union
@@ -38,8 +38,8 @@ class ArrowFS(Enum):
     AWS = auto()
 
 
-# TODO: this will have to change when we refactor the package structure
-config_default_filepath = Path(__file__).parent.parent.parent / 'thp_config.toml'
+DEFAULT_NUM_WORKERS = 1
+DEFAULT_FS = ArrowFS.LOCAL
 
 # this is set by the thp script if the user specifies a config file
 config_override_filepath: Optional[Path] = None
@@ -48,18 +48,54 @@ config_override_filepath: Optional[Path] = None
 @dataclass
 class Config:
 
-    num_workers: int = 1
-    work_path: Optional[str] = None
+    num_workers: int
+    _num_workers: int = field(init=False, repr=False)
+    
+    ths_rlz_fs: ArrowFS
+    _ths_rlz_fs: ArrowFS = field(init=False, repr=False)
+    ths_agg_fs: ArrowFS
+    _ths_agg_fs: ArrowFS = field(init=False, repr=False)
+
+    work_path: str = '/tmp'
 
     ths_rlz_local_dir: Optional[str] = None
     ths_rlz_s3_bucket: Optional[str] = None
     ths_rlz_aws_region: Optional[str] = None
-    ths_rlz_fs: Optional[ArrowFS] = None
 
     ths_agg_local_dir: Optional[str] = None
     ths_agg_s3_bucket: Optional[str] = None
     ths_agg_aws_region: Optional[str] = None
-    ths_agg_fs: Optional[ArrowFS] = None
+
+    @property
+    def num_workers(self):
+        return self._num_workers
+    
+    @num_workers.setter
+    def num_workers(self, value: int):
+        self._num_workers = int(value)
+    
+    @property
+    def ths_rlz_fs(self):
+        return self._ths_rlz_fs
+
+    @ths_rlz_fs.setter
+    def ths_rlz_fs(self, value: Union[str, ArrowFS]):
+        if isinstance(value, str):
+            self._ths_rlz_fs = Config.set_fs(value)
+        else:
+            self._ths_rlz_fs = value
+
+    @property
+    def ths_agg_fs(self):
+        return self._ths_agg_fs
+
+    @ths_agg_fs.setter
+    def ths_agg_fs(self, value: Union[str, ArrowFS]):
+        if isinstance(value, str):
+            self._ths_agg_fs = Config.set_fs(value)
+        else:
+            self._ths_agg_fs = value
+
 
     @staticmethod
     def set_bucket(bucket):
@@ -68,10 +104,10 @@ class Config:
         return bucket
 
     @staticmethod
-    def set_fs(fs):
+    def set_fs(fs: str):
         if fs:
             try:
-                fs = ArrowFS[fs.upper()]  # type: ignore
+                fs = ArrowFS[fs.upper()]
             except KeyError:
                 msg = f"filesystem set to '{fs}', but ths_rlz_fs and ths_agg_fs must be in {[x.name for x in ArrowFS]}"
                 raise KeyError(msg)
@@ -82,7 +118,7 @@ PREFIX = 'THP_'
 ENV_NAMES = [(PREFIX + key).upper() for key in Config.__dataclass_fields__.keys()]
 
 
-def update_config_from_file(filepath: Union[str, Path]):
+def get_config_from_file(filepath: Union[str, Path]):
 
     config_from_file = dict()
     file_config = toml.load(filepath)
@@ -90,33 +126,25 @@ def update_config_from_file(filepath: Union[str, Path]):
         config_from_file[k] = v
     return config_from_file
 
+def get_config_from_env():
+
+    config_from_env = dict()
+    for name in Config.__dataclass_fields__.keys():
+        env_name = PREFIX + name.upper()
+        if os.getenv(env_name):
+            config_from_env[name] = os.getenv(env_name)
+    return config_from_env
 
 def get_config() -> Config:
 
-    # loading order determines precidence
-    config_from_file = dict()
-    if config_default_filepath.exists():
-        config_from_file.update(update_config_from_file(config_default_filepath))
+    config_dict = dict()
     if config_override_filepath:
-        config_from_file.update(update_config_from_file(config_override_filepath))
-
+        config_dict.update(get_config_from_file(config_override_filepath))
     # env vars take highest precidence
-    config = Config()
-    for name in Config.__dataclass_fields__.keys():
-        env_name = PREFIX + name.upper()
-        setattr(config, name, os.getenv(env_name, config_from_file.get(name)))
-    config.num_workers = int(config.num_workers)
+    config_dict.update(get_config_from_env())
 
-    config.ths_rlz_s3_bucket = config.set_bucket(config.ths_rlz_s3_bucket)
-    config.ths_agg_s3_bucket = config.set_bucket(config.ths_agg_s3_bucket)
-    # if config.ths_rlz_s3_bucket and config.ths_rlz_s3_bucket[-1] == '/':
-    #     config.ths_rlz_s3_bucket = config.ths_rlz_s3_bucket[:-1]
-    config.ths_rlz_fs = config.set_fs(config.ths_rlz_fs)
-    config.ths_agg_fs = config.set_fs(config.ths_agg_fs)
-    # try:
-    #     config.ths_rlz_fs = ArrowFS[config.ths_rlz_fs.upper()]  # type: ignore
-    # except KeyError:
-    #     msg = f"ths_rlz_fs must be in {[x.name for x in ArrowFS]}"
-    #     raise KeyError(msg)
+    config = Config(num_workers=DEFAULT_NUM_WORKERS, ths_rlz_fs=DEFAULT_FS, ths_agg_fs=DEFAULT_FS)
+    for k, v in config_dict.items():
+        setattr(config, k, v)
 
     return config
