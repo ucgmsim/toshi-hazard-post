@@ -16,38 +16,38 @@ from toshi_hazard_post.local_config import ENV_NAMES as env_vars
 # ]
 
 default_attrs = [
-    ("num_workers", 1),
-    ("ths_rlz_fs", local_config.ArrowFS.LOCAL),
-    ("ths_agg_fs", local_config.ArrowFS.LOCAL),
+    ("thp_num_workers", 1),
+    ("thp_ths_rlz_fs", local_config.ArrowFS.LOCAL),
+    ("thp_ths_agg_fs", local_config.ArrowFS.LOCAL),
 ]
 
 user_attrs = [
-    ("num_workers", 2),
-    ("work_path", 'user work path'),
-    ("ths_rlz_local_dir", 'user ths local dir'),
-    ("ths_rlz_s3_bucket", 'user ths s3 bucket'),
-    ("ths_rlz_aws_region", 'user ths aws region'),
-    ("ths_rlz_fs", local_config.ArrowFS.AWS),
-    ("ths_agg_local_dir", 'user agg ths local dir'),
-    ("ths_agg_s3_bucket", 'user agg ths s3 bucket'),
-    ("ths_agg_aws_region", 'user agg ths aws region'),
-    ("ths_agg_fs", local_config.ArrowFS.AWS),
+    ("thp_num_workers", 2),
+    ("thp_work_path", 'user work path'),
+    ("thp_ths_rlz_local_dir", 'user ths local dir'),
+    ("thp_ths_rlz_s3_bucket", 'user ths s3 bucket'),
+    ("thp_ths_rlz_aws_region", 'user ths aws region'),
+    ("thp_ths_rlz_fs", local_config.ArrowFS.AWS),
+    ("thp_ths_agg_local_dir", 'user agg ths local dir'),
+    ("thp_ths_agg_s3_bucket", 'user agg ths s3 bucket'),
+    ("thp_ths_agg_aws_region", 'user agg ths aws region'),
+    ("thp_ths_agg_fs", local_config.ArrowFS.AWS),
 ]
 
 
 @pytest.fixture(scope='function', params=list(range(8)))
 def env_attr_val_fixture(request):
     attrs_vals = [
-        ["num_workers", 3],
-        ["work_path", 'env work path'],
-        ["ths_rlz_local_dir", 'env ths local dir'],
-        ["ths_rlz_s3_bucket", 'env ths s3 bucket'],
-        ["ths_rlz_aws_region", 'env ths aws region'],
-        ["ths_agg_local_dir", 'env agg ths local dir'],
-        ["ths_agg_s3_bucket", 'env agg ths s3 bucket'],
-        ["ths_agg_aws_region", 'env agg ths aws region'],
+        ["thp_num_workers", 3],
+        ["thp_work_path", 'env work path'],
+        ["thp_ths_rlz_local_dir", 'env ths local dir'],
+        ["thp_ths_rlz_s3_bucket", 'env ths s3 bucket'],
+        ["thp_ths_rlz_aws_region", 'env ths aws region'],
+        ["thp_ths_agg_local_dir", 'env agg ths local dir'],
+        ["thp_ths_agg_s3_bucket", 'env agg ths s3 bucket'],
+        ["thp_ths_agg_aws_region", 'env agg ths aws region'],
     ]
-    env_attr_val = [[local_config.PREFIX + item[0].upper()] + item for item in attrs_vals]
+    env_attr_val = [[item[0].upper()] + item for item in attrs_vals]
     return env_attr_val[request.param]
 
 

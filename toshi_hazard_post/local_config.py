@@ -6,8 +6,6 @@ Environment varaible parameters are uppercase, config file is case insensitive.
 
 Config file format is toml
 
-Parameters in config file do not have THP_ prefix
-
 To use the local configuration, set local_config.config_override_filepath to the desired config file path. Then call
 get_config() inside a function. Note that get_config() must be called in function scope. If called in module scope,
 changes to config_coverride_filepath will not be effective
@@ -48,53 +46,53 @@ config_override_filepath: Optional[Path] = None
 @dataclass
 class Config:
 
-    num_workers: int
-    _num_workers: int = field(init=False, repr=False)
+    thp_num_workers: int
+    _thp_num_workers: int = field(init=False, repr=False)
 
-    ths_rlz_fs: ArrowFS
-    _ths_rlz_fs: ArrowFS = field(init=False, repr=False)
-    ths_agg_fs: ArrowFS
-    _ths_agg_fs: ArrowFS = field(init=False, repr=False)
+    thp_ths_rlz_fs: ArrowFS
+    _thp_ths_rlz_fs: ArrowFS = field(init=False, repr=False)
+    thp_ths_agg_fs: ArrowFS
+    _thp_ths_agg_fs: ArrowFS = field(init=False, repr=False)
 
-    work_path: str = '/tmp'
+    thp_work_path: str = '/tmp'
 
-    ths_rlz_local_dir: Optional[str] = None
-    ths_rlz_s3_bucket: Optional[str] = None
-    ths_rlz_aws_region: Optional[str] = None
+    thp_ths_rlz_local_dir: Optional[str] = None
+    thp_ths_rlz_s3_bucket: Optional[str] = None
+    thp_ths_rlz_aws_region: Optional[str] = None
 
-    ths_agg_local_dir: Optional[str] = None
-    ths_agg_s3_bucket: Optional[str] = None
-    ths_agg_aws_region: Optional[str] = None
-
-    @property  # type: ignore
-    def num_workers(self):
-        return self._num_workers
-
-    @num_workers.setter
-    def num_workers(self, value: int):
-        self._num_workers = int(value)
+    thp_ths_agg_local_dir: Optional[str] = None
+    thp_ths_agg_s3_bucket: Optional[str] = None
+    thp_ths_agg_aws_region: Optional[str] = None
 
     @property  # type: ignore
-    def ths_rlz_fs(self):
-        return self._ths_rlz_fs
+    def thp_num_workers(self):
+        return self._thp_num_workers
 
-    @ths_rlz_fs.setter
-    def ths_rlz_fs(self, value: Union[str, ArrowFS]):
+    @thp_num_workers.setter
+    def thp_num_workers(self, value: int):
+        self._thp_num_workers = int(value)
+
+    @property  # type: ignore
+    def thp_ths_rlz_fs(self):
+        return self._thp_ths_rlz_fs
+
+    @thp_ths_rlz_fs.setter
+    def thp_ths_rlz_fs(self, value: Union[str, ArrowFS]):
         if isinstance(value, str):
-            self._ths_rlz_fs = Config.set_fs(value)
+            self._thp_ths_rlz_fs = Config.set_fs(value)
         else:
-            self._ths_rlz_fs = value
+            self._thp_ths_rlz_fs = value
 
     @property  # type: ignore
-    def ths_agg_fs(self):
-        return self._ths_agg_fs
+    def thp_ths_agg_fs(self):
+        return self._thp_ths_agg_fs
 
-    @ths_agg_fs.setter
-    def ths_agg_fs(self, value: Union[str, ArrowFS]):
+    @thp_ths_agg_fs.setter
+    def thp_ths_agg_fs(self, value: Union[str, ArrowFS]):
         if isinstance(value, str):
-            self._ths_agg_fs = Config.set_fs(value)
+            self._thp_ths_agg_fs = Config.set_fs(value)
         else:
-            self._ths_agg_fs = value
+            self._thp_ths_agg_fs = value
 
     @staticmethod
     def set_bucket(bucket):
@@ -112,8 +110,7 @@ class Config:
                 raise KeyError(msg)
 
 
-PREFIX = 'THP_'
-ENV_NAMES = [(PREFIX + key).upper() for key in Config.__dataclass_fields__.keys()]
+ENV_NAMES = [key.upper() for key in Config.__dataclass_fields__.keys()]
 
 
 def get_config_from_file(filepath: Union[str, Path]):
@@ -129,7 +126,7 @@ def get_config_from_env():
 
     config_from_env = dict()
     for name in Config.__dataclass_fields__.keys():
-        env_name = PREFIX + name.upper()
+        env_name = name.upper()
         if os.getenv(env_name):
             config_from_env[name] = os.getenv(env_name)
     return config_from_env
@@ -143,7 +140,7 @@ def get_config() -> Config:
     # env vars take highest precidence
     config_dict.update(get_config_from_env())
 
-    config = Config(num_workers=DEFAULT_NUM_WORKERS, ths_rlz_fs=DEFAULT_FS, ths_agg_fs=DEFAULT_FS)
+    config = Config(thp_num_workers=DEFAULT_NUM_WORKERS, thp_ths_rlz_fs=DEFAULT_FS, thp_ths_agg_fs=DEFAULT_FS)
     for k, v in config_dict.items():
         setattr(config, k.lower(), v)
 
