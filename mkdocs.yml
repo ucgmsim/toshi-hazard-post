@@ -7,9 +7,13 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - Usage: usage.md
-  - Modules: api.md
   - Contributing: contributing.md
   - Changelog: changelog.md
+  - API Reference:
+    - aggregation_calc: api/aggregation_calc.md
+    - calculators: api/calculators.md
+    - data: api/data.md
+    - logic_tree: api/logic_tree.md
 theme:
   name: material
   language: en

@@ -1,3 +1,6 @@
+"""
+Module for coordinating and launching aggregation jobs.
+"""
 import logging
 import sys
 import time
