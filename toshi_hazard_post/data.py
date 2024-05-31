@@ -86,21 +86,27 @@ def get_s3_fs(region, bucket) -> Tuple[fs.FileSystem, str]:
 def get_rlz_filesystem() -> Tuple[fs.FileSystem, str]:
     config = get_config()
     return get_arrow_filesystem(
-        config.ths_rlz_fs, config.ths_rlz_aws_region, config.ths_rlz_local_dir, config.ths_rlz_s3_bucket
+        config['RLZ_FS'],
+        config['RLZ_LOCAL_DIR'],
+        config['RLZ_AWS_REGION'],
+        config['RLZ_S3_BUCKET'],
     )
 
 
 def get_agg_filesystem() -> Tuple[fs.FileSystem, str]:
     config = get_config()
     return get_arrow_filesystem(
-        config.ths_agg_fs, config.ths_agg_aws_region, config.ths_agg_local_dir, config.ths_agg_s3_bucket
+        config['AGG_FS'],
+        config['AGG_LOCAL_DIR'],
+        config['AGG_AWS_REGION'],
+        config['AGG_S3_BUCKET'],
     )
 
 
 def get_arrow_filesystem(
     fs_type: ArrowFS,
-    aws_region: Optional[str] = None,
     local_dir: Optional[str] = None,
+    aws_region: Optional[str] = None,
     s3_bucket: Optional[str] = None,
 ) -> Tuple[fs.FileSystem, str]:
 
