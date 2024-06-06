@@ -196,7 +196,9 @@ def load_realizations(
     rlz_table = arrow_scanner.to_table()
     t2 = time.monotonic()
     if len(rlz_table) == 0:
-        raise Exception(f"no realizations were found in the database for {location=}, {imt=}, {vs30=}, {compatibility_key=}")
+        raise Exception(
+            f"no realizations were found in the database for {location=}, {imt=}, {vs30=}, {compatibility_key=}"
+        )
 
     log.info("load scanner:%0.6f, to_arrow %0.6fs" % (t1 - t0, t2 - t1))
     log.info("RSS: {}MB".format(pa.total_allocated_bytes() >> 20))
