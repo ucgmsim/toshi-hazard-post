@@ -39,12 +39,11 @@ def env_attr_val(request):
     return env_attr_val[request.param]
 
 
-user_filepath = Path(__file__).parent / 'fixtures/local_config/.env'
-
-# clear env vars
+user_filepath = Path(__file__).parent / 'fixtures' / 'local_config' / '.env'
 
 
-def clear_env():
+@pytest.fixture(autouse=True)
+def clear_env(monkeypatch):
     env_vars = [
         "THP_NUM_WORKERS",
         "THP_RLZ_LOCAL_DIR",
@@ -57,28 +56,25 @@ def clear_env():
         "THP_AGG_FS",
         "THP_ENV_FILE",
     ]
-
     for var in env_vars:
-        if os.getenv(var):
-            del os.environ[var]
+        monkeypatch.delenv(var, raising=False)
 
 
 @pytest.mark.parametrize("attr,value", default_attrs)
-def test_default_precidence(attr, value):
-    clear_env()
+def test_default_values(attr, value):
     assert get_config()[attr] == value
 
 
 @pytest.mark.parametrize("attr,value", user_attrs)
-def test_user_precidence(attr, value):
-    clear_env()
-    os.environ['THP_ENV_FILE'] = str(user_filepath)
+def test_user_precidence(attr, value, monkeypatch):
+    """test that a user defined env file will override default values"""
+    monkeypatch.setenv('THP_ENV_FILE', str(user_filepath))
     assert get_config()[attr] == value
 
 
-def test_env_precidence(env_attr_val):
-    clear_env()
-    os.environ['THP_ENV_FILE'] = str(user_filepath)
+def test_env_precidence(env_attr_val, monkeypatch):
+    """test that env vars will take highest precidence"""
+    monkeypatch.setenv('THP_ENV_FILE', str(user_filepath))
     env, attr, value = env_attr_val
     os.environ[env] = str(value)
     assert get_config()[attr] == value
