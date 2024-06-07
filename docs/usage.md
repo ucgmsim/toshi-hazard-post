@@ -77,7 +77,7 @@ lat,lon,vs30
 ### Manipulating calculation arguments programmatically
 
 Users may want to manipulate arguments in a script to facilitate easy experiementation. Here is an example of altering the logic tree and re-running a calculation:
-```
+```py
 >>> from toshi_hazard_post.aggregation_args import AggregationArgs
 >>> from toshi_hazard_post.aggregation import run_aggregation
 >>> input_file = "demo/hazard_v2_mini.toml"
