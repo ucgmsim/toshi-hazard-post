@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest import mock
 
-# import numpy as np
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -19,7 +19,7 @@ aggs_expected_filepath = fixture_dir / 'aggregations_275_PGA_-34.500~173.000.npy
 @mock.patch('toshi_hazard_post.aggregation_calc.save_aggregations')
 @mock.patch('toshi_hazard_post.aggregation_calc.load_realizations')
 def test_end_to_end(load_mock, save_mock, monkeypatch):
-    # aggs_expected = np.load(aggs_expected_filepath)
+    aggs_expected = np.load(aggs_expected_filepath)
 
     def mock_config():
         return dict(NUM_WORKERS=1)
@@ -28,6 +28,7 @@ def test_end_to_end(load_mock, save_mock, monkeypatch):
     load_mock.return_value = pd.read_parquet(parquet_filepath)
     df = pd.read_parquet(parquet_filepath)
     assert df.loc[415, 'values'][0] == pytest.approx(0.060450900346040726)
+    assert aggs_expected[0][0] == pytest.approx(0.06003212930540347)
 
     # agg_args = AggregationArgs(args_filepath)
     # run_aggregation(agg_args)
