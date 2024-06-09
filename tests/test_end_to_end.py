@@ -35,3 +35,5 @@ def test_end_to_end(load_mock, save_mock, monkeypatch):
     # assert np.allclose(aggs, aggs_expected)
     assert aggs[0][0] == pytest.approx(aggs_expected[0][0])
     assert aggs[-1][-1] == pytest.approx(aggs_expected[-1][-1])
+    assert aggs[0][20] == pytest.approx(aggs_expected[0][20])
+    assert aggs[11][20] == pytest.approx(aggs_expected[11][20])
