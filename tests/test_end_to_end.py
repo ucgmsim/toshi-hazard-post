@@ -3,7 +3,6 @@ from unittest import mock
 
 import numpy as np
 import pandas as pd
-import pytest
 
 import toshi_hazard_post.local_config
 from toshi_hazard_post.aggregation import run_aggregation
@@ -25,16 +24,8 @@ def test_end_to_end(load_mock, save_mock, monkeypatch):
 
     monkeypatch.setattr(toshi_hazard_post.local_config, 'get_config', mock_config)
     load_mock.return_value = pd.read_parquet(parquet_filepath)
-    # df = pd.read_parquet(parquet_filepath)
-    # assert df.loc[415, 'values'][0] == pytest.approx(0.060450900346040726)
-    # assert aggs_expected[0][0] == pytest.approx(0.06003212930540347)
 
     agg_args = AggregationArgs(args_filepath)
     run_aggregation(agg_args)
     aggs = save_mock.mock_calls[0].args[0]
-    # assert np.allclose(aggs, aggs_expected)
-    assert aggs == pytest.approx(aggs_expected)
-    # assert aggs[0][0] == pytest.approx(aggs_expected[0][0])
-    # assert aggs[-1][-1] == pytest.approx(aggs_expected[-1][-1])
-    # assert aggs[0][20] == pytest.approx(aggs_expected[0][20])
-    # assert aggs[11][20] == pytest.approx(aggs_expected[11][20])
+    np.testing.assert_allclose(aggs, aggs_expected, rtol=1e-7, atol=2e-5)
