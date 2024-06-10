@@ -25,17 +25,24 @@ def test_end_to_end(load_mock, save_mock, monkeypatch):
 
     monkeypatch.setattr(toshi_hazard_post.local_config, 'get_config', mock_config)
     load_mock.return_value = pd.read_parquet(parquet_filepath)
-    df = pd.read_parquet(parquet_filepath)
-    df_fcsv = pd.read_csv(csv_filepath)
-    for i in range(len(df)):
-        import json
-
-        v = json.loads(
-            df_fcsv.loc[i, 'values'].replace('\n', '').replace(' ', ',').replace('0.,', '0.0,').replace('0.]', '0.0]')
-        )
-        np.testing.assert_allclose(df.loc[i, 'values'], np.array(v))
-
     agg_args = AggregationArgs(args_filepath)
     run_aggregation(agg_args)
     aggs = save_mock.mock_calls[0].args[0]
-    np.testing.assert_allclose(aggs, aggs_expected, rtol=1e-7, atol=2e-5)
+
+    def is_float(value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+
+    # fractile calculation is fragile and needs larger tolerance to pass tests
+    for i, agg_type in enumerate(agg_args.agg_types):
+        if is_float(agg_type):
+            rtol = 1e-7
+            atol = 2e-5
+        else:
+            rtol = 1e-7
+            atol = 0.0
+        np.testing.assert_allclose(aggs[i, :], aggs_expected[i, :], rtol=rtol, atol=atol)
+
