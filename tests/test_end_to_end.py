@@ -38,10 +38,5 @@ def test_end_to_end(load_mock, save_mock, monkeypatch):
 
     # fractile calculation is fragile and needs larger tolerance to pass tests
     for i, agg_type in enumerate(agg_args.agg_types):
-        if is_float(agg_type):
-            rtol = 1e-7
-            atol = 2e-5
-        else:
-            rtol = 1e-7
-            atol = 0.0
+        rtol, atol = (1e-7, 2e-5) if is_float(agg_type) else (1e-7, 0.0)
         np.testing.assert_allclose(aggs[i, :], aggs_expected[i, :], rtol=rtol, atol=atol)
