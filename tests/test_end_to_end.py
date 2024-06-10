@@ -29,12 +29,11 @@ def test_end_to_end(load_mock, save_mock, monkeypatch):
     df_fcsv = pd.read_csv(csv_filepath)
     for i in range(len(df)):
         import json
+
         v = json.loads(
-            df_fcsv.loc[i, 'values'].replace('\n','').replace(' ', ',').replace('0.,','0.0,').replace('0.]','0.0]')
+            df_fcsv.loc[i, 'values'].replace('\n', '').replace(' ', ',').replace('0.,', '0.0,').replace('0.]', '0.0]')
         )
-        np.testing.assert_allclose(
-            df.loc[i, 'values'], np.array(v)
-        )
+        np.testing.assert_allclose(df.loc[i, 'values'], np.array(v))
 
     agg_args = AggregationArgs(args_filepath)
     run_aggregation(agg_args)
