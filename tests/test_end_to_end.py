@@ -45,4 +45,3 @@ def test_end_to_end(load_mock, save_mock, monkeypatch):
             rtol = 1e-7
             atol = 0.0
         np.testing.assert_allclose(aggs[i, :], aggs_expected[i, :], rtol=rtol, atol=atol)
-
