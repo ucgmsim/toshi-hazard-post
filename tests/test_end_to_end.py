@@ -10,6 +10,7 @@ from toshi_hazard_post.aggregation_args import AggregationArgs
 
 fixture_dir = Path(__file__).parent / 'fixtures' / 'end_to_end'
 parquet_filepath = fixture_dir / 'rlz_probs.pq'
+csv_filepath = fixture_dir / 'rlz_probs.csv'
 args_filepath = fixture_dir / 'hazard.toml'
 aggs_expected_filepath = fixture_dir / 'aggregations_275_PGA_-34.500~173.000.npy'
 
@@ -25,55 +26,15 @@ def test_end_to_end(load_mock, save_mock, monkeypatch):
     monkeypatch.setattr(toshi_hazard_post.local_config, 'get_config', mock_config)
     load_mock.return_value = pd.read_parquet(parquet_filepath)
     df = pd.read_parquet(parquet_filepath)
-    e_100 = np.array(
-        [
-            1.08094662e-01,
-            1.08094662e-01,
-            1.08085223e-01,
-            1.07998222e-01,
-            1.07720889e-01,
-            1.07164048e-01,
-            1.00059994e-01,
-            7.83751309e-02,
-            6.05159029e-02,
-            4.78485823e-02,
-            3.88501808e-02,
-            1.80388670e-02,
-            7.12142605e-03,
-            3.78514500e-03,
-            2.29136948e-03,
-            1.49269367e-03,
-            2.91913282e-04,
-            8.44983224e-05,
-            2.94818801e-05,
-            1.15311404e-05,
-            4.88225760e-06,
-            2.19345452e-06,
-            1.03349475e-06,
-            5.05957019e-07,
-            2.55615760e-07,
-            6.96675642e-08,
-            1.97543848e-08,
-            5.25937427e-09,
-            1.00168707e-09,
-            3.23859828e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-            1.38331568e-11,
-        ]
-    )
-    np.testing.assert_allclose(df.loc[100, 'values'], e_100)
+    df_fcsv = pd.read_csv(csv_filepath)
+    for i in range(len(df)):
+        import json
+        v = json.loads(
+            df_fcsv.loc[i, 'values'].replace('\n','').replace(' ', ',').replace('0.,','0.0,').replace('0.]','0.0]')
+        )
+        np.testing.assert_allclose(
+            df.loc[i, 'values'], np.array(v)
+        )
 
     agg_args = AggregationArgs(args_filepath)
     run_aggregation(agg_args)
