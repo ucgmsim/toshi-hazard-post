@@ -28,4 +28,4 @@ def test_end_to_end(load_mock, save_mock, monkeypatch):
     agg_args = AggregationArgs(args_filepath)
     run_aggregation(agg_args)
     aggs = save_mock.mock_calls[0].args[0]
-    np.testing.assert_allclose(aggs, aggs_expected, rtol=1e-7, atol=2e-5)
+    np.testing.assert_allclose(aggs, aggs_expected, rtol=1e-7, atol=1e-6)
