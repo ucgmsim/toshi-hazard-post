@@ -89,7 +89,7 @@ def weighted_quantiles(
         weighed_quantiles: weighed quantiles
     """
 
-    sorter = np.argsort(values)
+    sorter = np.argsort(values, kind='stable')
     values = values[sorter]
     weights = weights[sorter]
 

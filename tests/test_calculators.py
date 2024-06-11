@@ -83,4 +83,4 @@ class TestQuantiles(unittest.TestCase):
         for i in range(nlevels):
             aggs[:, i] = weighted_quantiles(self.rates[:, i], self.weights, quantiles)
 
-        np.testing.assert_allclose(aggs, self.aggs_expected)
+        np.testing.assert_allclose(aggs, self.aggs_expected, verbose=True)
