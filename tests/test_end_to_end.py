@@ -29,14 +29,4 @@ def test_end_to_end(load_mock, save_mock, monkeypatch):
     run_aggregation(agg_args)
     aggs = save_mock.mock_calls[0].args[0]
 
-    def is_float(value):
-        try:
-            float(value)
-            return True
-        except ValueError:
-            return False
-
-    # fractile calculation is fragile and needs larger tolerance to pass tests
-    for i, agg_type in enumerate(agg_args.agg_types):
-        rtol, atol = (1e-7, 2e-5) if is_float(agg_type) else (1e-7, 0.0)
-        np.testing.assert_allclose(aggs[i, :], aggs_expected[i, :], rtol=rtol, atol=atol)
+    np.testing.assert_allclose(aggs, aggs_expected)
