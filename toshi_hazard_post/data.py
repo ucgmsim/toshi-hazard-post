@@ -10,7 +10,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
-from toshi_hazard_store.model.revision_4 import hazard_aggregate_curve, pyarrow_dataset
+from toshi_hazard_store.model.revision_4 import hazard_aggregate_curve, pyarrow_aggr_dataset
 
 from toshi_hazard_post.local_config import ArrowFS, get_config
 
@@ -62,7 +62,7 @@ def save_aggregations(
                 agg=agg,
             ).set_location(location)
 
-    pyarrow_dataset.append_models_to_dataset(generate_models(), root, filesystem=filesystem)
+    pyarrow_aggr_dataset.append_models_to_dataset(generate_models(), root, filesystem=filesystem)
     # write_aggs_to_ths(hazard, location, vs30, imt, agg_types, hazard_model_id)
 
 
