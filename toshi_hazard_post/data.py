@@ -171,7 +171,7 @@ def load_realizations(
         compatibility_key: the compatibility key used to lookup the correct realizations in the database
 
     Returns:
-        values: the component realizations rates (not probabilities)
+        values: the component realizations
     """
     dataset = get_realizations_dataset()
 
