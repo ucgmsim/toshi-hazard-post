@@ -28,10 +28,9 @@ In addition, it requires a small number of scientific computation packages such 
 
 ## Usage
 
+Getting started
 ```
 thp --help
 ```
 
-```
-thp aggregate INPUT_FILE
-```
+See [usage documentation page](docs/usage.md) for more info.

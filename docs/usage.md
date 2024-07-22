@@ -71,12 +71,12 @@ lat,lon,vs30
     - `mean`: weighted mean
     - `std`: weighted standard deviation
     - `cov`: weighted coeficint of variation [Meletti et al., 2021](https://doi.org/10.4401/ag-8579)
-    - fractile specified by the string representation of a floationg point number between 0 and 1
+    - fractile specified by the string representation of a floating point number between 0 and 1
 
 
 ### Manipulating calculation arguments programmatically
 
-Users may want to manipulate arguments in a script to facilitate easy experiementation. Here is an example of altering the logic tree and re-running a calculation:
+Users may want to manipulate arguments in a script to facilitate easy experimentation. Here is an example of altering the logic tree and re-running a calculation:
 ```py
 from toshi_hazard_post.aggregation_args import AggregationArgs
 from toshi_hazard_post.aggregation import run_aggregation
