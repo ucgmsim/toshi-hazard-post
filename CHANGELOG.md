@@ -2,6 +2,9 @@
 
 ## [0.4.0] - 2024-06-06
 
+### Added
+ * Documentation
+
 ### Changed
  * Complete refactor taking advantage of nzshm-model functionality
  * Significant performance improvements
@@ -9,7 +12,7 @@
 
 ### Removed
  * Cloud compute support. To be added back later
- * Disaggregation calculations. Toi be added back later
+ * Disaggregation calculations. To be added back later
 
 
 ## [0.3.2] - 2023-08-22
