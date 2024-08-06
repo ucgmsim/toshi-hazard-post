@@ -10,7 +10,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
-from toshi_hazard_store.model.revision_4 import hazard_aggregate_curve, pyarrow_aggr_dataset
+from toshi_hazard_store.model.revision_4 import hazard_aggregate_curve, pyarrow_aggr_dataset, pyarrow_realizations_dataset, realizations
 
 from toshi_hazard_post.local_config import ArrowFS, get_config
 
@@ -64,6 +64,50 @@ def save_aggregations(
 
     pyarrow_aggr_dataset.append_models_to_dataset(generate_models(), root, filesystem=filesystem)
     # write_aggs_to_ths(hazard, location, vs30, imt, agg_types, hazard_model_id)
+
+def save_realizations(
+    hazard: 'npt.NDArray',
+    composite_branches: List[List[str]],
+    branch_weights: List[float],
+    location: 'CodedLocation',
+    vs30: int,
+    imt: str,
+    hazard_model_id: str,
+    compatability_key: str,
+) -> None:
+    """
+    Save the aggregated hazard to the database. Converts hazard as rates to proabilities before saving.
+
+    Parameters:
+        hazard: the hazard rates or probabilities to save with dimensions (branch, IMTL)
+        branch_hash_table: composite branches represented as a list of hashes of the component branches
+        branch_weights: weights for the branches of the logic tree
+        location: the site location
+        vs30: the site vs30
+        imt: the intensity measure type (e.g. "PGA", "SA(1.5)")
+        hazard_model_id: the model id for storing in the database
+    """
+
+    filesystem, root = get_agg_filesystem()
+
+    def generate_models():
+
+        assert len(composite_branches) == len(branch_weights), "branch hash table and branch weights must be the same length"
+        assert len(composite_branches) == hazard.shape[0], "branch hash table and hazard must have the same number of rows"
+
+        for i in range(len(composite_branches)):
+
+            yield realizations.RealizationCurve(
+                compatible_calc_fk=('A', compatability_key),
+                hazard_model_id=hazard_model_id,
+                values=hazard[i, :],
+                composite_branches = composite_branches[i],
+                branch_weight = branch_weights[i],
+                imt=imt,
+                vs30=vs30,
+            ).set_location(location)
+
+    pyarrow_realizations_dataset.append_models_to_dataset(generate_models(), root, filesystem=filesystem)
 
 
 def get_local_fs(local_dir) -> Tuple[fs.FileSystem, str]:

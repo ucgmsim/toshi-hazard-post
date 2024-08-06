@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Dict, List, Sequence
 import numpy as np
 
 import toshi_hazard_post.calculators as calculators
-from toshi_hazard_post.data import load_realizations, save_aggregations
+from toshi_hazard_post.data import load_realizations, save_aggregations, save_realizations
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -230,7 +230,14 @@ def calc_aggregation(task_args: AggTaskArgs, shared_args: AggSharedArgs, worker_
 
     composite_rates = build_branch_rates(branch_hash_table, component_rates)
     time5 = time.perf_counter()
-    log.debug('worker %s: time to build_ranch_rates %0.2f seconds' % (worker_name, time5 - time4))
+    log.debug('worker %s: time to build_branch_rates %0.2f seconds' % (worker_name, time5 - time4))
+
+    print()
+
+    composite_prob = calculators.rate_to_prob(composite_rates, 1.0)
+    save_realizations(composite_prob, branch_hash_table, weights, location, vs30, imt, hazard_model_id, compatibility_key)
+
+    print()
 
     log.info("worker %s:  calculating aggregates . . . " % worker_name)
     hazard = calculate_aggs(composite_rates, weights, agg_types)
@@ -240,6 +247,7 @@ def calc_aggregation(task_args: AggTaskArgs, shared_args: AggSharedArgs, worker_
     log.info("worker %s saving result . . . " % worker_name)
     probs = calculators.rate_to_prob(hazard, 1.0)
     save_aggregations(probs, location, vs30, imt, agg_types, hazard_model_id, compatibility_key)
+
     time7 = time.perf_counter()
     log.info(
         'worker %s time to perform one aggregation after loading data %0.2f seconds' % (worker_name, time7 - time2)
