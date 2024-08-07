@@ -96,14 +96,12 @@ def save_realizations(
         assert len(branches_as_hash_composites) == branches_hazard_rates.shape[0], "branch hash table and hazard must have the same number of rows"
 
         for i in range(len(branches_as_hash_composites)):
-            if i % 1000 == 0:
-                print(f"Trying to save realization {i} of {len(branches_as_hash_composites)}")
 
             yield hazard_aggregate_curve.IndividualHazardRateRealizations(
                 compatible_calc_fk=('A', compatability_key),
                 hazard_model_id=hazard_model_id,
                 branches_hazard_rates=branches_hazard_rates[i, :],
-                branches_as_hash_composites = branches_as_hash_composites,
+                branches_as_hash_composites = branches_as_hash_composites[i],
                 branch_weight = branch_weights[i],
                 imt=imt,
                 vs30=vs30,
