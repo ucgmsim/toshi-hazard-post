@@ -86,6 +86,7 @@ def run_aggregation(args: AggregationArgs) -> None:
         agg_types=args.agg_types,
         hazard_model_id=args.hazard_model_id,
         compatibility_key=args.compat_key,
+        output_individual_realizations = args.output_individual_realizations
     )
 
     task_queue: Union['queue.Queue', 'multiprocessing.JoinableQueue']

@@ -28,6 +28,7 @@ class AggregationArgs:
         self.hazard_model_id = self._config['general']['hazard_model_id']
         self.imts = self._config['calculation']['imts']
         self.agg_types = self._config['calculation']['agg_types']
+        self.output_individual_realizations = None
 
     def _validate_compatibility(self) -> None:
         res = list(query_compatibility(self._config['general']['compatibility_key']))
