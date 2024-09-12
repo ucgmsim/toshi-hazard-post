@@ -2200,7 +2200,6 @@ files = [
 
 [[package]]
 name = "toshi-hazard-store"
-version = "0.9.0"
 description = "Library for saving and retrieving NZHSM openquake hazard results with convenience (uses AWS Dynamodb)."
 optional = false
 python-versions = ">=3.10,<3.13"
