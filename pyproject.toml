@@ -42,7 +42,7 @@ pandas = "~2.0.3"
 click = "^8.1.7"
 python-dotenv = "^1.0.1"
 toshi-hazard-store = {git = "https://github.com/ucgmsim/toshi-hazard-store.git", rev = "pre-release_get_realizations"}
-nzshm-model = {git = "https://github.com/GNS-Science/nzshm-model.git", rev = "pre-release"}
+nzshm-model = {git = "https://github.com/ucgmsim/nzshm-model.git", rev = "srm-trt-merge-digest_version_hack"}
 
 [tool.poetry.group.dev.dependencies]
 black  = { version = "^22.3"}
